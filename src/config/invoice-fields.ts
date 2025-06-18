@@ -22,9 +22,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'limMinTensao', x: 248, y: 197, width: 40, height: 22, initialValue: "117", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'limMaxTensao', x: 328, y: 197, width: 40, height: 22, initialValue: "133", style: { fontSize: '9px' }, className: "text-center" },
   
-  // Bloco Datas e NF-e (superior direito)
-  { name: 'dataApresentacao', x: 700, y: 105, width: 90, height: 22, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-right" },
-  { name: 'codDebAutom', x: 643, y: 120, width: 90, height: 22, initialValue: "6555432", style: { fontSize: '9px' }, className: "text-right" },
+  // Bloco Datas e NF-e (superior direito) - Fields removed as per request
   
   { name: 'leituraAnteriorData', x: 510, y: 220, width: 70, height: 24, initialValue: "18/05/2025", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'leituraAtualData', x: 570, y: 220, width: 70, height: 24, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-center" },
@@ -32,8 +30,8 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'proximaLeituraData', x: 685, y: 220, width: 70, height: 24, initialValue: "18/07/2025", style: { fontSize: '9px' }, className: "text-center" },
 
   { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 22, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 22, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
+  // notaFiscalSerie removed
+  // dataEmissaoNF removed
   
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
@@ -57,7 +55,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Tarifa Energia Injetada REF (alinhado com linha do PIS)
+  // Tarifa Energia Injetada REF
   { name: 'item1TarifaEnergiaInjetadaREF', x: 445, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS (Linha 1)

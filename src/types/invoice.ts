@@ -9,7 +9,7 @@ export interface InvoiceData {
   companyCnpj: string;
   companyInscEst: string;
   roteiroMatricula: string;
-  notaFiscalConcorrencia: string; // Field 'x' in HTML. Changed name for clarity.
+  notaFiscalConcorrencia: string; 
   domBanco: string;
   domEnt: string;
   classificacao: string;
@@ -17,15 +17,15 @@ export interface InvoiceData {
   tensaoNominalDisp: string;
   limMinTensao: string;
   limMaxTensao: string;
-  dataApresentacao: string;
-  codDebAutom: string;
+  // dataApresentacao removed
+  // codDebAutom removed
   leituraAnteriorData: string;
   leituraAtualData: string;
   numDiasFaturamento: string;
   proximaLeituraData: string;
   notaFiscalNum: string;
-  notaFiscalSerie: string;
-  dataEmissaoNF: string;
+  // notaFiscalSerie removed
+  // dataEmissaoNF removed
   clienteNome: string;
   clienteEndereco: string;
   clienteBairro: string;
