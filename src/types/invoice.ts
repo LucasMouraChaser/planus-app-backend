@@ -8,8 +8,6 @@ export interface InvoiceData {
   companyCityStateZip: string;
   companyCnpj: string;
   companyInscEst: string;
-  // roteiroMatricula: string; // Removed
-  // notaFiscalConcorrencia: string; // Removed
   domBanco: string;
   domEnt: string;
   classificacao: string;
@@ -53,7 +51,7 @@ export interface InvoiceData {
   item3Valor: string;
   totalPisValor: string;
   totalCofinsValor: string;
-  totalIcmsValor: string;
+  // totalIcmsValor: string; // Removed as per user request to eliminate overlap
   [key: string]: string; 
 }
 
