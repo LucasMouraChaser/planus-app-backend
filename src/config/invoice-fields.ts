@@ -58,6 +58,9 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
   
+  // Tarifa Energia Injetada REF (alinhado com linha do PIS) - Adjusted based on user feedback
+  { name: 'item1TarifaEnergiaInjetadaREF', x: 445, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
+  
   // Campos de Tributos - PIS (Linha 1)
   { name: 'item1PisBase',    x: 602, y: 487, width: 58, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1PisAliq',    x: 662, y: 487, width: 43, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
@@ -73,8 +76,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1IcmsPerc',   x: 662, y: 509, width: 43, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   { name: 'item1IcmsRS',     x: 707, y: 509, width: 45, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Tarifa Energia Injetada REF (alinhado com linha do PIS)
-  { name: 'item1TarifaEnergiaInjetadaREF', x: 710, y: 361, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
