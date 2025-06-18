@@ -8,8 +8,8 @@ export interface InvoiceData {
   companyCityStateZip: string;
   companyCnpj: string;
   companyInscEst: string;
-  roteiroMatricula: string;
-  notaFiscalConcorrencia: string; 
+  // roteiroMatricula: string; // Removed
+  // notaFiscalConcorrencia: string; // Removed
   domBanco: string;
   domEnt: string;
   classificacao: string;
@@ -17,15 +17,11 @@ export interface InvoiceData {
   tensaoNominalDisp: string;
   limMinTensao: string;
   limMaxTensao: string;
-  // dataApresentacao removed
-  // codDebAutom removed
   leituraAnteriorData: string;
   leituraAtualData: string;
   numDiasFaturamento: string;
   proximaLeituraData: string;
   notaFiscalNum: string;
-  // notaFiscalSerie removed
-  // dataEmissaoNF removed
   clienteNome: string;
   clienteEndereco: string;
   clienteBairro: string;

@@ -11,8 +11,8 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'companyInscEst', x: 220, y: 65, width: 180, height: 22, initialValue: "Insc. Est. XXXXXXXXXX", style: { fontSize: '9px', color: '#000' } },
 
   // Bloco Roteiro/Matrícula (superior esquerdo)
-  { name: 'roteiroMatricula', x: 73, y: 105, width: 120, height: 22, initialValue: "655-5432-000-0", style: { fontSize: '9px' }, className: "text-left" },
-  { name: 'notaFiscalConcorrencia', x: 208, y: 105, width: 100, height: 22, initialValue: "x", style: { fontSize: '9px' }, className: "text-left" },
+  // { name: 'roteiroMatricula', x: 73, y: 105, width: 120, height: 22, initialValue: "655-5432-000-0", style: { fontSize: '9px' }, className: "text-left" }, // Removed
+  // { name: 'notaFiscalConcorrencia', x: 208, y: 105, width: 100, height: 22, initialValue: "x", style: { fontSize: '9px' }, className: "text-left" }, // Removed
   { name: 'domBanco', x: 63, y: 120, width: 120, height: 22, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
   { name: 'domEnt', x: 208, y: 120, width: 100, height: 22, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
   
@@ -22,16 +22,13 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'limMinTensao', x: 248, y: 197, width: 40, height: 22, initialValue: "117", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'limMaxTensao', x: 328, y: 197, width: 40, height: 22, initialValue: "133", style: { fontSize: '9px' }, className: "text-center" },
   
-  // Bloco Datas e NF-e (superior direito) - Fields removed as per request
-  
+  // Bloco Datas e NF-e (superior direito)
   { name: 'leituraAnteriorData', x: 510, y: 220, width: 70, height: 24, initialValue: "18/05/2025", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'leituraAtualData', x: 570, y: 220, width: 70, height: 24, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'numDiasFaturamento', x: 651, y: 220, width: 28, height: 24, initialValue: "30", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'proximaLeituraData', x: 685, y: 220, width: 70, height: 24, initialValue: "18/07/2025", style: { fontSize: '9px' }, className: "text-center" },
 
   { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 22, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
-  // notaFiscalSerie removed
-  // dataEmissaoNF removed
   
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
