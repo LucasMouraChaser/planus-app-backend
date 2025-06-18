@@ -18,18 +18,18 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   
   { name: 'classificacao', x: 73, y: 117, width: 340, height: 28, initialValue: "RESIDENCIAL-CONVENCIONAL BAIXA TENSAO B1/B2/B3", style: { fontSize: '8px' }, className: "text-left" },
   { name: 'ligacao', x: 318, y: 127, width: 70, height: 24, initialValue: "TRIFASICO", style: { fontSize: '9px' }, className: "text-left" },
-  { name: 'tensaoNominalDisp', x: 200, y: 197, width: 20, height: 20, initialValue: "127", style: { fontSize: '9px' }, className: "text-center" },
-  { name: 'limMinTensao', x: 248, y: 197, width: 40, height: 20, initialValue: "117", style: { fontSize: '9px' }, className: "text-center" },
-  { name: 'limMaxTensao', x: 328, y: 197, width: 40, height: 20, initialValue: "133", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'tensaoNominalDisp', x: 200, y: 197, width: 20, height: 22, initialValue: "127", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'limMinTensao', x: 248, y: 197, width: 40, height: 22, initialValue: "117", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'limMaxTensao', x: 328, y: 197, width: 40, height: 22, initialValue: "133", style: { fontSize: '9px' }, className: "text-center" },
   
   // Bloco Datas e NF-e (superior direito)
   { name: 'dataApresentacao', x: 700, y: 105, width: 90, height: 20, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-right" },
   { name: 'codDebAutom', x: 643, y: 120, width: 90, height: 20, initialValue: "6555432", style: { fontSize: '9px' }, className: "text-right" },
   
-  { name: 'leituraAnteriorData', x: 510, y: 220, width: 70, height: 22, initialValue: "18/05/2025", style: { fontSize: '9px' }, className: "text-center" },
-  { name: 'leituraAtualData', x: 570, y: 220, width: 70, height: 22, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-center" },
-  { name: 'numDiasFaturamento', x: 651, y: 220, width: 28, height: 22, initialValue: "30", style: { fontSize: '9px' }, className: "text-center" },
-  { name: 'proximaLeituraData', x: 685, y: 220, width: 70, height: 22, initialValue: "18/07/2025", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'leituraAnteriorData', x: 510, y: 220, width: 70, height: 24, initialValue: "18/05/2025", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'leituraAtualData', x: 570, y: 220, width: 70, height: 24, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'numDiasFaturamento', x: 651, y: 220, width: 28, height: 24, initialValue: "30", style: { fontSize: '9px' }, className: "text-center" },
+  { name: 'proximaLeituraData', x: 685, y: 220, width: 70, height: 24, initialValue: "18/07/2025", style: { fontSize: '9px' }, className: "text-center" },
 
   { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 20, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 20, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
@@ -40,9 +40,9 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
 
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
-  { name: 'clienteEndereco', x: 75, y: 245, width: 355, height: 20, initialValue: "RUA CAMINHO DO SOL, 0 - QD18 LT11 - 78890000", style: { fontSize: '9px' } },
-  { name: 'clienteBairro', x: 75, y: 270, width: 155, height: 20, initialValue: "ROTA DO SOL", style: { fontSize: '9px' } },
-  { name: 'clienteCidadeUF', x: 75, y: 280, width: 205, height: 20, initialValue: "SORRISO (AG: 167)", style: { fontSize: '9px' } },
+  { name: 'clienteEndereco', x: 75, y: 245, width: 355, height: 22, initialValue: "RUA CAMINHO DO SOL, 0 - QD18 LT11 - 78890000", style: { fontSize: '9px' } },
+  { name: 'clienteBairro', x: 75, y: 270, width: 155, height: 22, initialValue: "ROTA DO SOL", style: { fontSize: '9px' } },
+  { name: 'clienteCidadeUF', x: 75, y: 280, width: 205, height: 22, initialValue: "SORRISO (AG: 167)", style: { fontSize: '9px' } },
   { name: 'clienteCnpjCpf', x: 75, y: 310, width: 155, height: 20, initialValue: "05701044165", style: { fontSize: '10px' } },
 
   // Código Cliente / Instalação
@@ -63,19 +63,19 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1TarifaEnergiaInjetadaREF', x: 455, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS
-  { name: 'item1PisBase', x: 605, y: 487, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '7px' }, className: "text-right" },
-  { name: 'item1PisAliq', x: 663, y: 487, width: 40, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white' }, className: "text-right" },
-  { name: 'item1PisValor', x: 705, y: 487, width: 43, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1PisBase', x: 602, y: 487, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1PisAliq', x: 658, y: 487, width: 45, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisValor', x: 704, y: 487, width: 48, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
   
   // Campos de Tributos - COFINS
-  { name: 'item1CofinsBase', x: 605, y: 498, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1CofinsAliq', x: 663, y: 498, width: 40, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1CofinsValor', x: 705, y: 498, width: 43, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1CofinsBase', x: 602, y: 498, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1CofinsAliq', x: 658, y: 498, width: 45, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1CofinsValor', x: 704, y: 498, width: 48, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
   
   // Campos de Tributos - ICMS
-  { name: 'item1IcmsBase', x: 605, y: 509, width: 55, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1IcmsPerc', x: 663, y: 509, width: 40, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1IcmsRS', x: 705, y: 509, width: 43, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1IcmsBase', x: 602, y: 509, width: 55, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1IcmsPerc', x: 658, y: 509, width: 45, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1IcmsRS', x: 704, y: 509, width: 48, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
@@ -98,3 +98,4 @@ export const initialInvoiceData = INVOICE_FIELDS_CONFIG.reduce((acc, field) => {
   acc[field.name] = value;
   return acc;
 }, {} as InvoiceData);
+
