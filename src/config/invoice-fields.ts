@@ -34,7 +34,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 22, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 22, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 22, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
   
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
@@ -58,7 +57,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Tarifa Energia Injetada REF (alinhado com linha do PIS) - Adjusted based on user feedback
+  // Tarifa Energia Injetada REF (alinhado com linha do PIS)
   { name: 'item1TarifaEnergiaInjetadaREF', x: 445, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS (Linha 1)

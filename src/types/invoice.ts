@@ -26,7 +26,6 @@ export interface InvoiceData {
   notaFiscalNum: string;
   notaFiscalSerie: string;
   dataEmissaoNF: string;
-  chaveAcessoNFe: string;
   clienteNome: string;
   clienteEndereco: string;
   clienteBairro: string;
