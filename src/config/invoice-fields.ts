@@ -59,23 +59,22 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Quantidade', x: 240, y: 492, width: 60, height: 22, initialValue: "1.500,00", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
-  
   { name: 'item1TarifaEnergiaInjetadaREF', x: 455, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
-  // Campos de Tributos - PIS
-  { name: 'item1PisBase', x: 602, y: 487, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1PisAliq', x: 658, y: 487, width: 45, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1PisValor', x: 704, y: 487, width: 48, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
+  // Campos de Tributos - PIS (Linha 1)
+  { name: 'item1PisBase',    x: 602, y: 487, width: 58, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1PisAliq',    x: 662, y: 487, width: 43, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisValor',   x: 707, y: 487, width: 45, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Campos de Tributos - COFINS
-  { name: 'item1CofinsBase', x: 602, y: 498, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1CofinsAliq', x: 658, y: 498, width: 45, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1CofinsValor', x: 704, y: 498, width: 48, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
+  // Campos de Tributos - COFINS (Linha 1)
+  { name: 'item1CofinsBase', x: 602, y: 498, width: 58, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1CofinsAliq', x: 662, y: 498, width: 43, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1CofinsValor',x: 707, y: 498, width: 45, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Campos de Tributos - ICMS
-  { name: 'item1IcmsBase', x: 602, y: 509, width: 55, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1IcmsPerc', x: 658, y: 509, width: 45, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1IcmsRS', x: 704, y: 509, width: 48, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
+  // Campos de Tributos - ICMS (Linha 1)
+  { name: 'item1IcmsBase',   x: 602, y: 509, width: 58, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1IcmsPerc',   x: 662, y: 509, width: 43, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1IcmsRS',     x: 707, y: 509, width: 45, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
