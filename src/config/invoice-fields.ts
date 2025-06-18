@@ -54,19 +54,19 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1TarifaEnergiaInjetadaREF', x: 445, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS (Linha 1)
-  { name: 'item1PisBase',    x: 598, y: 485, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1PisAliq',    x: 658, y: 485, width: 48, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1PisValor',   x: 703, y: 485, width: 53, height: 22, initialValue: "14,81", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
+  { name: 'item1PisBase',    x: 607, y: 483, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisAliq',    x: 667, y: 483, width: 48, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisValor',   x: 712, y: 483, width: 53, height: 22, initialValue: "14,81", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   
   // Campos de Tributos - COFINS (Linha 1)
-  { name: 'item1CofinsBase', x: 598, y: 496, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1CofinsAliq', x: 658, y: 496, width: 48, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1CofinsValor',x: 703, y: 496, width: 53, height: 22, initialValue: "67,61", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
+  { name: 'item1CofinsBase', x: 607, y: 494, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1CofinsAliq', x: 667, y: 494, width: 48, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1CofinsValor',x: 712, y: 494, width: 53, height: 22, initialValue: "67,61", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   
   // Campos de Tributos - ICMS (Linha 1)
-  { name: 'item1IcmsBase',   x: 598, y: 507, width: 63, height: 22, initialValue: "1.630,64", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1IcmsPerc',   x: 658, y: 507, width: 48, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
-  { name: 'item1IcmsRS',     x: 703, y: 507, width: 53, height: 22, initialValue: "277,21", style: { fontSize: '8px', background: 'rgba(255, 255, 255, 0.8)' }, className: "text-right" },
+  { name: 'item1IcmsBase',   x: 607, y: 505, width: 63, height: 22, initialValue: "1.630,64", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1IcmsPerc',   x: 667, y: 505, width: 48, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1IcmsRS',     x: 712, y: 505, width: 53, height: 22, initialValue: "277,21", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   
 
   // Linha 2: Energia Injetada GDI UC
