@@ -50,7 +50,6 @@ export interface InvoiceData {
   item3Desc: string; 
   item3Valor: string;
   totalPisValor: string;
-  totalCofinsValor: string;
   // totalIcmsValor: string; // Removed as per user request to eliminate overlap
   [key: string]: string; 
 }
