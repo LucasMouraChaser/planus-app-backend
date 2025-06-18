@@ -28,7 +28,6 @@ export interface InvoiceData {
   dataEmissaoNF: string;
   chaveAcessoNFe: string;
   contingenciaNFe: string;
-  qrNFePlaceholder: string;
   clienteNome: string;
   clienteEndereco: string;
   clienteBairro: string;
@@ -58,7 +57,6 @@ export interface InvoiceData {
   item2Valor: string; 
   item3Desc: string; 
   item3Valor: string;
-  // totalItensValor: string; // Removido conforme solicitado
   totalPisValor: string;
   totalCofinsValor: string;
   totalIcmsValor: string;

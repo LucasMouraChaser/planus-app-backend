@@ -36,7 +36,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 22, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
   { name: 'contingenciaNFe', x: 500, y: 220, width: 285, height: 22, initialValue: "EMITIDO EM CONTINGÊNCIA Pendente da Autorização", style: { fontSize: '8px' }, className: "text-center" },
-  { name: 'qrNFePlaceholder', x: 720, y: 200, width: 70, height: 22, initialValue: "QR NF-e", style: { fontSize: '7px', textAlign:'center' } },
 
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
@@ -85,7 +84,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item3Desc', x: 55, y: 537, width: 132, height: 22, initialValue: "Contrib de Ilum Pub", style: { fontSize: '8px', background: 'white' } },
   { name: 'item3Valor', x: 370, y: 537, width: 70, height: 22, initialValue: "13,75", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Total Itens (REMOVIDO: totalItensValor)
   { name: 'totalPisValor', x: 520, y: 467, width: 42, height: 22, initialValue: "14,81", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
   { name: 'totalCofinsValor', x: 665, y: 467, width: 42, height: 22, initialValue: "67,61", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
   { name: 'totalIcmsValor', x: 705, y: 510, width: 42, height: 22, initialValue: "277,21", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
