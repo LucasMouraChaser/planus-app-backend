@@ -60,18 +60,22 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
   
-  { name: 'item1TarifaEnergiaInjetadaREF', x: 565, y: 492, width: 272, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' } }, 
-  { name: 'item1PisBase', x: 610, y: 487, width: 52, height: 22, initialValue: "1.353,43", style: { fontSize: '7px' }, className: "text-right" },
-  { name: 'item1PisAliq', x: 666, y: 487, width: 37, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white' }, className: "text-right" },
-  { name: 'item1PisValor', x: 705, y: 487, width: 42, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1TarifaEnergiaInjetadaREF', x: 455, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
-  { name: 'item1CofinsBase', x: 610, y: 498, width: 52, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1CofinsAliq', x: 666, y: 498, width: 37, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1CofinsValor', x: 705, y: 498, width: 42, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
+  // Campos de Tributos - PIS
+  { name: 'item1PisBase', x: 605, y: 487, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '7px' }, className: "text-right" },
+  { name: 'item1PisAliq', x: 663, y: 487, width: 40, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisValor', x: 705, y: 487, width: 43, height: 22, initialValue: "14,81", style: { fontSize: '8px' }, className: "text-right" },
   
-  { name: 'item1IcmsBase', x: 620, y: 508, width: 42, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1IcmsPerc', x: 676, y: 512, width: 26, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
-  { name: 'item1IcmsRS', x: 705, y: 512, width: 42, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
+  // Campos de Tributos - COFINS
+  { name: 'item1CofinsBase', x: 605, y: 498, width: 55, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1CofinsAliq', x: 663, y: 498, width: 40, height: 22, initialValue: "4,9955", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1CofinsValor', x: 705, y: 498, width: 43, height: 22, initialValue: "67,61", style: { fontSize: '8px' }, className: "text-right" },
+  
+  // Campos de Tributos - ICMS
+  { name: 'item1IcmsBase', x: 605, y: 509, width: 55, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
+  { name: 'item1IcmsPerc', x: 663, y: 509, width: 40, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1IcmsRS', x: 705, y: 509, width: 43, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
@@ -91,8 +95,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
 
 export const initialInvoiceData = INVOICE_FIELDS_CONFIG.reduce((acc, field) => {
   let value = field.initialValue;
-  // A altura em INVOICE_FIELDS_CONFIG é o valor final a ser usado.
-  // Não é necessário recalcular aqui.
   acc[field.name] = value;
   return acc;
 }, {} as InvoiceData);
