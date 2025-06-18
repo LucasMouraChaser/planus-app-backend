@@ -35,7 +35,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 22, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 22, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
-  { name: 'contingenciaNFe', x: 500, y: 220, width: 285, height: 22, initialValue: "EMITIDO EM CONTINGÊNCIA Pendente da Autorização", style: { fontSize: '8px' }, className: "text-center" },
 
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
