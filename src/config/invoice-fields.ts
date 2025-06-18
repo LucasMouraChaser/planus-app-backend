@@ -3,18 +3,18 @@ import type { FieldConfig, InvoiceData } from '@/types/invoice';
 
 export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   // Cabeçalho Energisa
-  { name: 'headerTitle', x: 220, y: 15, width: 500, height: 20, initialValue: "SIMULACAO DE FATURA DA ENERGISA", style: { fontSize: '11px', fontWeight: 'bold', color: '#000' } },
-  { name: 'companyName', x: 220, y: 25, width: 400, height: 20, initialValue: "ENERGISA MATO GROSSO - DISTRIBUIDORA DE ENERGIA S A", style: { fontSize: '9px', color: '#000' } },
-  { name: 'companyAddress', x: 220, y: 35, width: 400, height: 20, initialValue: "Rua Vereador João Barbosa Caramuru, 184", style: { fontSize: '9px', color: '#000' } },
-  { name: 'companyCityStateZip', x: 220, y: 45, width: 400, height: 20, initialValue: "Cuiabá/MT - CEP 78010-000", style: { fontSize: '9px', color: '#000' } },
-  { name: 'companyCnpj', x: 220, y: 55, width: 160, height: 20, initialValue: "CNPJ XX.XXX.XXX/XXXX-XX", style: { fontSize: '9px', color: '#000' } },
-  { name: 'companyInscEst', x: 220, y: 65, width: 180, height: 20, initialValue: "Insc. Est. XXXXXXXXXX", style: { fontSize: '9px', color: '#000' } },
+  { name: 'headerTitle', x: 220, y: 15, width: 500, height: 22, initialValue: "SIMULACAO DE FATURA DA ENERGISA", style: { fontSize: '11px', fontWeight: 'bold', color: '#000' } },
+  { name: 'companyName', x: 220, y: 25, width: 400, height: 22, initialValue: "ENERGISA MATO GROSSO - DISTRIBUIDORA DE ENERGIA S A", style: { fontSize: '9px', color: '#000' } },
+  { name: 'companyAddress', x: 220, y: 35, width: 400, height: 22, initialValue: "Rua Vereador João Barbosa Caramuru, 184", style: { fontSize: '9px', color: '#000' } },
+  { name: 'companyCityStateZip', x: 220, y: 45, width: 400, height: 22, initialValue: "Cuiabá/MT - CEP 78010-000", style: { fontSize: '9px', color: '#000' } },
+  { name: 'companyCnpj', x: 220, y: 55, width: 160, height: 22, initialValue: "CNPJ XX.XXX.XXX/XXXX-XX", style: { fontSize: '9px', color: '#000' } },
+  { name: 'companyInscEst', x: 220, y: 65, width: 180, height: 22, initialValue: "Insc. Est. XXXXXXXXXX", style: { fontSize: '9px', color: '#000' } },
 
   // Bloco Roteiro/Matrícula (superior esquerdo)
-  { name: 'roteiroMatricula', x: 73, y: 105, width: 120, height: 20, initialValue: "655-5432-000-0", style: { fontSize: '9px' }, className: "text-left" },
-  { name: 'notaFiscalConcorrencia', x: 208, y: 105, width: 100, height: 20, initialValue: "x", style: { fontSize: '9px' }, className: "text-left" },
-  { name: 'domBanco', x: 63, y: 120, width: 120, height: 20, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
-  { name: 'domEnt', x: 208, y: 120, width: 100, height: 20, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
+  { name: 'roteiroMatricula', x: 73, y: 105, width: 120, height: 22, initialValue: "655-5432-000-0", style: { fontSize: '9px' }, className: "text-left" },
+  { name: 'notaFiscalConcorrencia', x: 208, y: 105, width: 100, height: 22, initialValue: "x", style: { fontSize: '9px' }, className: "text-left" },
+  { name: 'domBanco', x: 63, y: 120, width: 120, height: 22, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
+  { name: 'domEnt', x: 208, y: 120, width: 100, height: 22, initialValue: "", style: { fontSize: '9px' }, className: "text-left" },
   
   { name: 'classificacao', x: 73, y: 117, width: 340, height: 28, initialValue: "RESIDENCIAL-CONVENCIONAL BAIXA TENSAO B1/B2/B3", style: { fontSize: '8px' }, className: "text-left" },
   { name: 'ligacao', x: 318, y: 127, width: 70, height: 24, initialValue: "TRIFASICO", style: { fontSize: '9px' }, className: "text-left" },
@@ -23,27 +23,27 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'limMaxTensao', x: 328, y: 197, width: 40, height: 22, initialValue: "133", style: { fontSize: '9px' }, className: "text-center" },
   
   // Bloco Datas e NF-e (superior direito)
-  { name: 'dataApresentacao', x: 700, y: 105, width: 90, height: 20, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-right" },
-  { name: 'codDebAutom', x: 643, y: 120, width: 90, height: 20, initialValue: "6555432", style: { fontSize: '9px' }, className: "text-right" },
+  { name: 'dataApresentacao', x: 700, y: 105, width: 90, height: 22, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-right" },
+  { name: 'codDebAutom', x: 643, y: 120, width: 90, height: 22, initialValue: "6555432", style: { fontSize: '9px' }, className: "text-right" },
   
   { name: 'leituraAnteriorData', x: 510, y: 220, width: 70, height: 24, initialValue: "18/05/2025", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'leituraAtualData', x: 570, y: 220, width: 70, height: 24, initialValue: "18/06/2025", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'numDiasFaturamento', x: 651, y: 220, width: 28, height: 24, initialValue: "30", style: { fontSize: '9px' }, className: "text-center" },
   { name: 'proximaLeituraData', x: 685, y: 220, width: 70, height: 24, initialValue: "18/07/2025", style: { fontSize: '9px' }, className: "text-center" },
 
-  { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 20, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 20, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 20, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
-  { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 20, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
-  { name: 'contingenciaNFe', x: 500, y: 220, width: 285, height: 20, initialValue: "EMITIDO EM CONTINGÊNCIA Pendente da Autorização", style: { fontSize: '8px' }, className: "text-center" },
-  { name: 'qrNFePlaceholder', x: 720, y: 200, width: 70, height: 20, initialValue: "QR NF-e", style: { fontSize: '7px', textAlign:'center' } },
+  { name: 'notaFiscalNum', x: 440, y: 180, width: 105, height: 22, initialValue: "017.270.053", style: { fontSize: '8.5px' }, className: "text-left" },
+  { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 22, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
+  { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
+  { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 22, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
+  { name: 'contingenciaNFe', x: 500, y: 220, width: 285, height: 22, initialValue: "EMITIDO EM CONTINGÊNCIA Pendente da Autorização", style: { fontSize: '8px' }, className: "text-center" },
+  { name: 'qrNFePlaceholder', x: 720, y: 200, width: 70, height: 22, initialValue: "QR NF-e", style: { fontSize: '7px', textAlign:'center' } },
 
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
   { name: 'clienteEndereco', x: 75, y: 245, width: 355, height: 22, initialValue: "RUA CAMINHO DO SOL, 0 - QD18 LT11 - 78890000", style: { fontSize: '9px' } },
   { name: 'clienteBairro', x: 75, y: 270, width: 155, height: 22, initialValue: "ROTA DO SOL", style: { fontSize: '9px' } },
   { name: 'clienteCidadeUF', x: 75, y: 280, width: 205, height: 22, initialValue: "SORRISO (AG: 167)", style: { fontSize: '9px' } },
-  { name: 'clienteCnpjCpf', x: 75, y: 310, width: 155, height: 20, initialValue: "05701044165", style: { fontSize: '10px' } },
+  { name: 'clienteCnpjCpf', x: 75, y: 310, width: 155, height: 22, initialValue: "05701044165", style: { fontSize: '10px' } },
 
   // Código Cliente / Instalação
   { name: 'codigoClienteInstalacao', x: 345, y: 265, width: 155, height: 22, initialValue: "6555432", style: { fontSize: '15px', fontWeight: 'bold', color: '#000', background: 'transparent' } },
@@ -85,10 +85,9 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item3Desc', x: 55, y: 537, width: 132, height: 22, initialValue: "Contrib de Ilum Pub", style: { fontSize: '8px', background: 'white' } },
   { name: 'item3Valor', x: 370, y: 537, width: 70, height: 22, initialValue: "13,75", style: { fontSize: '8px' }, className: "text-right" },
   
-  // Total Itens
-  { name: 'totalItensValor', x: 360, y: 467, width: 62, height: 20, initialValue: "1.644,71", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
-  { name: 'totalPisValor', x: 520, y: 467, width: 42, height: 20, initialValue: "14,81", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
-  { name: 'totalCofinsValor', x: 665, y: 467, width: 42, height: 20, initialValue: "67,61", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
+  // Total Itens (REMOVIDO: totalItensValor)
+  { name: 'totalPisValor', x: 520, y: 467, width: 42, height: 22, initialValue: "14,81", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
+  { name: 'totalCofinsValor', x: 665, y: 467, width: 42, height: 22, initialValue: "67,61", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
   { name: 'totalIcmsValor', x: 705, y: 510, width: 42, height: 22, initialValue: "277,21", style: { fontSize: '9px', fontWeight: 'bold' }, className: "text-right" },
 ];
 

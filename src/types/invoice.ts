@@ -1,3 +1,4 @@
+
 import type React from 'react';
 
 export interface InvoiceData {
@@ -57,7 +58,7 @@ export interface InvoiceData {
   item2Valor: string; 
   item3Desc: string; 
   item3Valor: string;
-  totalItensValor: string;
+  // totalItensValor: string; // Removido conforme solicitado
   totalPisValor: string;
   totalCofinsValor: string;
   totalIcmsValor: string;
@@ -75,3 +76,4 @@ export interface FieldConfig {
   className?: string;
   isTextarea?: boolean;
 }
+
