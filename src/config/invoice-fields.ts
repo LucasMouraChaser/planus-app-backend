@@ -74,7 +74,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1IcmsRS',     x: 707, y: 509, width: 45, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
   
   // Tarifa Energia Injetada REF (alinhado com linha do PIS)
-  { name: 'item1TarifaEnergiaInjetadaREF', x: 755, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
+  { name: 'item1TarifaEnergiaInjetadaREF', x: 755, y: 361, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
