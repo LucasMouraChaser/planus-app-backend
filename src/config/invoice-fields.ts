@@ -35,7 +35,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'notaFiscalSerie', x: 690, y: 180, width: 45, height: 22, initialValue: "002", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'dataEmissaoNF', x: 700, y: 191, width: 105, height: 22, initialValue: "18/05/2025", style: { fontSize: '8.5px' }, className: "text-left" },
   { name: 'chaveAcessoNFe', x: 500, y: 205, width: 285, height: 22, initialValue: "5125 0203 4873 2100 0100 5500 2017 2700 5320 8808 7028", style: { fontSize: '8.5px', letterSpacing: '-0.45px' } },
-
+  
   // Dados do Cliente
   { name: 'clienteNome', x: 75, y: 219, width: 355, height: 25, initialValue: "MERCADO MIX LTDA", style: { fontSize: '15px', fontWeight: 'bold' } },
   { name: 'clienteEndereco', x: 75, y: 245, width: 355, height: 22, initialValue: "RUA CAMINHO DO SOL, 0 - QD18 LT11 - 78890000", style: { fontSize: '9px' } },
@@ -57,7 +57,6 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Quantidade', x: 240, y: 492, width: 60, height: 22, initialValue: "1.500,00", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Tarifa', x: 300, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1Valor', x: 370, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
-  { name: 'item1TarifaEnergiaInjetadaREF', x: 455, y: 492, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS (Linha 1)
   { name: 'item1PisBase',    x: 602, y: 487, width: 58, height: 22, initialValue: "1.353,43", style: { fontSize: '8px' }, className: "text-right" },
@@ -73,6 +72,9 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1IcmsBase',   x: 602, y: 509, width: 58, height: 22, initialValue: "1.630,64", style: { fontSize: '8px' }, className: "text-right" },
   { name: 'item1IcmsPerc',   x: 662, y: 509, width: 43, height: 22, initialValue: "17,00", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   { name: 'item1IcmsRS',     x: 707, y: 509, width: 45, height: 22, initialValue: "277,21", style: { fontSize: '8px' }, className: "text-right" },
+  
+  // Tarifa Energia Injetada REF (alinhado com linha do PIS)
+  { name: 'item1TarifaEnergiaInjetadaREF', x: 755, y: 487, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
 
   // Linha 2: Energia Injetada GDI UC
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px' } },
