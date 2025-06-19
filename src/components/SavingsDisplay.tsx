@@ -33,6 +33,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const renderDiscountDescription = (description: string) => {
+  const parts = description.split(/(\d+%)/g); // Split by percentages, keeping the delimiter
+  return parts.map((part, index) => {
+    if (/\d+%/.test(part)) {
+      return <span key={index} className="text-primary font-medium">{part}</span>;
+    }
+    return part;
+  });
+};
 
 export function SavingsDisplay({ savings }: SavingsDisplayProps) {
 
@@ -67,7 +76,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           Sua Economia Estimada
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground mt-1">
-          {savings.discountDescription}
+          {renderDiscountDescription(savings.discountDescription)}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2 space-y-6">
@@ -123,4 +132,3 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
     </Card>
   );
 }
-
