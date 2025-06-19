@@ -50,7 +50,7 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Tarifa', x: 288, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   { name: 'item1Valor', x: 358, y: 492, width: 70, height: 22, initialValue: "1.630,64", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   
-  { name: 'item1TarifaEnergiaInjetadaREF', x: 555, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
+  { name: 'item1TarifaEnergiaInjetadaREF', x: 548, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   { name: 'item1PisBase',    x: 618, y: 479, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
   { name: 'item1PisAliq',    x: 655, y: 479, width: 48, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
