@@ -7,16 +7,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { FileText, AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
 interface SavingsDisplayProps {
   savings: SavingsResult | null;
 }
 
+const formatCurrency = (value: number) => {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
+const illustrativeChartData = [
+  { month: "M1", value: 120 },
+  { month: "M2", value: 150 },
+  { month: "M3", value: 130 },
+  { month: "M4", value: 190 },
+  { month: "M5", value: 220 },
+];
+
+const chartConfig = {
+  value: {
+    label: "Economia",
+    color: "hsl(var(--primary))",
+  },
+} satisfies ChartConfig;
+
+
 export function SavingsDisplay({ savings }: SavingsDisplayProps) {
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   if (!savings || savings.monthlySaving === 0) {
     return (
@@ -65,15 +83,18 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
               <p className="text-3xl font-bold text-primary">{formatCurrency(savings.newMonthlyBillWithSent)}</p>
             </div>
           </div>
-          <div className="flex justify-center items-center mt-4 md:mt-0">
-            <Image 
-              src="https://placehold.co/250x120.png" 
-              width={250}
-              height={120}
-              alt="Gráfico de economia estimada"
-              data-ai-hint="line chart graph"
-              className="object-contain"
-            />
+          <div className="flex justify-center items-center mt-4 md:mt-0 h-[120px] w-full max-w-[250px] mx-auto">
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <BarChart 
+                accessibilityLayer 
+                data={illustrativeChartData} 
+                margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="month" hide stroke="hsl(var(--foreground))" fontSize={10} />
+                <YAxis hide stroke="hsl(var(--foreground))" fontSize={10} />
+                <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} barSize={20} />
+              </BarChart>
+            </ChartContainer>
           </div>
         </div>
 
@@ -85,7 +106,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           </div>
           <div className="text-left">
             <p className="text-xs text-muted-foreground">Desconto Anual Efetivo</p>
-            <p className="text-2xl font-bold text-foreground">{savings.effectiveAnnualDiscountPercentage}%</p>
+            <p className="text-2xl font-bold text-primary">{savings.effectiveAnnualDiscountPercentage}%</p>
           </div>
         </div>
         
