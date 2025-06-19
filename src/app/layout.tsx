@@ -24,7 +24,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect, ReactNode } from 'react';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -148,24 +148,14 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
               </Link>
             </SidebarMenuItem>
             {userAppRole === 'admin' && (
-              <>
-                <SidebarMenuItem>
-                  <Link href="/admin/dashboard">
-                    <SidebarMenuButton isActive={currentPathname === '/admin/dashboard'} tooltip="Painel Admin">
-                      <ShieldAlert />
-                      Painel Admin
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <Link href="/admin/dashboard"> {/* Points to admin dashboard where user mgt is */}
-                    <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/admin/dashboard'}> {/* Active if on dashboard */}
-                      <UserCog />
-                      Gerenciar Usuários
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              </>
+              <SidebarMenuItem>
+                <Link href="/admin/dashboard">
+                  <SidebarMenuButton isActive={currentPathname === '/admin/dashboard'} tooltip="Painel Admin">
+                    <ShieldAlert />
+                    Painel Admin
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
             )}
             <SidebarMenuItem>
               <Link href="/ranking">
