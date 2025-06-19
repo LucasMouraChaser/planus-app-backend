@@ -51,10 +51,12 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user);
       if (user) {
+        // Simplified role assignment: 'lucasmoura@sentenergia.com' is admin, others are 'vendedor'
+        // In a real app, this would come from Firestore or custom claims.
         if (user.email === 'lucasmoura@sentenergia.com') {
           setUserAppRole('admin');
         } else {
-          setUserAppRole('vendedor'); // Default role for other authenticated users
+          setUserAppRole('vendedor');
         }
         if (currentPathname === '/login') {
           router.replace('/'); // Redirect from login if already authenticated
@@ -156,8 +158,8 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                   </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <Link href="#"> {/* TODO: Update to actual admin users page if/when created */}
-                    <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/admin/users'}>
+                  <Link href="/admin/dashboard"> {/* Points to admin dashboard where user mgt is */}
+                    <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/admin/dashboard'}> {/* Active if on dashboard */}
                       <UserCog />
                       Gerenciar Usuários
                     </SidebarMenuButton>
