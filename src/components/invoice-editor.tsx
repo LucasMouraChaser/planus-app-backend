@@ -5,47 +5,145 @@ import type React from 'react';
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Save, ScanSearch, AlertTriangle } from 'lucide-react';
+import { addDays, subDays, format, getDaysInMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import EditableField from './editable-field';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { InvoiceData } from '@/types/invoice';
 import { INVOICE_FIELDS_CONFIG, initialInvoiceData as defaultInitialData } from '@/config/invoice-fields';
 
-// Helper component to use useSearchParams
+// Constantes para cálculos
+const TARIFA_ENERGIA = 1.093110;
+const ALIQUOTA_PIS_PERC = 1.0945 / 100; // 0.010945
+const ALIQUOTA_COFINS_PERC = 4.9955 / 100; // 0.049955
+const ALIQUOTA_ICMS_PERC = 17.00 / 100; // 0.17
+
+// Helper para formatar número para string BRL (ex: "1.234,56")
+const formatNumberToCurrencyString = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) return "0,00";
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+// Helper para formatar número para string local (ex: "1.500,00" ou "1,093110")
+const formatNumberToLocaleString = (value: number | null | undefined, fractionDigits: number = 2): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    if (fractionDigits === 0) return "0";
+    return "0," + "0".repeat(fractionDigits);
+  }
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
+};
+
+// Helper para converter string formatada (BRL ou com vírgula) para número
+const parseLocaleNumberString = (str: string | null | undefined): number => {
+  if (!str) return 0;
+  return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+};
+
+
 function InvoiceEditorContent() {
   const searchParams = useSearchParams();
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>(() => {
-    const queryData: Partial<InvoiceData> = {};
-    let hasQueryData = false;
-    for (const key in defaultInitialData) {
-      if (searchParams.has(key)) {
-        queryData[key as keyof InvoiceData] = searchParams.get(key) as string;
-        hasQueryData = true;
-      }
-    }
-    return hasQueryData ? { ...defaultInitialData, ...queryData } : defaultInitialData;
-  });
-
+  const [invoiceData, setInvoiceData] = useState<InvoiceData>(defaultInitialData);
   const fieldRefs = useRef<Record<string, SVGForeignObjectElement | null>>({});
   const [overlappingFields, setOverlappingFields] = useState<Set<string>>(new Set());
   const [overlapWarningMsg, setOverlapWarningMsg] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const queryData: Partial<InvoiceData> = {};
+    const newInvoiceData = { ...defaultInitialData };
     let hasQueryData = false;
-    for (const key in defaultInitialData) {
-      if (searchParams.has(key)) {
-        queryData[key as keyof InvoiceData] = searchParams.get(key) as string;
-        hasQueryData = true;
+
+    // Lê todos os parâmetros da URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.forEach((value, key) => {
+      if (key in newInvoiceData) {
+        newInvoiceData[key as keyof InvoiceData] = value;
       }
-    }
+      hasQueryData = true;
+    });
+    
     if (hasQueryData) {
-      setInvoiceData(prevData => ({ ...prevData, ...queryData }));
+      // Preenchimento direto do formulário
+      newInvoiceData.clienteNome = params.get("clienteNome") || newInvoiceData.clienteNome;
+      
+      const rua = params.get("clienteRua") || "";
+      const numero = params.get("clienteNumero") || "";
+      const complemento = params.get("clienteComplemento") || "";
+      let enderecoCompleto = rua;
+      if (numero) enderecoCompleto += `, ${numero}`;
+      if (complemento) enderecoCompleto += ` - ${complemento}`;
+      newInvoiceData.clienteEndereco = enderecoCompleto || newInvoiceData.clienteEndereco;
+
+      newInvoiceData.clienteBairro = params.get("clienteBairro") || newInvoiceData.clienteBairro;
+      
+      const cidade = params.get("clienteCidade") || "";
+      const uf = params.get("clienteUF") || "";
+      if (cidade && uf) {
+        newInvoiceData.clienteCidadeUF = `${cidade}/${uf}`;
+      } else if (cidade) {
+        newInvoiceData.clienteCidadeUF = cidade;
+      } else {
+        newInvoiceData.clienteCidadeUF = newInvoiceData.clienteCidadeUF;
+      }
+
+      newInvoiceData.clienteCnpjCpf = params.get("clienteCnpjCpf") || newInvoiceData.clienteCnpjCpf;
+      newInvoiceData.codigoClienteInstalacao = params.get("codigoClienteInstalacao") || newInvoiceData.codigoClienteInstalacao;
+      newInvoiceData.ligacao = params.get("ligacao") || newInvoiceData.ligacao;
+      newInvoiceData.classificacao = params.get("classificacao") || newInvoiceData.classificacao;
+
+      // Cálculos de Datas
+      const hoje = new Date();
+      newInvoiceData.mesAnoReferencia = format(hoje, 'MMMM / yyyy', { locale: ptBR }).toUpperCase();
+      newInvoiceData.dataVencimento = format(addDays(hoje, 10), 'dd/MM/yyyy');
+      newInvoiceData.leituraAnteriorData = format(subDays(hoje, 30), 'dd/MM/yyyy');
+      newInvoiceData.leituraAtualData = format(hoje, 'dd/MM/yyyy');
+      newInvoiceData.numDiasFaturamento = getDaysInMonth(hoje).toString();
+      newInvoiceData.proximaLeituraData = format(addDays(hoje, 30), 'dd/MM/yyyy');
+      
+      // Inputs numéricos do formulário
+      const consumoKwhInput = parseLocaleNumberString(params.get("item1Quantidade"));
+      const cipValorInput = parseLocaleNumberString(params.get("item3Valor"));
+      const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria"));
+
+      // Cálculos de Valores
+      const valorConsumoPrincipal = consumoKwhInput * TARIFA_ENERGIA;
+      newInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipal + cipValorInput);
+      
+      newInvoiceData.item1Quantidade = formatNumberToLocaleString(consumoKwhInput, 2);
+      // item1Tarifa é fixo na exibição, usa initialValue
+      newInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipal);
+
+      const tarifaEnergiaInjetadaRefCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
+      newInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaInjetadaRefCalc, 6);
+      
+      newInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput);
+      newInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
+      
+      const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaInjetadaRefCalc;
+      newInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofins);
+      // item1PisAliq é fixo na exibição
+      newInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_PIS_PERC);
+      
+      newInvoiceData.item1CofinsBase = formatNumberToCurrencyString(baseCalculoPisCofins);
+      // item1CofinsAliq é fixo na exibição
+      newInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_COFINS_PERC);
+      
+      newInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipal);
+      // item1IcmsPerc é fixo na exibição
+      newInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipal * ALIQUOTA_ICMS_PERC);
+
+      // Garantir que campos com exibição fixa usem o initialValue
+      const fixedDisplayFields: (keyof InvoiceData)[] = ['item1Tarifa', 'item1PisAliq', 'item1CofinsAliq', 'item1IcmsPerc'];
+      fixedDisplayFields.forEach(fieldName => {
+        const fieldConfig = INVOICE_FIELDS_CONFIG.find(f => f.name === fieldName);
+        if (fieldConfig) {
+          newInvoiceData[fieldName] = fieldConfig.initialValue;
+        }
+      });
     }
-    // We only want to run this once when searchParams are available,
-    // or if they change, to re-initialize.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    setInvoiceData(newInvoiceData);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
 
@@ -169,7 +267,7 @@ function InvoiceEditorContent() {
               y={field.y}
               width={field.width}
               height={field.height}
-              value={invoiceData[field.name] || ''} // Ensure value is not undefined
+              value={invoiceData[field.name] || ''}
               onChange={handleInputChange}
               inputStyle={field.style}
               inputClassName={field.className}
@@ -184,10 +282,9 @@ function InvoiceEditorContent() {
   );
 }
 
-// Main component wraps the content with Suspense for useSearchParams
 const InvoiceEditor: React.FC = () => {
   return (
-    <Suspense fallback={<div>Carregando dados da fatura...</div>}>
+    <Suspense fallback={<div className="flex justify-center items-center h-screen">Carregando dados da fatura...</div>}>
       <InvoiceEditorContent />
     </Suspense>
   );

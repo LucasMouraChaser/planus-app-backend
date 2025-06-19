@@ -49,6 +49,8 @@ export interface InvoiceData {
   item2Valor: string; 
   item3Desc: string; 
   item3Valor: string;
+  // Adicionado para dados do formulário que podem não ter um campo visual direto, mas são usados em cálculos
+  valorProducaoPropria?: string; 
   [key: string]: string; 
 }
 
@@ -63,4 +65,3 @@ export interface FieldConfig {
   className?: string;
   isTextarea?: boolean;
 }
-

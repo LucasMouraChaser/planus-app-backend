@@ -30,11 +30,20 @@ const formSchema = z.object({
   clienteNome: z.string().min(1, "Nome do cliente é obrigatório."),
   clienteCnpjCpf: z.string().optional(),
   codigoClienteInstalacao: z.string().optional().describe("Unidade Consumidora (UC)"),
-  item1Quantidade: z.string().optional().describe("Consumo Médio Mensal (KWh)"), // Matches 'Consumo em kWh'
+  item1Quantidade: z.string().min(1, "Consumo KWh é obrigatório.").refine(val => !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "Consumo KWh deve ser um número válido." }),
   ligacao: z.enum(['MONOFASICO', 'BIFASICO', 'TRIFASICO', '']).optional().describe("Tipo de Fornecimento"),
   classificacao: z.string().optional().describe("Classe de Consumo"),
-  clienteCidadeUF: z.string().optional().describe("Cidade (e UF)"),
-  item3Valor: z.string().optional().describe("Contrib. Iluminação Pública (R$)"), // Matches 'Contrib de Ilum Pub'
+  
+  clienteCep: z.string().optional(),
+  clienteRua: z.string().optional(),
+  clienteNumero: z.string().optional(),
+  clienteComplemento: z.string().optional(),
+  clienteBairro: z.string().optional(),
+  clienteCidade: z.string().optional(),
+  clienteUF: z.string().optional(),
+
+  item3Valor: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "CIP/COSIP deve ser um número válido ou vazio." }),
+  valorProducaoPropria: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "Valor da produção própria deve ser um número válido ou vazio." }),
 });
 
 type ProposalFormData = z.infer<typeof formSchema>;
@@ -47,18 +56,25 @@ export default function ProposalGeneratorPage() {
       clienteNome: "",
       clienteCnpjCpf: "",
       codigoClienteInstalacao: "",
-      item1Quantidade: "",
-      ligacao: "",
-      classificacao: "",
-      clienteCidadeUF: "",
-      item3Valor: "",
+      item1Quantidade: "1500", // Default KWh
+      ligacao: "TRIFASICO",
+      classificacao: "RESIDENCIAL-CONVENCIONAL BAIXA TENSAO B1",
+      clienteCep: "",
+      clienteRua: "",
+      clienteNumero: "",
+      clienteComplemento: "",
+      clienteBairro: "",
+      clienteCidade: "",
+      clienteUF: "",
+      item3Valor: "13,75", // Default CIP
+      valorProducaoPropria: "0", // Default energia injetada
     },
   });
 
   function onSubmit(values: ProposalFormData) {
     const queryParams = new URLSearchParams();
     (Object.keys(values) as Array<keyof ProposalFormData>).forEach((key) => {
-      if (values[key]) {
+      if (values[key] !== undefined && values[key] !== null && values[key] !== "") {
         queryParams.set(key, String(values[key]));
       }
     });
@@ -70,10 +86,10 @@ export default function ProposalGeneratorPage() {
       <Card className="w-full max-w-2xl shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl md:text-3xl font-headline text-primary font-bold tracking-tight">
-            Gerador de Proposta
+            Gerador de Proposta de Fatura
           </CardTitle>
           <CardDescription className="text-muted-foreground mt-1">
-            Preencha os dados abaixo para personalizar a simulação da fatura.
+            Preencha os dados abaixo para personalizar a simulação da fatura. Os campos da fatura serão calculados automaticamente.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,7 +102,7 @@ export default function ProposalGeneratorPage() {
                   <FormItem>
                     <FormLabel>Nome do Cliente / Razão Social</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: João Silva" {...field} />
+                      <Input placeholder="Ex: Mercado Mix LTDA" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,6 +121,101 @@ export default function ProposalGeneratorPage() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="clienteCep"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CEP</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 78890-000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clienteRua"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rua</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Rua Caminho do Sol" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="clienteNumero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="clienteComplemento"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Complemento</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: QD18 LT11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="clienteBairro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bairro</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Rota do Sol" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="clienteCidade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Sorriso" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="clienteUF"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>UF</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: MT" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="codigoClienteInstalacao"
@@ -127,7 +238,7 @@ export default function ProposalGeneratorPage() {
                     <FormControl>
                       <Input type="text" placeholder="Ex: 1500" {...field} />
                     </FormControl>
-                    <FormDescription>Este valor preencherá o campo "Consumo em kWh" na fatura.</FormDescription>
+                    <FormDescription>Este valor preencherá o "Consumo em kWh" e baseará outros cálculos.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -163,20 +274,7 @@ export default function ProposalGeneratorPage() {
                     <FormControl>
                       <Input placeholder="Ex: RESIDENCIAL-CONVENCIONAL BAIXA TENSAO B1" {...field} />
                     </FormControl>
-                    <FormDescription>Ex: RESIDENCIAL, COMERCIAL, INDUSTRIAL, RURAL, etc.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="clienteCidadeUF"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade / UF</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Cuiabá/MT" {...field} />
-                    </FormControl>
+                    <FormDescription>Ex: RESIDENCIAL, COMERCIAL, INDUSTRIAL, etc.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -188,9 +286,23 @@ export default function ProposalGeneratorPage() {
                   <FormItem>
                     <FormLabel>Contribuição de Iluminação Pública (R$)</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Ex: 25,50" {...field} />
+                      <Input type="text" placeholder="Ex: 13,75" {...field} />
                     </FormControl>
                     <FormDescription>Valor manual da CIP/COSIP.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="valorProducaoPropria"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor da Energia Ativa Injetada (R$)</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Ex: 146,60" {...field} />
+                    </FormControl>
+                    <FormDescription>Valor em R$ da energia injetada (produção própria).</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
