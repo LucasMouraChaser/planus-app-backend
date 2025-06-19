@@ -14,15 +14,15 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarTrigger,
-  useSidebar, // Import useSidebar
+  // SidebarTrigger, // No longer using the default PanelLeft SidebarTrigger from here for the main toggle
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, PanelLeft } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import Tooltip components
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 // Metadata can still be defined but might not be used if the whole component is client-side
@@ -74,23 +74,13 @@ export default function RootLayout({
       <>
         <Sidebar>
           <SidebarHeader className="p-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-                className="rounded-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex-shrink-0"
-                aria-label="Toggle sidebar"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>N</AvatarFallback>
-                </Avatar>
-              </Button>
-              <div className="flex flex-col overflow-hidden">
-                <h2 className="text-lg font-semibold text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">BrasilVis</h2>
-                <p className="text-xs text-sidebar-foreground/70 truncate group-data-[collapsible=icon]:hidden">Menu Principal</p>
-              </div>
+            {/* Avatar toggle button removed from here */}
+            <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
+              <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
+              <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
             </div>
+            {/* Placeholder for a logo when collapsed, if needed */}
+            {/* <YourLogoOrIcon className="h-8 w-8 group-data-[state=expanded]:hidden mx-auto" /> */}
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -183,11 +173,20 @@ export default function RootLayout({
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2 md:hidden">
-            <SidebarTrigger className="md:hidden">
-               <PanelLeft className="h-5 w-5" />
-               <span className="sr-only">Toggle Menu</span>
-            </SidebarTrigger>
+          {/* This header is now the main top bar for the content area and contains the sidebar toggle */}
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 py-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground"
+              aria-label="Toggle sidebar"
+            >
+              <Avatar className="h-8 w-8 bg-primary"> {/* Green background for avatar */}
+                <AvatarFallback className="text-primary-foreground">N</AvatarFallback> {/* Initials or icon */}
+              </Avatar>
+            </Button>
+            {/* Other header content like breadcrumbs or page title can go here */}
           </header>
           <main className="flex-1 p-4 md:p-6">
             {children}
