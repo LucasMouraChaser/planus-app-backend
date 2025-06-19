@@ -1,3 +1,4 @@
+
 // /src/app/page.tsx (Nova Calculadora e Editor)
 "use client";
 
@@ -20,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3 } from 'lucide-react';
+import { HelpCircle, Edit3, FileText } from 'lucide-react'; // FileText adicionado aqui
 
 const KWH_TO_R_FACTOR = 1.0907; // Tarifa média para cálculo inicial da conta
 const MIN_KWH_SLIDER = 100;
@@ -264,3 +265,4 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
