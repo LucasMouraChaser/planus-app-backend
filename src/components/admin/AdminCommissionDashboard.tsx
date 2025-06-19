@@ -3,11 +3,14 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns'; // Added startOfMonth, endOfMonth
+import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, Timestamp, collection, getDocs, query, where } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 import type { AppUser, FirestoreUser, UserType } from '@/types/user';
 import type { LeadWithId } from '@/types/crm';
@@ -17,11 +20,10 @@ import { USER_TYPE_FILTER_OPTIONS, USER_TYPE_ADD_OPTIONS, WITHDRAWAL_STATUSES_AD
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label"; // Keep if used elsewhere, but FormLabel is preferred in forms
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,6 +88,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isUpdateWithdrawalModalOpen, setIsUpdateWithdrawalModalOpen] = useState(false);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequestWithId | null>(null);
+  const [isSubmittingUser, setIsSubmittingUser] = useState(false);
   
   const addUserForm = useForm<AddUserFormData>({ 
     resolver: zodResolver(addUserFormSchema), 
@@ -115,43 +118,65 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
   }, [allUsers, userSearchTerm, userTypeFilter]);
 
   const handleAddUser = async (data: AddUserFormData) => {
-    // Disable form while submitting
-    // This might need to be handled differently if react-hook-form's formState.isSubmitting is used
-    // For now, we'll manage a separate isLoading/isSubmitting state for the modal button
-    const isSubmitting = addUserForm.formState.isSubmitting; // Or a local state
-    if (isSubmitting) return;
+    setIsSubmittingUser(true);
 
-    console.log("Admin registering user (simulated):", data);
+    try {
+      // Check if email or CPF already exists in Firestore
+      const usersRef = collection(db, "users");
+      const emailQuery = query(usersRef, where("email", "==", data.email));
+      const cpfQuery = query(usersRef, where("cpf", "==", data.cpf.replace(/\D/g, '')));
+      
+      const [emailSnapshot, cpfSnapshot] = await Promise.all([getDocs(emailQuery), getDocs(cpfQuery)]);
 
-    // Simulate CPF/Email check
-    const cpfExists = allUsers.some(user => user.cpf === data.cpf.replace(/\D/g, ''));
-    const emailExists = allUsers.some(user => user.email === data.email);
-
-    if (emailExists) {
+      if (!emailSnapshot.empty) {
         toast({ title: "Erro ao Criar Usuário", description: "Este email já está cadastrado.", variant: "destructive" });
+        setIsSubmittingUser(false);
         return;
-    }
-    if (cpfExists) {
+      }
+      if (!cpfSnapshot.empty) {
         toast({ title: "Erro ao Criar Usuário", description: "Este CPF já está cadastrado.", variant: "destructive" });
+        setIsSubmittingUser(false);
         return;
-    }
+      }
 
-    // Simulate API call success
-    setTimeout(() => {
-        const newUser: FirestoreUser = {
-            uid: `mock-uid-${Date.now()}`,
-            email: data.email,
-            displayName: data.displayName || data.email.split('@')[0],
-            cpf: data.cpf.replace(/\D/g, ''),
-            type: data.type as UserType, // Cast as data.type is already validated by Zod to be one of the allowed types
-            createdAt: new Date().toISOString(),
-            photoURL: `https://placehold.co/40x40.png?text=${(data.displayName || data.email).charAt(0).toUpperCase()}`
-        };
-        setAllUsers(prev => [newUser, ...prev]);
-        toast({ title: "Usuário Criado", description: `${data.email} registrado com sucesso (simulado).` });
-        setIsAddUserModalOpen(false);
-        addUserForm.reset({ type: 'vendedor', cpf: '', displayName: '', email: '', password: '' });
-    }, 1000);
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const firebaseUser = userCredential.user;
+
+      // Create user document in Firestore
+      const newUserForFirestore: FirestoreUser = {
+        uid: firebaseUser.uid,
+        email: data.email,
+        displayName: data.displayName || data.email.split('@')[0],
+        cpf: data.cpf.replace(/\D/g, ''), // Store cleaned CPF
+        type: data.type as UserType,
+        createdAt: Timestamp.now(),
+        photoURL: `https://placehold.co/40x40.png?text=${(data.displayName || data.email).charAt(0).toUpperCase()}`,
+        personalBalance: 0,
+        mlmBalance: 0,
+      };
+
+      await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
+      
+      // Update local state
+      setAllUsers(prev => [{...newUserForFirestore, createdAt: (newUserForFirestore.createdAt as Timestamp).toDate().toISOString()}, ...prev]);
+      
+      toast({ title: "Usuário Criado", description: `${data.email} registrado com sucesso.` });
+      setIsAddUserModalOpen(false);
+      addUserForm.reset({ type: 'vendedor', cpf: '', displayName: '', email: '', password: '' });
+
+    } catch (error: any) {
+      console.error("Erro ao adicionar usuário:", error);
+      let errorMessage = "Falha ao criar usuário. Tente novamente.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "Este email já está em uso.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "A senha é muito fraca. Use pelo menos 6 caracteres.";
+      }
+      toast({ title: "Erro ao Criar Usuário", description: errorMessage, variant: "destructive" });
+    } finally {
+      setIsSubmittingUser(false);
+    }
   };
 
   const handleOpenUpdateWithdrawalModal = (withdrawal: WithdrawalRequestWithId) => {
@@ -162,7 +187,6 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
 
   const handleUpdateWithdrawal = async (data: UpdateWithdrawalFormData) => {
     if (!selectedWithdrawal) return;
-    // Similar to addUser, manage submitting state
     const isSubmitting = updateWithdrawalForm.formState.isSubmitting;
     if (isSubmitting) return;
 
@@ -378,9 +402,9 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
                 )} 
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => { setIsAddUserModalOpen(false); addUserForm.reset(); }} disabled={addUserForm.formState.isSubmitting}>Cancelar</Button>
-                <Button type="submit" disabled={addUserForm.formState.isSubmitting}>
-                  {addUserForm.formState.isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                <Button type="button" variant="outline" onClick={() => { setIsAddUserModalOpen(false); addUserForm.reset(); }} disabled={isSubmittingUser}>Cancelar</Button>
+                <Button type="submit" disabled={isSubmittingUser}>
+                  {isSubmittingUser ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                   Adicionar
                 </Button>
               </DialogFooter>
