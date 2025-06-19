@@ -48,7 +48,7 @@ export default function RootLayout({
   // Hide sidebar on login page
   if (pathname === '/login') {
     return (
-      <html lang="pt-BR"> {/* Removed className="dark" */}
+      <html lang="pt-BR" className="dark">
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -74,10 +74,7 @@ export default function RootLayout({
         <Sidebar>
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
-                {/* Avatar can be a toggle if sidebar is always icon-only or for mobile behavior if desired */}
-                {/* <Avatar className="h-8 w-8 bg-primary group-data-[state=collapsed]:hidden">
-                     <AvatarFallback className="text-primary-foreground">BV</AvatarFallback>
-                </Avatar> */}
+              {/* Avatar button removed from here */}
               <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
                  <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
                  <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
@@ -206,7 +203,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR"> {/* Removed className="dark" */}
+    <html lang="pt-BR" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

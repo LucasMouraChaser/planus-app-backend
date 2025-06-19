@@ -55,39 +55,37 @@ body {
     --sidebar-ring: hsl(var(--ring));
   }
 
-  /* Fallback dark theme variables (can be used if a dark mode toggle is implemented) */
+  /* Dark theme variables */
   .dark {
-    --background: 220 15% 10%;
-    --foreground: 220 10% 90%;
+    --background: 0 0% 7%; /* Very dark gray, near black */
+    --foreground: 0 0% 93%; /* Light gray for text on dark background */
 
-    --card: 220 15% 15%;
-    --card-foreground: 220 10% 90%;
+    --card: 0 0% 12%; /* Darker card background */
+    --card-foreground: hsl(var(--foreground));
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 220 10% 90%;
+    --popover: 0 0% 10%; /* Darker popover background */
+    --popover-foreground: hsl(var(--card-foreground));
 
-    /* Primary in dark mode could be a lighter shade of the PRD green, or PRD green itself if contrast works */
-    --primary: 120 25% 65%; /* PRD Green */
-    --primary-foreground: 120 25% 10%;
+    --primary: 120 25% 65%; /* PRD Green - unchanged */
+    --primary-foreground: 120 25% 10%; /* Dark text on primary green - unchanged */
 
-    --secondary: 220 15% 25%;
-    --secondary-foreground: 220 10% 90%;
+    --secondary: 0 0% 18%; /* Darker secondary elements */
+    --secondary-foreground: hsl(var(--foreground));
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 0 0% 15%; /* Darker muted background */
+    --muted-foreground: 0 0% 60%; /* Adjusted for new muted background */
 
-    /* Accent in dark mode could be a lighter shade of PRD blue, or PRD blue itself */
-    --accent: 210 33% 84%; /* PRD Soft Blue */
-    --accent-foreground: 210 33% 15%;
+    --accent: 210 33% 84%; /* PRD Soft Blue - unchanged */
+    --accent-foreground: 210 33% 15%; /* Dark text on accent blue - unchanged */
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 70% 50%; /* Unchanged */
+    --destructive-foreground: 0 0% 98%; /* Unchanged */
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: hsl(var(--primary)); /* Ring based on PRD primary */
+    --border: 0 0% 20%; /* Darker border */
+    --input: 0 0% 15%; /* Darker input background */
+    --ring: hsl(var(--primary)); /* Ring based on PRD primary - unchanged */
     
-    --chart-1: hsl(var(--primary)); 
+    --chart-1: hsl(var(--primary)); /* Unchanged */
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
@@ -96,9 +94,9 @@ body {
     /* Sidebar specific colors for .dark explicit class (these are already dark, so they are fine) */
     --sidebar-background: 220 10% 23%;
     --sidebar-foreground: 220 10% 85%;
-    --sidebar-primary: hsl(var(--primary)); /* Use PRD green */
+    --sidebar-primary: hsl(var(--primary)); 
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--accent)); /* Use PRD blue */
+    --sidebar-accent: hsl(var(--accent)); 
     --sidebar-accent-foreground: hsl(var(--accent-foreground));
     --sidebar-border: 220 10% 30%;
     --sidebar-ring: hsl(var(--ring));
