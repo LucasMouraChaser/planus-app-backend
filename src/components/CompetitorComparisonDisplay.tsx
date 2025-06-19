@@ -188,14 +188,14 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
 
             const additionalSavingsWithSent = sentEnergyAnnualSaving - annualSaving;
             let comparisonMessage = "";
-            let comparisonColor = "text-slate-700"; // Default to darker gray for light card
+            let comparisonColor = "text-muted-foreground"; // Default for similar savings on dark glass
 
             if (additionalSavingsWithSent > 1) { // SENT saves significantly more
               comparisonMessage = `Com a SENT Energy, você economiza ${formatCurrency(additionalSavingsWithSent)} a mais anualmente!`;
-              comparisonColor = "text-green-600"; // Using a distinct green for positive for SENT on light card
+              comparisonColor = "text-green-400"; // Brighter green for dark background
             } else if (additionalSavingsWithSent < -1) { // Competitor saves significantly more
               comparisonMessage = `Com a ${competitor.name}, você economizaria ${formatCurrency(Math.abs(additionalSavingsWithSent))} a mais anualmente.`;
-              comparisonColor = "text-red-600"; // Destructive red
+              comparisonColor = "text-red-400"; // Brighter red for dark background
             } else { // Similar savings
               comparisonMessage = "A economia anual é virtualmente a mesma em comparação com a SENT Energy.";
             }
@@ -227,7 +227,7 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
                   </div>
                 </div>
                 <div className="mt-auto pt-3">
-                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                  <div className="p-3 bg-neutral-800/70 backdrop-blur-md border border-neutral-700 rounded-lg">
                     <h4 className="flex items-center font-semibold text-sm text-primary mb-1">
                       <Sparkles className="w-4 h-4 mr-1.5 text-primary" />
                       vs. SENT Energy
