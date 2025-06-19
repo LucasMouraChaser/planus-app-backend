@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,7 @@ export default function RootLayout({
   // Hide sidebar on login page
   if (pathname === '/login') {
     return (
-      <html lang="pt-BR" className="dark">
+      <html lang="pt-BR"> {/* Removed className="dark" */}
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -73,9 +73,15 @@ export default function RootLayout({
       <>
         <Sidebar>
           <SidebarHeader className="p-4">
-            <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
-              <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
-              <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
+            <div className="flex items-center gap-2">
+                {/* Avatar can be a toggle if sidebar is always icon-only or for mobile behavior if desired */}
+                {/* <Avatar className="h-8 w-8 bg-primary group-data-[state=collapsed]:hidden">
+                     <AvatarFallback className="text-primary-foreground">BV</AvatarFallback>
+                </Avatar> */}
+              <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
+                 <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
+                 <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
+              </div>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -185,10 +191,11 @@ export default function RootLayout({
               className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground"
               aria-label="Toggle sidebar"
             >
-              <Avatar className="h-8 w-8 bg-primary">
-                <AvatarFallback className="text-primary-foreground">BV</AvatarFallback>
+              <Avatar className="h-8 w-8 bg-primary hover:bg-primary/90">
+                <AvatarFallback className="text-primary-foreground font-semibold">BV</AvatarFallback>
               </Avatar>
             </Button>
+            {/* You can add more header content here, like a title or search bar */}
           </header>
           <main className="flex-1 p-4 md:p-6">
             {children}
@@ -199,7 +206,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR"> {/* Removed className="dark" */}
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

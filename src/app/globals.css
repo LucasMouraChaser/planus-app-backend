@@ -9,33 +9,33 @@ body {
 
 @layer base {
   :root {
-    --background: 220 15% 10%; /* Very Dark Blue/Gray */
-    --foreground: 220 10% 90%; /* Light Gray */
+    --background: 0 0% 88%; /* Light Gray #E0E0E0 from PRD */
+    --foreground: 0 0% 10%; /* Dark Gray for text on light background */
 
-    --card: 220 15% 15%;
-    --card-foreground: 220 10% 90%;
+    --card: 0 0% 100%; /* White */
+    --card-foreground: hsl(var(--foreground));
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 220 10% 90%;
+    --popover: hsl(var(--card));
+    --popover-foreground: hsl(var(--card-foreground));
 
-    --primary: 120 25% 65%; /* Subdued Green from PRD */
-    --primary-foreground: 120 25% 10%;
+    --primary: 120 25% 65%; /* Subdued Green #8FBC8F from PRD */
+    --primary-foreground: 120 25% 10%; /* Dark text on primary green */
 
-    --secondary: 220 15% 25%; /* Slightly Lighter Dark Gray */
-    --secondary-foreground: 220 10% 90%;
+    --secondary: 0 0% 80%; /* Lighter gray for secondary elements */
+    --secondary-foreground: 0 0% 10%; /* Dark text on secondary */
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 0 0% 85%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 210 80% 60%; /* Bright Blue for active/hover sidebar item and map highlight */
-    --accent-foreground: 210 80% 10%; /* Dark text on bright blue */
+    --accent: 210 33% 84%; /* Soft Blue #B0C4DE from PRD */
+    --accent-foreground: 210 33% 15%; /* Dark text on accent blue */
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 210 80% 55%; /* Ring color related to accent */
+    --border: 0 0% 75%;
+    --input: 0 0% 100%; /* White input background */
+    --ring: hsl(var(--primary)); /* Ring color related to primary */
 
     --chart-1: hsl(var(--primary)); /* Use primary for chart bar */
     --chart-2: 160 60% 45%;
@@ -44,18 +44,18 @@ body {
     --chart-5: 340 75% 55%;
     --radius: 0.5rem;
 
-    /* Sidebar specific colors */
+    /* Sidebar specific colors (Dark sidebar from user image, PRD Accent for active items) */
     --sidebar-background: 220 10% 23%; /* Dark Gray for sidebar panel */
-    --sidebar-foreground: 220 10% 85%; /* Text color for items in sidebar */
-    --sidebar-primary: 220 10% 85%; /* Default text for items if not active */
-    --sidebar-primary-foreground: 220 10% 23%; /* Text on a primary bg button */
-    --sidebar-accent: hsl(var(--accent)); /* Background for active/hovered sidebar item */
-    --sidebar-accent-foreground: hsl(var(--accent-foreground)); /* Text for active/hovered sidebar item */
+    --sidebar-foreground: 220 10% 85%; /* Light text for items in sidebar */
+    --sidebar-primary: hsl(var(--primary)); /* PRD Green for text if needed on sidebar */
+    --sidebar-primary-foreground: hsl(var(--primary-foreground)); /* Text on a primary bg button on sidebar */
+    --sidebar-accent: hsl(var(--accent)); /* PRD Soft Blue for active/hovered sidebar item */
+    --sidebar-accent-foreground: hsl(var(--accent-foreground)); /* Dark text for active/hovered sidebar item on soft blue */
     --sidebar-border: 220 10% 30%;
     --sidebar-ring: hsl(var(--ring));
   }
 
-  /* Fallback dark theme variables in case .dark class is not on html */
+  /* Fallback dark theme variables (can be used if a dark mode toggle is implemented) */
   .dark {
     --background: 220 15% 10%;
     --foreground: 220 10% 90%;
@@ -66,7 +66,8 @@ body {
     --popover: 220 15% 12%;
     --popover-foreground: 220 10% 90%;
 
-    --primary: 120 25% 65%;
+    /* Primary in dark mode could be a lighter shade of the PRD green, or PRD green itself if contrast works */
+    --primary: 120 25% 65%; /* PRD Green */
     --primary-foreground: 120 25% 10%;
 
     --secondary: 220 15% 25%;
@@ -75,28 +76,29 @@ body {
     --muted: 220 15% 20%;
     --muted-foreground: 220 10% 60%;
 
-    --accent: 210 80% 60%;
-    --accent-foreground: 210 80% 10%;
+    /* Accent in dark mode could be a lighter shade of PRD blue, or PRD blue itself */
+    --accent: 210 33% 84%; /* PRD Soft Blue */
+    --accent-foreground: 210 33% 15%;
 
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 210 80% 55%;
+    --ring: hsl(var(--primary)); /* Ring based on PRD primary */
     
-    --chart-1: hsl(var(--primary)); /* Use primary for chart bar */
+    --chart-1: hsl(var(--primary)); 
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar specific colors for .dark explicit class */
+    /* Sidebar specific colors for .dark explicit class (these are already dark, so they are fine) */
     --sidebar-background: 220 10% 23%;
     --sidebar-foreground: 220 10% 85%;
-    --sidebar-primary: 220 10% 85%;
-    --sidebar-primary-foreground: 220 10% 23%;
-    --sidebar-accent: hsl(var(--accent));
+    --sidebar-primary: hsl(var(--primary)); /* Use PRD green */
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--accent)); /* Use PRD blue */
     --sidebar-accent-foreground: hsl(var(--accent-foreground));
     --sidebar-border: 220 10% 30%;
     --sidebar-ring: hsl(var(--ring));
@@ -111,19 +113,22 @@ body {
     @apply bg-background text-foreground;
     font-family: var(--font-body); /* Apply PT Sans from Tailwind config */
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline); /* Apply PT Sans for headlines */
+  }
   input, textarea {
     font-family: var(--font-body); /* Ensure inputs also use PT Sans */
-    border: 1px solid hsl(var(--border)); /* Ensure inputs have a border for visibility in dark theme */
-    background: hsl(var(--input)); /* Use input background color */
-    padding: 0.5rem; /* Add some padding */
+    border: 1px solid hsl(var(--border)); 
+    background: hsl(var(--input)); 
+    padding: 0.5rem; 
     margin: 0;
     box-sizing: border-box;
     width: 100%;
-    height: auto; /* Adjust height for inputs */
+    height: auto; 
     overflow: hidden;
     resize: none;
-    line-height: 1.2; /* Adjust line-height for better readability */
-    color: hsl(var(--foreground)); /* Use themed foreground color */
+    line-height: 1.2; 
+    color: hsl(var(--foreground)); 
   }
    input:-webkit-autofill,
    input:-webkit-autofill:hover,
@@ -135,15 +140,15 @@ body {
    }
 
   input[type="number"] {
-    padding-right: 0.5rem; /* Ensure padding for number input spinners */
+    padding-right: 0.5rem; 
   }
   
   textarea {
-    min-height: 80px; /* Default min-height for textareas */
+    min-height: 80px; 
   }
 
   input:focus, textarea:focus {
-    outline: 1px solid hsl(var(--ring)); /* Use themed ring color for focus */
+    outline: 1px solid hsl(var(--ring)); 
     background-color: hsl(var(--input)); 
     border-color: hsl(var(--ring));
   }
@@ -157,7 +162,7 @@ body {
     line-height: 1.0;
   }
   .invoice-container input:focus, .invoice-container textarea:focus {
-     outline: 1px solid hsl(var(--accent)); /* Use themed accent color */
+     outline: 1px solid hsl(var(--accent)); /* Use themed accent color (soft blue) */
      background-color: hsla(var(--accent) / 0.1); /* Light accent background on focus */
      border: none;
   }
