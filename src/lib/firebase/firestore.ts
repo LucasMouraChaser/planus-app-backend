@@ -3,6 +3,7 @@
 // Placeholder for Firestore interaction functions related to CRM
 import type { LeadDocumentData, LeadWithId, ChatMessage as ChatMessageType, StageId } from '@/types/crm';
 import type { WithdrawalRequestData, WithdrawalRequestWithId, PixKeyType, WithdrawalStatus, WithdrawalType } from '@/types/wallet'; // Import wallet types
+import type { FirestoreUser, UserType } from '@/types/user';
 // import { Timestamp, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, getDoc } from 'firebase/firestore';
 // import { db } from './firebase-config'; // Assuming you have a firebase-config.ts initializing 'db'
 
@@ -74,7 +75,12 @@ export async function fetchCrmLeads(
   //   createdAt: (doc.data().createdAt as Timestamp).toDate().toISOString(),
   //   lastContact: (doc.data().lastContact as Timestamp).toDate().toISOString(),
   // } as LeadWithId));
-  return []; // Return empty or mock data for now
+  
+  // Returning mock data for SellerDashboard
+  return [
+    { id: 'slead1', name: 'Loja de Roupas Elegance', company: 'Elegance Modas LTDA', value: 3500, kwh: 1200, stageId: 'proposta', sellerName: 'vendedor1@example.com', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), lastContact: new Date().toISOString(), userId: 'user1', needsAdminApproval: false, leadSource: "Indicação" },
+    { id: 'slead2', name: 'Restaurante Sabor Caseiro', value: 8000, kwh: 3000, stageId: 'assinado', sellerName: 'vendedor1@example.com', createdAt: new Date(Date.now() - 86400000 * 15).toISOString(), lastContact: new Date(Date.now() - 86400000 * 1).toISOString(), userId: 'user1', needsAdminApproval: false, leadSource: "Tráfego Pago" },
+  ];
 }
 
 export async function fetchAllCrmLeadsGlobally(
@@ -82,7 +88,11 @@ export async function fetchAllCrmLeadsGlobally(
 ): Promise<LeadWithId[]> {
   console.log("Placeholder: fetchAllCrmLeadsGlobally called");
   // Similar to fetchCrmLeads, but might have broader permissions or be used for dashboard
-  return [];
+  return [
+    { id: 'lead1', name: 'Empresa Grande', value: 10000, kwh: 5000, stageId: 'assinado', sellerName: 'vendedor1@example.com', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), lastContact: new Date().toISOString(), leadSource: 'Tráfego Pago', userId: 'user1', needsAdminApproval: false },
+    { id: 'lead2', name: 'Mercado Local', value: 2000, kwh: 800, stageId: 'proposta', sellerName: 'vendedor2@example.com', createdAt: new Date(Date.now() - 86400000 * 7).toISOString(), lastContact: new Date(Date.now() - 86400000).toISOString(), leadSource: 'Indicação', userId: 'user2' },
+    { id: 'lead3', name: 'Padaria Central', value: 500, kwh: 300, stageId: 'conformidade', sellerName: 'vendedor1@example.com', createdAt: new Date().toISOString(), lastContact: new Date().toISOString(), leadSource: 'WhatsApp', userId: 'user1', needsAdminApproval: true },
+  ];
 }
 
 
@@ -287,19 +297,37 @@ export async function fetchWithdrawalHistory(userId: string): Promise<Withdrawal
   ];
 }
 
-// Admin functions (placeholders)
+// --- Admin / Commission Dashboard specific functions ---
+export async function fetchAllUsers(): Promise<FirestoreUser[]> {
+  console.log("Placeholder: fetchAllUsers called");
+  // const querySnapshot = await getDocs(collection(db, "users"));
+  // return querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data(), createdAt: (doc.data().createdAt as Timestamp)?.toDate().toISOString() || new Date().toISOString() }) as FirestoreUser);
+  return [
+    { uid: 'user1', email: 'vendedor1@example.com', displayName: 'Vendedor Um', cpf: '111.111.111-11', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), personalBalance: 1200, mlmBalance: 300 },
+    { uid: 'user2', email: 'vendedor2@example.com', displayName: 'Vendedor Dois', cpf: '222.222.222-22', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), personalBalance: 850, mlmBalance: 150 },
+    { uid: 'admin1', email: 'admin@example.com', displayName: 'Admin Principal', type: 'admin', createdAt: new Date(Date.now() - 86400000 * 30).toISOString() },
+  ];
+}
+
+export async function adminRegisterUser(email: string, password?: string, displayName?: string, type?: UserType, cpf?: string): Promise<boolean> {
+  console.log("Placeholder: adminRegisterUser called for email:", email);
+  // This function would typically involve Firebase Auth for creating the user
+  // and then creating a corresponding document in the 'users' collection in Firestore.
+  // For now, just simulate success.
+  return true;
+}
+
 export async function adminFetchAllWithdrawalRequests(statusFilter?: WithdrawalStatus): Promise<WithdrawalRequestWithId[]> {
   console.log("Placeholder: adminFetchAllWithdrawalRequests called with filter:", statusFilter);
-  // // Actual implementation would query Firestore, filter by status if provided, and order.
-  // // For now, return a generic mock or empty array.
-  // const allMockRequests: WithdrawalRequestWithId[] = [ // Example, expand this
-  //   { id: 'adm_wr1', userId: 'user123', userEmail: 'user1@example.com', userName: 'User One', amount: 100, pixKeyType: 'Celular', pixKey: '(11)99999-0000', status: 'pendente', withdrawalType: 'personal', requestedAt: new Date().toISOString() },
-  //   { id: 'adm_wr2', userId: 'user456', userEmail: 'user2@example.com', userName: 'User Two', amount: 250, pixKeyType: 'Email', pixKey: 'user2@mail.com', status: 'concluido', withdrawalType: 'mlm', requestedAt: new Date(Date.now() - 86400000).toISOString(), processedAt: new Date().toISOString() },
-  // ];
-  // if (statusFilter) {
-  //   return allMockRequests.filter(req => req.status === statusFilter);
-  // }
-  return []; // Or a more comprehensive mock if needed for admin UI testing.
+  const allMockRequests: WithdrawalRequestWithId[] = [ 
+    { id: 'wd1', userId: 'user1', userEmail: 'vendedor1@example.com', userName: 'Vendedor Um', amount: 500, pixKeyType: 'CPF/CNPJ', pixKey: '111.111.111-11', status: 'pendente', requestedAt: new Date(Date.now() - 86400000).toISOString(), withdrawalType: 'personal' },
+    { id: 'wd2', userId: 'user2', userEmail: 'vendedor2@example.com', userName: 'Vendedor Dois', amount: 200, pixKeyType: 'Email', pixKey: 'vendedor2@example.com', status: 'concluido', requestedAt: new Date(Date.now() - 86400000 * 2).toISOString(), processedAt: new Date(Date.now() - 86400000).toISOString(), withdrawalType: 'mlm', adminNotes: 'Pago.' },
+    { id: 'wd3', userId: 'user1', userEmail: 'vendedor1@example.com', userName: 'Vendedor Um', amount: 150, pixKeyType: 'Aleatória', pixKey: 'xyz-123', status: 'processando', requestedAt: new Date().toISOString(), withdrawalType: 'personal' },
+  ];
+  if (statusFilter) {
+    return allMockRequests.filter(req => req.status === statusFilter);
+  }
+  return allMockRequests;
 }
 
 export async function adminUpdateWithdrawalStatus(

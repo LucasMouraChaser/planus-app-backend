@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import Image from 'next/image'; // Importar Image
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert } from 'lucide-react'; // Added LayoutDashboard, ShieldAlert
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -70,6 +70,9 @@ export default function RootLayout({
     const { toggleSidebar, state: sidebarState, isMobile } = useSidebar();
     const currentPathname = usePathname(); // usePathname inside AppContent
 
+    // Placeholder: In a real app, get user role from auth context
+    const userRole = typeof window !== 'undefined' && sessionStorage.getItem('isLoggedIn') ? 'vendedor' : 'admin'; // Simple mock, default to admin if no explicit role
+
     return (
       <>
         <Sidebar>
@@ -84,15 +87,7 @@ export default function RootLayout({
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <Link href="#">
-                  <SidebarMenuButton tooltip="Ranking de Performance" isActive={currentPathname === '/ranking'}>
-                    <BarChart3 />
-                    Ranking
-                  </SidebarMenuButton>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
+               <SidebarMenuItem>
                 <Link href="/">
                   <SidebarMenuButton isActive={currentPathname === '/'} tooltip="Calculadora de Economia">
                     <Calculator />
@@ -105,6 +100,14 @@ export default function RootLayout({
                   <SidebarMenuButton isActive={currentPathname === '/proposal-generator'} tooltip="Gerador de Proposta">
                     <FileText />
                     Proposta
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <Link href="/dashboard/seller">
+                  <SidebarMenuButton isActive={currentPathname === '/dashboard/seller'} tooltip="Meu Painel">
+                    <LayoutDashboard />
+                    Meu Painel
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -124,19 +127,40 @@ export default function RootLayout({
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
+              {/* Admin specific links */}
+              {userRole === 'admin' && (
+                <>
+                  <SidebarMenuItem>
+                    <Link href="/admin/dashboard">
+                      <SidebarMenuButton isActive={currentPathname === '/admin/dashboard'} tooltip="Painel Admin">
+                        <ShieldAlert />
+                        Painel Admin
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="#">
+                      <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/gerenciar-usuarios'}>
+                        <UserCog />
+                        Gerenciar Usuários
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                </>
+              )}
               <SidebarMenuItem>
                 <Link href="#">
-                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
-                    <Rocket />
-                    Plano de Carreira
+                  <SidebarMenuButton tooltip="Ranking de Performance" isActive={currentPathname === '/ranking'}>
+                    <BarChart3 />
+                    Ranking
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="#">
-                  <SidebarMenuButton tooltip="Configurações de Usuários" isActive={currentPathname === '/gerenciar-usuarios'}>
-                    <UserCog />
-                    Gerenciar Usuários
+                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
+                    <Rocket />
+                    Plano de Carreira
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
