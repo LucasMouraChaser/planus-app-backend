@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { HelpCircle, MapPin, ChevronLeft, FileText } from 'lucide-react';
 
@@ -86,6 +87,7 @@ function CalculatorPageContent() {
   const [hoveredStateCode, setHoveredStateCode] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
   const [currentKwh, setCurrentKwh] = useState<number>(DEFAULT_KWH);
+  const [isFidelityEnabled, setIsFidelityEnabled] = useState(true);
   const [savings, setSavings] = useState<SavingsResult | null>(null);
   
   const [shouldShowInvoiceEditor, setShouldShowInvoiceEditor] = useState(false);
@@ -147,9 +149,13 @@ function CalculatorPageContent() {
       newOriginalInvoiceData.proximaLeituraData = format(addDays(hoje, 30), 'dd/MM/yyyy');
       
       const consumoKwhInput = parseLocaleNumberString(params.get("item1Quantidade") || newOriginalInvoiceData.item1Quantidade);
+      setCurrentKwh(consumoKwhInput > MAX_KWH_SLIDER ? MAX_KWH_SLIDER : consumoKwhInput < MIN_KWH_SLIDER ? MIN_KWH_SLIDER : consumoKwhInput);
       const cipValorInput = parseLocaleNumberString(params.get("item3Valor") || newOriginalInvoiceData.item3Valor);
       const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria") || newOriginalInvoiceData.valorProducaoPropria);
       const isencaoIcmsEnergiaGeradaParam = params.get("isencaoIcmsEnergiaGerada") || "nao";
+      const fidelityParam = params.get("comFidelidade") === 'true'; // Assuming it might come from proposal
+      setIsFidelityEnabled(fidelityParam);
+
 
       const valorConsumoPrincipalOriginal = consumoKwhInput * TARIFA_ENERGIA;
       newOriginalInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipalOriginal + cipValorInput - valorProdPropriaInput); 
@@ -193,21 +199,20 @@ function CalculatorPageContent() {
 
 
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
-      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum);
-      setSavings(currentSavingsResult); // Set savings here
+      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum, fidelityParam); // Pass fidelity status
+      setSavings(currentSavingsResult); 
       
       const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
       newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
 
-      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC); // PIS/COFINS on discounted energy, ex-ICMS
+      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC); 
       newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_PIS_PERC);
       newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_COFINS_PERC);
       
-      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC); // ICMS on discounted energy
+      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC); 
 
       newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorEnergiaComDesconto + cipValorInput - valorProdPropriaInput);
       
-      // Populate fields for PlanusInvoiceDisplay (bowe-like layout)
       newPlanusInvoiceData.boweNomeRazaoSocial = newOriginalInvoiceData.clienteNome;
       newPlanusInvoiceData.boweCpfCnpj = newOriginalInvoiceData.clienteCnpjCpf;
       newPlanusInvoiceData.boweEnderecoCompleto = `${newOriginalInvoiceData.clienteEndereco || ''} ${newOriginalInvoiceData.clienteBairro||''} ${newOriginalInvoiceData.clienteCidadeUF||''} CEP: ${params.get("clienteCep") || ""}`.trim();
@@ -215,19 +220,18 @@ function CalculatorPageContent() {
       newPlanusInvoiceData.boweMesReferencia = newOriginalInvoiceData.mesAnoReferencia.split('/')[0].trim() + "/" + newOriginalInvoiceData.mesAnoReferencia.split('/')[1].trim();
       newPlanusInvoiceData.boweTipoLigacao = `${newOriginalInvoiceData.classificacao.split('-')[0]} ${newOriginalInvoiceData.ligacao}`;
       newPlanusInvoiceData.boweDataVencimento = newOriginalInvoiceData.dataVencimento;
-      newPlanusInvoiceData.boweNumeroBoleto = "S/N"; // Placeholder or from proposal if added
-      newPlanusInvoiceData.boweTotalAPagar = newPlanusInvoiceData.valorTotalFatura; // This is the discounted total
+      newPlanusInvoiceData.boweNumeroBoleto = "S/N"; 
+      newPlanusInvoiceData.boweTotalAPagar = newPlanusInvoiceData.valorTotalFatura; 
       newPlanusInvoiceData.boweDataEmissao = format(hoje, 'dd/MM/yyyy');
 
       newPlanusInvoiceData.boweAntesValor = newOriginalInvoiceData.valorTotalFatura;
       newPlanusInvoiceData.boweDepoisValor = newPlanusInvoiceData.valorTotalFatura; 
       newPlanusInvoiceData.boweEconomiaMensalValor = formatNumberToCurrencyString(currentSavingsResult.monthlySaving);
       newPlanusInvoiceData.boweEconomiaAcumuladaValor = formatNumberToCurrencyString(currentSavingsResult.annualSaving); 
-      newPlanusInvoiceData.boweReducaoCO2Valor = "0 t"; // Placeholder
-      newPlanusInvoiceData.boweArvoresPlantadasValor = "0"; // Placeholder
+      newPlanusInvoiceData.boweReducaoCO2Valor = "0 t"; 
+      newPlanusInvoiceData.boweArvoresPlantadasValor = "0"; 
 
-      // "Seus Custos Mensais" for Planus Display
-      newPlanusInvoiceData.boweCustosDistribuidoraValor = newOriginalInvoiceData.item3Valor; // CIP
+      newPlanusInvoiceData.boweCustosDistribuidoraValor = newOriginalInvoiceData.item3Valor; 
       newPlanusInvoiceData.boweEnergiaEletricaQtd = newPlanusInvoiceData.item1Quantidade + " kWh";
       newPlanusInvoiceData.boweEnergiaEletricaTarifa = formatNumberToLocaleString(parseLocaleNumberString(newPlanusInvoiceData.item1Valor) / consumoKwhInput, 6);
       newPlanusInvoiceData.boweEnergiaEletricaValor = newPlanusInvoiceData.item1Valor;
@@ -236,10 +240,9 @@ function CalculatorPageContent() {
       newPlanusInvoiceData.boweCustosTotalValor = newPlanusInvoiceData.valorTotalFatura;
       newPlanusInvoiceData.boweObservacao = currentSavingsResult.discountDescription;
 
-      // For "Quanto você gastaria sem a Planus" table
-      newPlanusInvoiceData.boweSemBowCustosDistribuidoraValor = newOriginalInvoiceData.item1Valor; // Original energy cost
-      newPlanusInvoiceData.boweSemBowIluminacaoPublicaValor = newOriginalInvoiceData.item3Valor; // Original CIP
-      newPlanusInvoiceData.boweSemBowDemaisCustosValor = "R$ 0,00"; // Placeholder for other costs if any (e.g. availability)
+      newPlanusInvoiceData.boweSemBowCustosDistribuidoraValor = newOriginalInvoiceData.item1Valor; 
+      newPlanusInvoiceData.boweSemBowIluminacaoPublicaValor = newOriginalInvoiceData.item3Valor; 
+      newPlanusInvoiceData.boweSemBowDemaisCustosValor = "R$ 0,00"; 
       newPlanusInvoiceData.boweSemBowTotalValor = newOriginalInvoiceData.valorTotalFatura;
 
       setPlanusInvoiceData(newPlanusInvoiceData);
@@ -310,11 +313,11 @@ function CalculatorPageContent() {
 
     if (selectedState && selectedState.available && !showMap && !shouldShowInvoiceEditor) {
       const billAmountInReais = currentKwh * KWH_TO_R_FACTOR;
-      setSavings(calculateSavings(billAmountInReais));
-    } else if (!shouldShowInvoiceEditor) { // Clear savings if no state or map is shown (and not in invoice editor mode)
+      setSavings(calculateSavings(billAmountInReais, isFidelityEnabled));
+    } else if (!shouldShowInvoiceEditor) { 
       setSavings(null); 
     }
-  }, [currentKwh, selectedState, isAuthenticated, showMap, shouldShowInvoiceEditor]);
+  }, [currentKwh, selectedState, isAuthenticated, showMap, shouldShowInvoiceEditor, isFidelityEnabled]);
 
   const handleStateClick = (stateCode: string) => {
     const stateDetails = statesData.find(s => s.code === stateCode);
@@ -330,7 +333,6 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
-    // Clear URL params for state and kwh when returning to map
     const params = new URLSearchParams(searchParams.toString());
     params.delete('state');
     params.delete('kwh');
@@ -418,16 +420,29 @@ function CalculatorPageContent() {
               <div className="flex flex-col items-center space-y-6">
                 <StateInfoCard state={selectedState} />
                 <Card className="w-full shadow-xl bg-card/70 backdrop-blur-lg border">
-                    <CardHeader>
-                    <CardTitle className="text-xl font-bold text-primary flex items-center">
-                        <FileText className="mr-2 h-5 w-5" /> 
-                        Simulador de Consumo
-                    </CardTitle>
-                    <CardDescription>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl font-bold text-primary flex items-center">
+                          <FileText className="mr-2 h-5 w-5" /> 
+                          Simulador de Consumo
+                      </CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="fidelity-switch"
+                          checked={isFidelityEnabled}
+                          onCheckedChange={setIsFidelityEnabled}
+                          aria-label="Com fidelidade?"
+                        />
+                        <Label htmlFor="fidelity-switch" className="text-sm font-medium text-muted-foreground">
+                          Com fidelidade?
+                        </Label>
+                      </div>
+                    </div>
+                    <CardDescription className="mt-1">
                         Ajuste seu consumo mensal em kWh para ver a estimativa para {selectedState.name}.
                     </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                     <div>
                         <Label htmlFor="kwhInput" className="text-sm font-medium">Consumo Mensal (kWh)</Label>
                         <Input
@@ -455,16 +470,19 @@ function CalculatorPageContent() {
                         {currentBillWithoutDiscount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
                     </div>
-                    </CardContent>
+                  </CardContent>
                 </Card>
               </div>
 
               <div className="flex flex-col space-y-6">
-                <SavingsDisplay savings={savings} />
+                <SavingsDisplay 
+                  savings={savings} 
+                  currentKwh={currentKwh} 
+                  selectedStateCode={selectedState?.code}
+                />
               </div>
             </div>
           )}
-           {/* Competitor Analysis Section - Rendered when a state is selected and not in invoice editor mode */}
            {!showMap && selectedState && savings && !shouldShowInvoiceEditor && (
               <div className="w-full max-w-6xl mx-auto px-4 mb-12">
                 <CompetitorComparisonDisplay 
@@ -505,7 +523,6 @@ function CalculatorPageContent() {
                 <PlanusInvoiceDisplay invoiceData={planusInvoiceData} />
             </>
           )}
-           {/* Competitor Analysis Section - Rendered also in invoice editor mode if savings data is available */}
            {savings && originalInvoiceData && (
               <div className="w-full max-w-6xl mx-auto px-4 my-8">
                 <CompetitorComparisonDisplay 
@@ -535,4 +552,3 @@ export default function HomePage() {
 }
 
     
-

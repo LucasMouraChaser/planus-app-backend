@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -48,20 +48,26 @@ const formSchema = z.object({
   item3Valor: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "CIP/COSIP deve ser um número válido ou vazio." }),
   valorProducaoPropria: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "Valor da produção própria deve ser um número válido ou vazio." }),
   isencaoIcmsEnergiaGerada: z.enum(['sim', 'nao']).default('nao').describe("Há isenção de ICMS na Energia Gerada?"),
+  comFidelidade: z.boolean().default(true).describe("A proposta inclui fidelidade?"),
 });
 
 type ProposalFormData = z.infer<typeof formSchema>;
 
 export default function ProposalGeneratorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  const initialKwhFromUrl = searchParams.get('item1Quantidade');
+  const initialUfFromUrl = searchParams.get('clienteUF');
+
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       clienteNome: "",
       clienteCnpjCpf: "",
       codigoClienteInstalacao: "",
-      item1Quantidade: "1500", // Default KWh
+      item1Quantidade: initialKwhFromUrl || "1500",
       ligacao: "TRIFASICO",
       classificacao: "RESIDENCIAL-CONVENCIONAL BAIXA TENSAO B1",
       clienteCep: "",
@@ -70,14 +76,30 @@ export default function ProposalGeneratorPage() {
       clienteComplemento: "",
       clienteBairro: "",
       clienteCidade: "",
-      clienteUF: "",
-      item3Valor: "13,75", // Default CIP
-      valorProducaoPropria: "0", // Default energia injetada
+      clienteUF: initialUfFromUrl || "",
+      item3Valor: "13,75", 
+      valorProducaoPropria: "0",
       isencaoIcmsEnergiaGerada: "nao",
+      comFidelidade: true, 
     },
   });
 
   const cepValue = form.watch("clienteCep");
+
+  useEffect(() => {
+    // Reset form with new defaults if URL params change and are valid
+    const kwhFromUrl = searchParams.get('item1Quantidade');
+    const ufFromUrl = searchParams.get('clienteUF');
+
+    if (kwhFromUrl && form.getValues("item1Quantidade") !== kwhFromUrl) {
+      form.setValue("item1Quantidade", kwhFromUrl);
+    }
+    if (ufFromUrl && form.getValues("clienteUF") !== ufFromUrl) {
+      form.setValue("clienteUF", ufFromUrl);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, form.setValue]);
+
 
   useEffect(() => {
     const fetchAddress = async (cep: string) => {
@@ -96,12 +118,12 @@ export default function ProposalGeneratorPage() {
           form.setValue("clienteRua", "");
           form.setValue("clienteBairro", "");
           form.setValue("clienteCidade", "");
-          form.setValue("clienteUF", "");
+          form.setValue("clienteUF", searchParams.get('clienteUF') || ""); // Keep UF from URL if CEP fails
         } else {
           form.setValue("clienteRua", data.logradouro || "");
           form.setValue("clienteBairro", data.bairro || "");
           form.setValue("clienteCidade", data.localidade || "");
-          form.setValue("clienteUF", data.uf || "");
+          form.setValue("clienteUF", data.uf || ""); // Overwrite UF with VIA CEP result
           toast({
             title: "Endereço preenchido",
             description: "Os campos de endereço foram atualizados.",
@@ -118,35 +140,39 @@ export default function ProposalGeneratorPage() {
     };
 
     if (cepValue) {
-      const cleanedCep = cepValue.replace(/\D/g, ''); // Remove non-digits
+      const cleanedCep = cepValue.replace(/\D/g, ''); 
       if (cleanedCep.length === 8) {
         fetchAddress(cleanedCep);
       } else {
-        // Limpa os campos se o CEP não estiver completo ou for inválido
-        if (form.getValues("clienteRua") || form.getValues("clienteBairro") || form.getValues("clienteCidade") || form.getValues("clienteUF")) {
-            // Só limpa se já houver algo preenchido por uma busca anterior, para não apagar digitação manual.
-            if (cleanedCep.length === 0 || cleanedCep.length < 8 && !/^\d{0,7}$/.test(cleanedCep)) { // Se o cep foi apagado ou ficou invalido
+        if (form.getValues("clienteRua") || form.getValues("clienteBairro") || form.getValues("clienteCidade") || form.getValues("clienteUF") !== (searchParams.get('clienteUF') || "")) {
+            if (cleanedCep.length === 0 || cleanedCep.length < 8 && !/^\d{0,7}$/.test(cleanedCep)) { 
                 form.setValue("clienteRua", "");
                 form.setValue("clienteBairro", "");
                 form.setValue("clienteCidade", "");
-                form.setValue("clienteUF", "");
+                form.setValue("clienteUF", searchParams.get('clienteUF') || ""); // Reset UF to URL param or empty
             }
         }
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cepValue, form.setValue, toast]);
+  }, [cepValue, form.setValue, toast, searchParams]);
 
 
   function onSubmit(values: ProposalFormData) {
     const queryParams = new URLSearchParams();
     (Object.keys(values) as Array<keyof ProposalFormData>).forEach((key) => {
       const value = values[key];
-      // Apenas adiciona aos query params se o valor não for undefined, null ou uma string vazia.
       if (value !== undefined && value !== null && String(value).trim() !== "") {
-        queryParams.set(key, String(value));
+        if (typeof value === 'boolean') {
+          queryParams.set(key, String(value));
+        } else {
+          queryParams.set(key, String(value));
+        }
       }
     });
+    // Explicitly add comFidelidade from form state
+    queryParams.set("comFidelidade", String(form.getValues("comFidelidade")));
+
     router.push(`/?${queryParams.toString()}`);
   }
 
@@ -411,6 +437,26 @@ export default function ProposalGeneratorPage() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="comFidelidade"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-background/50">
+                    <div className="space-y-0.5">
+                      <FormLabel>Incluir Fidelidade na Proposta?</FormLabel>
+                      <FormDescription>
+                        Afeta as regras de desconto aplicadas na simulação.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 Gerar Simulação na Fatura
               </Button>
@@ -421,5 +467,3 @@ export default function ProposalGeneratorPage() {
     </main>
   );
 }
-
-    

@@ -12,6 +12,8 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
 interface SavingsDisplayProps {
   savings: SavingsResult | null;
+  currentKwh: number;
+  selectedStateCode?: string | null;
 }
 
 const formatCurrency = (value: number) => {
@@ -34,7 +36,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const renderDiscountDescription = (description: string) => {
-  const parts = description.split(/(\d+%)/g); // Split by percentages, keeping the delimiter
+  const parts = description.split(/(\d+%)/g); 
   return parts.map((part, index) => {
     if (/\d+%/.test(part)) {
       return <span key={index} className="text-primary font-medium">{part}</span>;
@@ -43,7 +45,9 @@ const renderDiscountDescription = (description: string) => {
   });
 };
 
-export function SavingsDisplay({ savings }: SavingsDisplayProps) {
+export function SavingsDisplay({ savings, currentKwh, selectedStateCode }: SavingsDisplayProps) {
+
+  const proposalGeneratorLink = `/proposal-generator?item1Quantidade=${currentKwh}${selectedStateCode ? `&clienteUF=${selectedStateCode}` : ''}`;
 
   if (!savings || savings.monthlySaving === 0) {
     return (
@@ -58,7 +62,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4 flex flex-col items-center">
-           <Link href="/proposal-generator">
+           <Link href={proposalGeneratorLink}>
             <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
               <FileText className="mr-2 h-5 w-5" />
               INICIAR NOVA PROPOSTA
@@ -80,7 +84,6 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-2 space-y-6">
-        {/* Section for Original Bill, New Bill, and Chart */}
         <div className="grid md:grid-cols-2 gap-4 items-end">
           <div className="space-y-3">
             <div>
@@ -88,7 +91,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
               <p className="text-lg font-medium text-foreground">{formatCurrency(savings.originalMonthlyBill)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Nova Conta com SENT (Estimada)</p>
+              <p className="text-xs text-muted-foreground">Nova Conta com Planus (Estimada)</p>
               <p className="text-3xl font-bold text-primary">{formatCurrency(savings.newMonthlyBillWithSent)}</p>
             </div>
           </div>
@@ -107,7 +110,6 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           </div>
         </div>
 
-        {/* Section for Annual Savings & Effective Discount */}
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
           <div>
             <p className="text-xs text-muted-foreground">Economia Anual Estimada</p>
@@ -119,9 +121,8 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           </div>
         </div>
         
-        {/* Button Section */}
         <div className="pt-4">
-          <Link href="/proposal-generator">
+          <Link href={proposalGeneratorLink}>
             <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
               <FileText className="mr-2 h-5 w-5" />
               INICIAR NOVA PROPOSTA
@@ -132,4 +133,3 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
     </Card>
   );
 }
-
