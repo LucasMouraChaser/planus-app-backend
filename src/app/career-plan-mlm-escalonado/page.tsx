@@ -4,10 +4,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { ChevronLeft } from 'lucide-react';
 
 const formatBRL = (value: number | null | undefined, includeSymbol = true): string => {
@@ -184,7 +185,7 @@ export default function MlmEscalonadoPage() {
   }, [personalSales, nivel1Count, nivel1Sales, nivel2Count, nivel2Sales, nivel3Count, nivel3Sales, temOuroNivel3, nivel4Count, nivel4Sales]);
 
   return (
-    <div className="min-h-screen text-white p-4 md:p-8" style={{ background: '#000000' }}>
+    <div className="min-h-screen text-white p-4 md:p-8 bg-black">
       <Link href="/career-plan" passHref className="absolute top-4 left-4 z-10">
         <Button variant="outline" size="sm" className="bg-gray-800/50 hover:bg-gray-700/70 border-gray-600 text-gray-300 hover:text-white">
           <ChevronLeft className="mr-2 h-4 w-4" /> Voltar ao Plano
@@ -291,7 +292,6 @@ export default function MlmEscalonadoPage() {
                     </Card>
                 </div>
             </div>
-            {/* Adicionar setas/conexões visuais aqui se desejado, ou manter simples */}
             
             {/* Nível 2 */}
              <div className="mt-6">
@@ -381,19 +381,19 @@ export default function MlmEscalonadoPage() {
               <div>
                 <Label htmlFor="nivel1-count" className="text-sm text-muted-foreground">Nível 1 (5%) - Recrutas Diretos:</Label>
                 <Input type="number" id="nivel1-count" value={nivel1Count} onChange={e => setNivel1Count(parseInputNumber(e.target.value))} min="0" max="20" placeholder="Ex: 2" className="bg-slate-700 border-slate-600 text-foreground mb-1" />
-                <Input type="number" id="nivel1-sales" value={nivel1Sales} onChange={e => setNivel1Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias/recruta" className="bg-slate-700 border-slate-600 text-foreground" />
+                <Input type="number" id="nivel1-sales" value={nivel1Sales} onChange={e => setNivel1Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias: 35000" className="bg-slate-700 border-slate-600 text-foreground" />
               </div>
               <div>
                 <Label htmlFor="nivel2-count" className="text-sm text-muted-foreground">Nível 2 (3%) - Sub-recrutas:</Label>
                 <Input type="number" id="nivel2-count" value={nivel2Count} onChange={e => setNivel2Count(parseInputNumber(e.target.value))} min="0" max="50" placeholder="Ex: 3" className="bg-slate-700 border-slate-600 text-foreground mb-1" />
-                <Input type="number" id="nivel2-sales" value={nivel2Sales} onChange={e => setNivel2Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias/recruta" className="bg-slate-700 border-slate-600 text-foreground" />
+                <Input type="number" id="nivel2-sales" value={nivel2Sales} onChange={e => setNivel2Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias: 25000" className="bg-slate-700 border-slate-600 text-foreground" />
               </div>
             </div>
              <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <Label htmlFor="nivel3-count" className="text-sm text-muted-foreground">Nível 3 (2%) - Rede Profunda:</Label>
                     <Input type="number" id="nivel3-count" value={nivel3Count} onChange={e => setNivel3Count(parseInputNumber(e.target.value))} min="0" max="100" placeholder="Ex: 3" className="bg-slate-700 border-slate-600 text-foreground mb-1" />
-                    <Input type="number" id="nivel3-sales" value={nivel3Sales} onChange={e => setNivel3Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias/recruta" className="bg-slate-700 border-slate-600 text-foreground" />
+                    <Input type="number" id="nivel3-sales" value={nivel3Sales} onChange={e => setNivel3Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias: 25000" className="bg-slate-700 border-slate-600 text-foreground" />
                     <div className="flex items-center space-x-2 mt-2">
                         <Checkbox id="nivel3-tem-ouro" checked={temOuroNivel3} onCheckedChange={(checked) => setTemOuroNivel3(Boolean(checked))} />
                         <Label htmlFor="nivel3-tem-ouro" className="text-xs text-muted-foreground">Tem OURO no Nível 3? (Ativa Nível 4)</Label>
@@ -402,7 +402,7 @@ export default function MlmEscalonadoPage() {
                 <div>
                     <Label htmlFor="nivel4-count" className="text-sm text-muted-foreground">Nível 4 (1%) - Só com OURO no Nível 3:</Label>
                     <Input type="number" id="nivel4-count" value={nivel4Count} onChange={e => setNivel4Count(parseInputNumber(e.target.value))} min="0" max="100" placeholder="Ex: 3" disabled={!temOuroNivel3} className="bg-slate-700 border-slate-600 text-foreground mb-1 disabled:opacity-50" />
-                    <Input type="number" id="nivel4-sales" value={nivel4Sales} onChange={e => setNivel4Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias/recruta" disabled={!temOuroNivel3} className="bg-slate-700 border-slate-600 text-foreground disabled:opacity-50" />
+                    <Input type="number" id="nivel4-sales" value={nivel4Sales} onChange={e => setNivel4Sales(parseInputNumber(e.target.value))} min="0" step="1000" placeholder="Vendas médias: 22000" disabled={!temOuroNivel3} className="bg-slate-700 border-slate-600 text-foreground disabled:opacity-50" />
                      <Card className="bg-amber-500/10 border-amber-400/50 p-2 mt-2">
                         <p className="text-xs text-muted-foreground">
                             <strong>Regra Especial:</strong> Nível 4 (1%) só é ativado se houver OURO no nível 3.
@@ -420,7 +420,6 @@ export default function MlmEscalonadoPage() {
                     • Total disponível: 11% de override distribuído estrategicamente
                 </span>
             </Card>
-            {/* Botão Calcular removido, cálculo é automático */}
             <div id="mlm-results-container" className="mt-6">
               {calculationResults}
             </div>
@@ -433,7 +432,6 @@ export default function MlmEscalonadoPage() {
             <CardTitle className="text-2xl md:text-3xl text-center text-primary">📊 CENÁRIOS REAIS MLM 4 NÍVEIS (11% Total)</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-3 gap-6">
-            {/* Cenário Iniciante */}
             <Card className="bg-slate-800/50 border-slate-700 p-4">
                 <CardTitle className="text-lg font-semibold text-primary mb-2">🚀 Cenário Iniciante</CardTitle>
                 <div className="space-y-1 text-xs">
@@ -449,7 +447,6 @@ export default function MlmEscalonadoPage() {
                 <p className="text-xl font-bold text-primary mt-3 text-center">R$ 320K</p>
                 <p className="text-xs text-muted-foreground text-center uppercase">Potencial anual</p>
             </Card>
-             {/* Cenário Intermediário */}
             <Card className="bg-slate-800/50 border-slate-700 p-4">
                 <CardTitle className="text-lg font-semibold text-green-400 mb-2">⚡ Cenário Intermediário</CardTitle>
                  <div className="space-y-1 text-xs">
@@ -466,7 +463,6 @@ export default function MlmEscalonadoPage() {
                 <p className="text-xl font-bold text-green-400 mt-3 text-center">R$ 488K</p>
                 <p className="text-xs text-muted-foreground text-center uppercase">Potencial anual</p>
             </Card>
-            {/* Cenário Elite */}
             <Card className="bg-slate-800/50 border-slate-700 p-4">
                 <CardTitle className="text-lg font-semibold text-amber-400 mb-2">🏆 Cenário Elite</CardTitle>
                  <div className="space-y-1 text-xs">
@@ -525,3 +521,5 @@ export default function MlmEscalonadoPage() {
     </div>
   );
 }
+
+      
