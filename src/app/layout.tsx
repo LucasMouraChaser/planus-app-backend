@@ -148,7 +148,7 @@ export default function RootLayout({
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <Link href="#">
-                      <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/gerenciar-usuarios'}>
+                      <SidebarMenuButton tooltip="Gerenciar Usuários (Admin)" isActive={currentPathname === '/admin/users'}> {/* Updated Link */}
                         <UserCog />
                         Gerenciar Usuários
                       </SidebarMenuButton>
@@ -173,8 +173,8 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#">
-                  <SidebarMenuButton tooltip="Meu Perfil" isActive={currentPathname === '/perfil'}>
+                <Link href="/profile">
+                  <SidebarMenuButton tooltip="Meu Perfil" isActive={currentPathname === '/profile'}>
                     <CircleUserRound />
                     Perfil
                   </SidebarMenuButton>
