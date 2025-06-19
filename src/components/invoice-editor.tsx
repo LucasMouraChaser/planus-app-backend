@@ -56,10 +56,13 @@ function InvoiceEditorContent() {
     // Lê todos os parâmetros da URL
     const params = new URLSearchParams(searchParams.toString());
     params.forEach((value, key) => {
-      if (key in newInvoiceData) {
-        newInvoiceData[key as keyof InvoiceData] = value;
+      if (key in newInvoiceData || key === 'valorProducaoPropria' || key === 'item1Quantidade' || key === 'item3Valor') { // Include specific form fields
+        // Allow direct override for all keys if they exist in InvoiceData or are known form fields
+        if (key in newInvoiceData) {
+            newInvoiceData[key as keyof InvoiceData] = value;
+        }
+        hasQueryData = true;
       }
-      hasQueryData = true;
     });
     
     if (hasQueryData) {
@@ -72,7 +75,7 @@ function InvoiceEditorContent() {
       let enderecoCompleto = rua;
       if (numero) enderecoCompleto += `, ${numero}`;
       if (complemento) enderecoCompleto += ` - ${complemento}`;
-      newInvoiceData.clienteEndereco = enderecoCompleto || newInvoiceData.clienteEndereco;
+      newInvoiceData.clienteEndereco = enderecoCompleto || defaultInitialData.clienteEndereco;
 
       newInvoiceData.clienteBairro = params.get("clienteBairro") || newInvoiceData.clienteBairro;
       
@@ -83,7 +86,7 @@ function InvoiceEditorContent() {
       } else if (cidade) {
         newInvoiceData.clienteCidadeUF = cidade;
       } else {
-        newInvoiceData.clienteCidadeUF = newInvoiceData.clienteCidadeUF;
+        newInvoiceData.clienteCidadeUF = defaultInitialData.clienteCidadeUF;
       }
 
       newInvoiceData.clienteCnpjCpf = params.get("clienteCnpjCpf") || newInvoiceData.clienteCnpjCpf;
@@ -101,9 +104,9 @@ function InvoiceEditorContent() {
       newInvoiceData.proximaLeituraData = format(addDays(hoje, 30), 'dd/MM/yyyy');
       
       // Inputs numéricos do formulário
-      const consumoKwhInput = parseLocaleNumberString(params.get("item1Quantidade"));
-      const cipValorInput = parseLocaleNumberString(params.get("item3Valor"));
-      const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria"));
+      const consumoKwhInput = parseLocaleNumberString(params.get("item1Quantidade") || newInvoiceData.item1Quantidade);
+      const cipValorInput = parseLocaleNumberString(params.get("item3Valor") || newInvoiceData.item3Valor);
+      const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria") || newInvoiceData.valorProducaoPropria);
 
       // Cálculos de Valores
       const valorConsumoPrincipal = consumoKwhInput * TARIFA_ENERGIA;
@@ -113,12 +116,13 @@ function InvoiceEditorContent() {
       // item1Tarifa é fixo na exibição, usa initialValue
       newInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipal);
 
-      const tarifaEnergiaInjetadaRefCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
+      const tarifaEnergiaInjetadaRefCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC); // Este é o fator 0.9072813...
       newInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaInjetadaRefCalc, 6);
       
-      newInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput);
-      newInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
+      newInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput); // Energia Ativa Injetada
+      newInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput); // Contrib Ilum Pub
       
+      // Base de cálculo para PIS e COFINS é Consumo em KWh * (Tarifa de Energia SEM ICMS)
       const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaInjetadaRefCalc;
       newInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofins);
       // item1PisAliq é fixo na exibição
@@ -128,6 +132,7 @@ function InvoiceEditorContent() {
       // item1CofinsAliq é fixo na exibição
       newInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_COFINS_PERC);
       
+      // Base de cálculo para ICMS é o Valor do Consumo Principal (Consumo em KWh * Tarifa de Energia COM ICMS)
       newInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipal);
       // item1IcmsPerc é fixo na exibição
       newInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipal * ALIQUOTA_ICMS_PERC);
@@ -140,6 +145,36 @@ function InvoiceEditorContent() {
           newInvoiceData[fieldName] = fieldConfig.initialValue;
         }
       });
+    } else {
+      // Se não houver dados na query, preencher com os valores default e calcular datas
+      const hoje = new Date();
+      newInvoiceData.mesAnoReferencia = format(hoje, 'MMMM / yyyy', { locale: ptBR }).toUpperCase();
+      newInvoiceData.dataVencimento = format(addDays(hoje, 10), 'dd/MM/yyyy');
+      newInvoiceData.leituraAnteriorData = format(subDays(hoje, 30), 'dd/MM/yyyy');
+      newInvoiceData.leituraAtualData = format(hoje, 'dd/MM/yyyy');
+      newInvoiceData.numDiasFaturamento = getDaysInMonth(hoje).toString();
+      newInvoiceData.proximaLeituraData = format(addDays(hoje, 30), 'dd/MM/yyyy');
+       // Aplicar cálculos padrão se nenhum dado da query foi passado
+      const consumoKwhDefault = parseLocaleNumberString(defaultInitialData.item1Quantidade);
+      const cipValorDefault = parseLocaleNumberString(defaultInitialData.item3Valor);
+      const valorProdPropriaDefault = parseLocaleNumberString(defaultInitialData.valorProducaoPropria);
+
+      const valorConsumoPrincipalDefault = consumoKwhDefault * TARIFA_ENERGIA;
+      newInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipalDefault + cipValorDefault);
+      newInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipalDefault);
+      
+      const tarifaEnergiaInjetadaRefCalcDefault = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
+      newInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaInjetadaRefCalcDefault, 6);
+      newInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaDefault);
+
+      const baseCalculoPisCofinsDefault = consumoKwhDefault * tarifaEnergiaInjetadaRefCalcDefault;
+      newInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofinsDefault);
+      newInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofinsDefault * ALIQUOTA_PIS_PERC);
+      newInvoiceData.item1CofinsBase = formatNumberToCurrencyString(baseCalculoPisCofinsDefault);
+      newInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofinsDefault * ALIQUOTA_COFINS_PERC);
+      
+      newInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipalDefault);
+      newInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipalDefault * ALIQUOTA_ICMS_PERC);
     }
     
     setInvoiceData(newInvoiceData);
@@ -291,3 +326,6 @@ const InvoiceEditor: React.FC = () => {
 };
 
 export default InvoiceEditor;
+
+
+    
