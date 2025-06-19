@@ -117,7 +117,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#">
+                <Link href="/carteira">
                   <SidebarMenuButton tooltip="Minha Carteira" isActive={currentPathname === '/carteira'}>
                     <Wallet />
                     Carteira
@@ -230,4 +230,3 @@ export default function RootLayout({
     </html>
   );
 }
-

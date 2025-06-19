@@ -2,6 +2,7 @@
 // src/lib/firebase/firestore.ts
 // Placeholder for Firestore interaction functions related to CRM
 import type { LeadDocumentData, LeadWithId, ChatMessage as ChatMessageType, StageId } from '@/types/crm';
+import type { WithdrawalRequestData, WithdrawalRequestWithId, PixKeyType, WithdrawalStatus, WithdrawalType } from '@/types/wallet'; // Import wallet types
 // import { Timestamp, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy, arrayUnion, getDoc } from 'firebase/firestore';
 // import { db } from './firebase-config'; // Assuming you have a firebase-config.ts initializing 'db'
 
@@ -229,4 +230,95 @@ export async function createLeadFromWhatsapp(contactName: string, phoneNumber: s
   // }
   // return newLead?.id || null;
   return `mock-whatsapp-lead-${Date.now()}`;
+}
+
+// --- Wallet / Commission Functions ---
+
+export async function requestWithdrawal(
+  userId: string, // Added userId as it's crucial for creating the request
+  userEmail: string, // Added userEmail
+  userName: string | undefined, // Added userName
+  amount: number,
+  pixKeyType: PixKeyType,
+  pixKey: string,
+  withdrawalType: WithdrawalType
+): Promise<string | null> {
+  console.log("Placeholder: requestWithdrawal called for user:", userId, { amount, pixKeyType, pixKey, withdrawalType });
+  // const newRequest: WithdrawalRequestData = {
+  //   userId,
+  //   userEmail,
+  //   userName,
+  //   amount,
+  //   pixKeyType,
+  //   pixKey,
+  //   withdrawalType,
+  //   status: 'pendente',
+  //   requestedAt: Timestamp.now(),
+  // };
+  // const docRef = await addDoc(collection(db, "withdrawal_requests"), newRequest);
+  // return docRef.id;
+  return `mock-req-${Date.now()}`; // Mocked response
+}
+
+export async function fetchWithdrawalHistory(userId: string): Promise<WithdrawalRequestWithId[]> {
+  console.log("Placeholder: fetchWithdrawalHistory called for user:", userId);
+  // const q = query(collection(db, "withdrawal_requests"), where("userId", "==", userId), orderBy("requestedAt", "desc"));
+  // const querySnapshot = await getDocs(q);
+  // return querySnapshot.docs.map(doc => {
+  //   const data = doc.data() as WithdrawalRequestData;
+  //   return {
+  //     id: doc.id,
+  //     ...data,
+  //     requestedAt: (data.requestedAt as Timestamp).toDate().toISOString(),
+  //     processedAt: data.processedAt ? (data.processedAt as Timestamp).toDate().toISOString() : undefined,
+  //   };
+  // });
+  // Mocked response:
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() -1);
+  const twoDaysAgo = new Date(now);
+  twoDaysAgo.setDate(now.getDate() - 2);
+
+  return [
+    { id: 'wr1', userId, userEmail: 'user@example.com', userName: 'Usuário Teste', amount: 150.75, pixKeyType: 'CPF/CNPJ', pixKey: '123.456.789-00', status: 'concluido', withdrawalType: 'personal', requestedAt: twoDaysAgo.toISOString(), processedAt: yesterday.toISOString(), adminNotes: 'Pagamento efetuado.' },
+    { id: 'wr2', userId, userEmail: 'user@example.com', userName: 'Usuário Teste', amount: 300.00, pixKeyType: 'Email', pixKey: 'teste@email.com', status: 'pendente', withdrawalType: 'mlm', requestedAt: yesterday.toISOString() },
+    { id: 'wr3', userId, userEmail: 'user@example.com', userName: 'Usuário Teste', amount: 50.20, pixKeyType: 'Aleatória', pixKey: 'abc123xyz789', status: 'falhou', withdrawalType: 'personal', requestedAt: now.toISOString(), processedAt: now.toISOString(), adminNotes: 'Chave PIX inválida.' },
+  ];
+}
+
+// Admin functions (placeholders)
+export async function adminFetchAllWithdrawalRequests(statusFilter?: WithdrawalStatus): Promise<WithdrawalRequestWithId[]> {
+  console.log("Placeholder: adminFetchAllWithdrawalRequests called with filter:", statusFilter);
+  // // Actual implementation would query Firestore, filter by status if provided, and order.
+  // // For now, return a generic mock or empty array.
+  // const allMockRequests: WithdrawalRequestWithId[] = [ // Example, expand this
+  //   { id: 'adm_wr1', userId: 'user123', userEmail: 'user1@example.com', userName: 'User One', amount: 100, pixKeyType: 'Celular', pixKey: '(11)99999-0000', status: 'pendente', withdrawalType: 'personal', requestedAt: new Date().toISOString() },
+  //   { id: 'adm_wr2', userId: 'user456', userEmail: 'user2@example.com', userName: 'User Two', amount: 250, pixKeyType: 'Email', pixKey: 'user2@mail.com', status: 'concluido', withdrawalType: 'mlm', requestedAt: new Date(Date.now() - 86400000).toISOString(), processedAt: new Date().toISOString() },
+  // ];
+  // if (statusFilter) {
+  //   return allMockRequests.filter(req => req.status === statusFilter);
+  // }
+  return []; // Or a more comprehensive mock if needed for admin UI testing.
+}
+
+export async function adminUpdateWithdrawalStatus(
+  requestId: string,
+  newStatus: WithdrawalStatus,
+  adminNotes?: string
+): Promise<boolean> {
+  console.log("Placeholder: adminUpdateWithdrawalStatus called for request:", requestId, "New status:", newStatus, "Notes:", adminNotes);
+  // const requestRef = doc(db, "withdrawal_requests", requestId);
+  // const updateData: Partial<WithdrawalRequestData> = {
+  //   status: newStatus,
+  //   adminNotes: adminNotes || '', // Or FieldValue.delete() if notes are removed
+  // };
+  // if (newStatus === 'concluido' || newStatus === 'falhou') {
+  //   updateData.processedAt = Timestamp.now();
+  // }
+  // await updateDoc(requestRef, updateData);
+  // // IMPORTANT: If newStatus === 'concluido', trigger backend logic (e.g., Cloud Function)
+  // // to actually deduct the balance from the user's document and update commission_records.
+  // // This function should NOT directly modify user balances.
+  return true; // Mock success
 }
