@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react"; // Added Suspense
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Switch } from "@/components/ui/switch"; // Importação adicionada
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
   clienteNome: z.string().min(1, "Nome do cliente é obrigatório."),
@@ -54,7 +54,7 @@ const formSchema = z.object({
 
 type ProposalFormData = z.infer<typeof formSchema>;
 
-export default function ProposalGeneratorPage() {
+function ProposalGeneratorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -88,7 +88,6 @@ export default function ProposalGeneratorPage() {
   const cepValue = form.watch("clienteCep");
 
   useEffect(() => {
-    // Reset form with new defaults if URL params change and are valid
     const kwhFromUrl = searchParams.get('item1Quantidade');
     const ufFromUrl = searchParams.get('clienteUF');
 
@@ -119,12 +118,12 @@ export default function ProposalGeneratorPage() {
           form.setValue("clienteRua", "");
           form.setValue("clienteBairro", "");
           form.setValue("clienteCidade", "");
-          form.setValue("clienteUF", searchParams.get('clienteUF') || ""); // Keep UF from URL if CEP fails
+          form.setValue("clienteUF", searchParams.get('clienteUF') || "");
         } else {
           form.setValue("clienteRua", data.logradouro || "");
           form.setValue("clienteBairro", data.bairro || "");
           form.setValue("clienteCidade", data.localidade || "");
-          form.setValue("clienteUF", data.uf || ""); // Overwrite UF with VIA CEP result
+          form.setValue("clienteUF", data.uf || "");
           toast({
             title: "Endereço preenchido",
             description: "Os campos de endereço foram atualizados.",
@@ -150,7 +149,7 @@ export default function ProposalGeneratorPage() {
                 form.setValue("clienteRua", "");
                 form.setValue("clienteBairro", "");
                 form.setValue("clienteCidade", "");
-                form.setValue("clienteUF", searchParams.get('clienteUF') || ""); // Reset UF to URL param or empty
+                form.setValue("clienteUF", searchParams.get('clienteUF') || "");
             }
         }
       }
@@ -171,7 +170,6 @@ export default function ProposalGeneratorPage() {
         }
       }
     });
-    // Explicitly add comFidelidade from form state
     queryParams.set("comFidelidade", String(form.getValues("comFidelidade")));
 
     router.push(`/?${queryParams.toString()}`);
@@ -469,3 +467,15 @@ export default function ProposalGeneratorPage() {
   );
 }
 
+export default function ProposalGeneratorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-lg font-medium">Carregando Gerador de Proposta...</p>
+      </div>
+    }>
+      <ProposalGeneratorPageContent />
+    </Suspense>
+  );
+}
