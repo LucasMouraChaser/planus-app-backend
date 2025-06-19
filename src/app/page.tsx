@@ -12,7 +12,8 @@ import { BrazilMapGraphic } from '@/components/BrazilMapGraphic';
 import { StateInfoCard } from '@/components/StateInfoCard';
 import { SavingsDisplay } from '@/components/SavingsDisplay';
 import InvoiceEditor from '@/components/invoice-editor';
-import { PlanusInvoiceDisplay } from '@/components/PlanusInvoiceDisplay'; // Import new component
+import { PlanusInvoiceDisplay } from '@/components/PlanusInvoiceDisplay'; 
+import CompetitorComparisonDisplay from '@/components/CompetitorComparisonDisplay'; // Import new component
 
 import { statesData } from '@/data/state-data';
 import type { StateInfo, SavingsResult, InvoiceData } from '@/types';
@@ -193,6 +194,7 @@ function CalculatorPageContent() {
 
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
       const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum);
+      setSavings(currentSavingsResult); // Set savings here
       
       const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
       newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
@@ -306,13 +308,13 @@ function CalculatorPageContent() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    if (selectedState && selectedState.available && !showMap) {
+    if (selectedState && selectedState.available && !showMap && !shouldShowInvoiceEditor) {
       const billAmountInReais = currentKwh * KWH_TO_R_FACTOR;
       setSavings(calculateSavings(billAmountInReais));
-    } else {
+    } else if (!shouldShowInvoiceEditor) { // Clear savings if no state or map is shown (and not in invoice editor mode)
       setSavings(null); 
     }
-  }, [currentKwh, selectedState, isAuthenticated, showMap]);
+  }, [currentKwh, selectedState, isAuthenticated, showMap, shouldShowInvoiceEditor]);
 
   const handleStateClick = (stateCode: string) => {
     const stateDetails = statesData.find(s => s.code === stateCode);
@@ -328,6 +330,11 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
+    // Clear URL params for state and kwh when returning to map
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('state');
+    params.delete('kwh');
+    router.replace(`/?${params.toString()}`,{ scroll: false });
   };
 
   const handleStateHover = (stateCode: string | null) => {
@@ -457,6 +464,15 @@ function CalculatorPageContent() {
               </div>
             </div>
           )}
+           {/* Competitor Analysis Section - Rendered when a state is selected and not in invoice editor mode */}
+           {!showMap && selectedState && savings && !shouldShowInvoiceEditor && (
+              <div className="w-full max-w-6xl mx-auto px-4 mb-12">
+                <CompetitorComparisonDisplay 
+                  currentBillAmount={currentBillWithoutDiscount} 
+                  sentEnergyAnnualSaving={savings.annualSaving} 
+                />
+              </div>
+            )}
         </>
       )}
       
@@ -489,6 +505,15 @@ function CalculatorPageContent() {
                 <PlanusInvoiceDisplay invoiceData={planusInvoiceData} />
             </>
           )}
+           {/* Competitor Analysis Section - Rendered also in invoice editor mode if savings data is available */}
+           {savings && (
+              <div className="w-full max-w-6xl mx-auto px-4 my-8">
+                <CompetitorComparisonDisplay 
+                  currentBillAmount={parseLocaleNumberString(originalInvoiceData?.item1Valor) || 0} 
+                  sentEnergyAnnualSaving={savings.annualSaving} 
+                />
+              </div>
+            )}
         </div>
       )}
     </div>
@@ -510,3 +535,4 @@ export default function HomePage() {
 }
 
     
+
