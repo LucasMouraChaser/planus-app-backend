@@ -1,8 +1,9 @@
+
 // src/components/admin/AdminCommissionDashboard.tsx
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns'; // Added startOfMonth, endOfMonth
 import { ptBR } from 'date-fns/locale';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,7 +17,7 @@ import { USER_TYPE_FILTER_OPTIONS, USER_TYPE_ADD_OPTIONS, WITHDRAWAL_STATUSES_AD
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Keep if used elsewhere, but FormLabel is preferred in forms
+// import { Label } from "@/components/ui/label"; // Keep if used elsewhere, but FormLabel is preferred in forms
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,18 +29,18 @@ import { useToast } from "@/hooks/use-toast";
 import { 
     CalendarIcon, Filter, Users, UserPlus, DollarSign, Settings, RefreshCw, 
     ExternalLink, ShieldAlert, WalletCards, Activity, BarChartHorizontalBig, PieChartIcon, 
-    Loader2, Search // Added Loader2 and Search
+    Loader2, Search
 } from 'lucide-react';
 import { ChartContainer } from "@/components/ui/chart";
 
 // Mock Data (Replace with actual data fetching)
 const MOCK_USERS_DATA: FirestoreUser[] = [
-  { uid: 'user1', email: 'vendedor1@example.com', displayName: 'Vendedor Um', cpf: '111.111.111-11', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), personalBalance: 1200, mlmBalance: 300, photoURL: 'https://placehold.co/40x40.png?text=V1' },
-  { uid: 'user2', email: 'vendedor2@example.com', displayName: 'Vendedor Dois', cpf: '222.222.222-22', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), personalBalance: 850, mlmBalance: 150, photoURL: 'https://placehold.co/40x40.png?text=V2' },
+  { uid: 'user1', email: 'vendedor1@example.com', displayName: 'Vendedor Um', cpf: '11111111111', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), personalBalance: 1200, mlmBalance: 300, photoURL: 'https://placehold.co/40x40.png?text=V1' },
+  { uid: 'user2', email: 'vendedor2@example.com', displayName: 'Vendedor Dois', cpf: '22222222222', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), personalBalance: 850, mlmBalance: 150, photoURL: 'https://placehold.co/40x40.png?text=V2' },
   { uid: 'admin1', email: 'admin@example.com', displayName: 'Admin Principal', type: 'admin', createdAt: new Date(Date.now() - 86400000 * 30).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=AP' },
-  { uid: 'user3', email: 'cliente1@example.com', displayName: 'Cliente Teste Um', cpf: '333.333.333-33', type: 'user', createdAt: new Date(Date.now() - 86400000 * 20).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=C1' },
-  { uid: 'user4', email: 'prospector1@example.com', displayName: 'Prospector Alfa', cpf: '444.444.444-44', type: 'prospector', createdAt: new Date(Date.now() - 86400000 * 15).toISOString() },
-  { uid: 'user5', email: 'novousuario@example.com', displayName: 'Pendente Config', cpf: '555.555.555-55', type: 'pending_setup', createdAt: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { uid: 'user3', email: 'cliente1@example.com', displayName: 'Cliente Teste Um', cpf: '33333333333', type: 'user', createdAt: new Date(Date.now() - 86400000 * 20).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=C1' },
+  { uid: 'user4', email: 'prospector1@example.com', displayName: 'Prospector Alfa', cpf: '44444444444', type: 'prospector', createdAt: new Date(Date.now() - 86400000 * 15).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=PA' },
+  { uid: 'user5', email: 'novousuario@example.com', displayName: 'Pendente Config', cpf: '55555555555', type: 'pending_setup', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=PC' },
 ];
 
 const MOCK_LEADS: LeadWithId[] = [
@@ -56,7 +57,7 @@ const addUserFormSchema = z.object({
   email: z.string().email("Email inválido."),
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres."),
   cpf: z.string().min(11, "CPF deve ter 11 dígitos.").max(14, "CPF inválido.").regex(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$|^\d{11}$/, "Formato de CPF inválido."),
-  type: z.enum(USER_TYPE_ADD_OPTIONS.map(opt => opt.value) as [Exclude<UserType, 'pending_setup'>, ...Exclude<UserType, 'pending_setup'>[]], { required_error: "Tipo de usuário é obrigatório." }),
+  type: z.enum(USER_TYPE_ADD_OPTIONS.map(opt => opt.value) as [Exclude<UserType, 'pending_setup' | 'user'>, ...Exclude<UserType, 'pending_setup' | 'user'>[]], { required_error: "Tipo de usuário é obrigatório." }),
 });
 type AddUserFormData = z.infer<typeof addUserFormSchema>;
 
@@ -114,7 +115,12 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
   }, [allUsers, userSearchTerm, userTypeFilter]);
 
   const handleAddUser = async (data: AddUserFormData) => {
-    addUserForm.control.disabled = true; // Disable form while submitting
+    // Disable form while submitting
+    // This might need to be handled differently if react-hook-form's formState.isSubmitting is used
+    // For now, we'll manage a separate isLoading/isSubmitting state for the modal button
+    const isSubmitting = addUserForm.formState.isSubmitting; // Or a local state
+    if (isSubmitting) return;
+
     console.log("Admin registering user (simulated):", data);
 
     // Simulate CPF/Email check
@@ -123,12 +129,10 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
 
     if (emailExists) {
         toast({ title: "Erro ao Criar Usuário", description: "Este email já está cadastrado.", variant: "destructive" });
-        addUserForm.control.disabled = false;
         return;
     }
     if (cpfExists) {
         toast({ title: "Erro ao Criar Usuário", description: "Este CPF já está cadastrado.", variant: "destructive" });
-        addUserForm.control.disabled = false;
         return;
     }
 
@@ -139,7 +143,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
             email: data.email,
             displayName: data.displayName || data.email.split('@')[0],
             cpf: data.cpf.replace(/\D/g, ''),
-            type: data.type,
+            type: data.type as UserType, // Cast as data.type is already validated by Zod to be one of the allowed types
             createdAt: new Date().toISOString(),
             photoURL: `https://placehold.co/40x40.png?text=${(data.displayName || data.email).charAt(0).toUpperCase()}`
         };
@@ -147,7 +151,6 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
         toast({ title: "Usuário Criado", description: `${data.email} registrado com sucesso (simulado).` });
         setIsAddUserModalOpen(false);
         addUserForm.reset({ type: 'vendedor', cpf: '', displayName: '', email: '', password: '' });
-        addUserForm.control.disabled = false;
     }, 1000);
   };
 
@@ -159,7 +162,10 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
 
   const handleUpdateWithdrawal = async (data: UpdateWithdrawalFormData) => {
     if (!selectedWithdrawal) return;
-    updateWithdrawalForm.control.disabled = true;
+    // Similar to addUser, manage submitting state
+    const isSubmitting = updateWithdrawalForm.formState.isSubmitting;
+    if (isSubmitting) return;
+
     console.log("Admin updating withdrawal (simulated):", selectedWithdrawal.id, data);
     setTimeout(() => {
         setWithdrawalRequests(prev => prev.map(w => 
@@ -169,7 +175,6 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
         ));
         toast({ title: "Status de Saque Atualizado", description: "Solicitação atualizada (simulado)." });
         setIsUpdateWithdrawalModalOpen(false);
-        updateWithdrawalForm.control.disabled = false;
     }, 1000);
   };
   
@@ -190,7 +195,8 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
     return { paidCommissions, pendingCommissions, signedLeadsValue };
   }, [withdrawalRequests, filteredLeads]);
 
-  const getUserTypeBadgeStyle = (type: UserType) => {
+  const getUserTypeBadgeStyle = (type?: UserType) => {
+    if (!type) return 'bg-gray-500/20 text-gray-400';
     switch (type) {
       case 'admin': return 'bg-red-500/20 text-red-400';
       case 'vendedor': return 'bg-blue-500/20 text-blue-400';
@@ -355,7 +361,22 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
               <FormField control={addUserForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email*</FormLabel><FormControl><Input type="email" placeholder="Ex: joao.silva@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={addUserForm.control} name="password" render={({ field }) => (<FormItem><FormLabel>Senha*</FormLabel><FormControl><Input type="password" placeholder="Mínimo 6 caracteres" {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={addUserForm.control} name="cpf" render={({ field }) => (<FormItem><FormLabel>CPF*</FormLabel><FormControl><Input placeholder="Ex: 000.000.000-00" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={addUserForm.control} name="type" render={({ field }) => (<FormItem><FormLabel>Tipo de Usuário*</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger></FormControl><SelectContent>{USER_TYPE_ADD_OPTIONS.map(opt => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
+              <FormField 
+                control={addUserForm.control} 
+                name="type" 
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Usuário*</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {USER_TYPE_ADD_OPTIONS.map(opt => (<SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} 
+              />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => { setIsAddUserModalOpen(false); addUserForm.reset(); }} disabled={addUserForm.formState.isSubmitting}>Cancelar</Button>
                 <Button type="submit" disabled={addUserForm.formState.isSubmitting}>
@@ -398,3 +419,4 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
     </div>
   );
 }
+
