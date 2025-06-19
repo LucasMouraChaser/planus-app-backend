@@ -18,8 +18,8 @@ interface InvoiceEditorProps {
 const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDataChange, isEditable = true }) => {
   const fieldRefs = useRef<Record<string, SVGForeignObjectElement | null>>({});
   const [overlappingFields, setOverlappingFields] = useState<Set<string>>(new Set());
-  const [overlapWarningMsg, setOverlapWarningMsg] = useState<string | null>(null);
-  const { toast } = useToast();
+  // const [overlapWarningMsg, setOverlapWarningMsg] = useState<string | null>(null); // Removed as per request
+  // const { toast } = useToast(); // Removed as per request, if toast for overlap is also to be removed
 
   const [currentInvoiceData, setCurrentInvoiceData] = useState<InvoiceData | null>(invoiceData);
 
@@ -66,30 +66,29 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDat
       }
     }
     setOverlappingFields(newOverlaps);
-    if (overlapDetected) {
-      const warningText = `Campos sobrepostos: ${Array.from(newOverlaps).join(', ')}. Verifique os campos destacados na fatura Energisa.`;
-      setOverlapWarningMsg(warningText);
-      // Only show toast for Energisa (original) invoice overlaps as Planus is non-editable and layout is fixed.
-      if (!currentInvoiceData?.companyName?.toLowerCase().includes("planus")) {
-        toast({
-          title: 'Aviso de Sobreposição',
-          description: 'Alguns campos estão sobrepostos na fatura original. Verifique os campos destacados.',
-          variant: 'destructive',
-          duration: 5000,
-        });
-      }
-    } else {
-      setOverlapWarningMsg(null);
-    }
-  }, [toast, currentInvoiceData]);
+    // if (overlapDetected) { // Removed warning message and toast
+    //   const warningText = `Campos sobrepostos: ${Array.from(newOverlaps).join(', ')}. Verifique os campos destacados na fatura Energisa.`;
+    //   // setOverlapWarningMsg(warningText);
+    //   // if (!currentInvoiceData?.companyName?.toLowerCase().includes("planus")) {
+    //   //   toast({
+    //   //     title: 'Aviso de Sobreposição',
+    //   //     description: 'Alguns campos estão sobrepostos na fatura original. Verifique os campos destacados.',
+    //   //     variant: 'destructive',
+    //   //     duration: 5000,
+    //   //   });
+    //   // }
+    // } else {
+    //   // setOverlapWarningMsg(null);
+    // }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentInvoiceData]); // Removed toast from dependencies
   
   useEffect(() => {
-    // Only check for overlaps on the editable (Energisa) invoice.
     if (isEditable && !currentInvoiceData?.companyName?.toLowerCase().includes("planus")) {
        checkForOverlaps(); 
     } else {
-      setOverlappingFields(new Set()); // Clear overlaps for Planus/non-editable
-      setOverlapWarningMsg(null);
+      setOverlappingFields(new Set());
+      // setOverlapWarningMsg(null); // Already removed
     }
   }, [currentInvoiceData, checkForOverlaps, isEditable]);
 
@@ -115,19 +114,22 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDat
 
   return (
     <div className="w-full flex flex-col items-center">
-      {overlapWarningMsg && !isPlanusInvoice && ( // Show warning only for Energisa overlaps
+      {/* The warning message div below has been removed */}
+      {/* 
+      {overlapWarningMsg && !isPlanusInvoice && ( 
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive text-destructive-foreground rounded-lg shadow-sm flex items-center text-sm max-w-xl w-full">
           <AlertTriangle className="h-5 w-5 mr-3 shrink-0 text-destructive" />
           <span className="font-medium">{overlapWarningMsg}</span>
         </div>
-      )}
+      )} 
+      */}
       
       <div className="invoice-container bg-white shadow-xl rounded-lg" style={{ width: '827px', height: 'auto', minHeight: isPlanusInvoice ? '780px' : '580px', overflow: 'hidden', position: 'relative' }}>
         <svg width="827" height={isPlanusInvoice ? "780" : "580"} viewBox={`0 0 827 ${isPlanusInvoice ? 780 : 580}`} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
           <image 
             href={currentBgUrl}
             data-ai-hint={isPlanusInvoice ? "bowe bill background" : "energisa bill background"}
-            x="0" y="0" width="827" height={isPlanusInvoice ? "780" : "1169"} // Bowe image height might be different or cropped.
+            x="0" y="0" width="827" height={isPlanusInvoice ? "780" : "1169"} 
           />
           
            <foreignObject x={logoConfig.x} y={logoConfig.y} width={logoConfig.width} height={logoConfig.height}>
@@ -140,22 +142,19 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDat
             </foreignObject>
 
           {activeFieldConfig.map(field => {
-            // Skip rendering certain original Energisa header fields if it's Planus and they are not in PLANUS_INVOICE_FIELDS_CONFIG
-            // or if they are meant to be replaced by new Planus-specific fields.
             if (isPlanusInvoice && 
                 (field.name === 'companyAddress' || field.name === 'companyCityStateZip' || field.name === 'companyInscEst') &&
-                !PLANUS_INVOICE_FIELDS_CONFIG.find(f => f.name === field.name) // Only skip if not explicitly in Planus config
+                !PLANUS_INVOICE_FIELDS_CONFIG.find(f => f.name === field.name) 
             ) {
               return null;
             }
-            // Special handling for companyCnpj for Planus to use boweCpfCnpj styling/position from PLANUS_CONFIG
             if (isPlanusInvoice && field.name === 'companyCnpj') {
                 const planusCnpjField = PLANUS_INVOICE_FIELDS_CONFIG.find(f => f.name === 'boweCpfCnpj');
                  if (planusCnpjField) {
                      return (
                         <EditableField
                             key={planusCnpjField.name}
-                            name={planusCnpjField.name} // Map to boweCpfCnpj
+                            name={planusCnpjField.name} 
                             x={planusCnpjField.x}
                             y={planusCnpjField.y}
                             width={planusCnpjField.width}
@@ -166,7 +165,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDat
                             inputClassName={planusCnpjField.className}
                             isTextarea={planusCnpjField.isTextarea}
                             fieldRef={el => (fieldRefs.current[planusCnpjField.name] = el)}
-                            isOverlapping={false} // Planus is not checked for overlaps here
+                            isOverlapping={false} 
                         />
                     );
                  }
@@ -199,3 +198,4 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ invoiceData, onInvoiceDat
 };
 
 export default InvoiceEditor;
+
