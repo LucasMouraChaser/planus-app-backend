@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UsersCog, CircleUserRound, LogOut, PanelLeft } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, PanelLeft } from 'lucide-react';
 
 // Metadata can still be defined but might not be used if the whole component is client-side
 // export const metadata: Metadata = {
@@ -127,7 +127,7 @@ export default function RootLayout({
                 <SidebarMenuItem>
                   <Link href="#" passHref legacyBehavior>
                     <SidebarMenuButton tooltip="Configurações de Usuários">
-                      <UsersCog />
+                      <UserCog />
                       Gerenciar Usuários
                     </SidebarMenuButton>
                   </Link>
@@ -175,4 +175,3 @@ export default function RootLayout({
     </html>
   );
 }
-
