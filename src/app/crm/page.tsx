@@ -7,7 +7,7 @@ import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { LeadDetailView } from '@/components/crm/LeadDetailView';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Users, Filter, Plus, X } from 'lucide-react'; // Added Plus and X
+import { PlusCircle, Users, Filter, Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Timestamp } from 'firebase/firestore'; // For mock data
 import { Label } from '@/components/ui/label';
@@ -130,7 +130,7 @@ function CrmPageContent() {
 
 
   return (
-    <div className="relative flex flex-col h-[calc(100vh-56px)] overflow-hidden"> {/* Adjust height based on header, ADDED relative */}
+    <div className="relative flex flex-col h-[calc(100vh-56px)] overflow-hidden">
       <header className="p-4 border-b border-sidebar-border bg-card/70 backdrop-blur-lg">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-foreground flex items-center">
@@ -150,7 +150,9 @@ function CrmPageContent() {
         </div>
       </header>
       
-      <KanbanBoard leads={leads} onViewLeadDetails={handleViewLeadDetails} />
+      <div className="flex-1 min-w-0 overflow-hidden"> {/* Wrapper for KanbanBoard */}
+        <KanbanBoard leads={leads} onViewLeadDetails={handleViewLeadDetails} />
+      </div>
 
       {/* Floating Action Button */}
       <Button
