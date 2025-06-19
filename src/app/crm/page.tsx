@@ -7,9 +7,13 @@ import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { LeadDetailView } from '@/components/crm/LeadDetailView';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Users, Filter, Plus } from 'lucide-react'; // Added Plus
+import { PlusCircle, Users, Filter, Plus, X } from 'lucide-react'; // Added Plus and X
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Timestamp } from 'firebase/firestore'; // For mock data
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+
 
 // Mock Data - Replace with Firestore fetching
 const MOCK_LEADS: LeadWithId[] = [
@@ -126,8 +130,8 @@ function CrmPageContent() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)] overflow-hidden"> {/* Adjust height based on header */}
-      <header className="p-4 border-b border-sidebar-border bg-background/30 backdrop-blur-sm">
+    <div className="relative flex flex-col h-[calc(100vh-56px)] overflow-hidden"> {/* Adjust height based on header, ADDED relative */}
+      <header className="p-4 border-b border-sidebar-border bg-card/70 backdrop-blur-lg">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold text-foreground flex items-center">
             <Users className="w-7 h-7 mr-3 text-primary" />
@@ -149,9 +153,9 @@ function CrmPageContent() {
       <KanbanBoard leads={leads} onViewLeadDetails={handleViewLeadDetails} />
 
       {/* Floating Action Button */}
-      <Button 
+      <Button
         onClick={() => handleOpenForm()}
-        className="fixed bottom-6 left-6 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-20"
+        className="absolute bottom-6 left-6 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-20"
         aria-label="Adicionar Novo Lead"
         size="icon"
       >
@@ -207,5 +211,3 @@ export default function CRMPage() {
     </Suspense>
   );
 }
-
-    
