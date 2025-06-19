@@ -118,24 +118,24 @@ function InvoiceEditorContent() {
       const isencaoIcmsEnergiaGeradaParam = params.get("isencaoIcmsEnergiaGerada") || "nao";
 
       const valorConsumoPrincipal = consumoKwhInput * TARIFA_ENERGIA;
-      newInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipal + cipValorInput - valorProdPropriaInput); // Subtrai valor da produção própria
+      newInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipal + cipValorInput - valorProdPropriaInput); 
       
       newInvoiceData.item1Quantidade = formatNumberToLocaleString(consumoKwhInput, 2);
       newInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipal);
 
-      const tarifaEnergiaSemIcms = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC); // Ex: 0.9072813
-      newInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaSemIcms, 6);
+      const tarifaEnergiaSemIcmsCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
+      newInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
       
       if (isencaoIcmsEnergiaGeradaParam === "sim") {
-        newInvoiceData.item2Tarifa = formatNumberToLocaleString(TARIFA_ENERGIA, 6); // Tarifa cheia: "1,093110"
+        newInvoiceData.item2Tarifa = formatNumberToLocaleString(TARIFA_ENERGIA, 6); 
       } else {
-        newInvoiceData.item2Tarifa = formatNumberToLocaleString(tarifaEnergiaSemIcms, 6); // Tarifa com desconto ICMS: "0,907281" (exemplo, valor exato é tarifaEnergiaSemIcms)
+        newInvoiceData.item2Tarifa = formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6); 
       }
       
       newInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput);
       newInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
       
-      const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaSemIcms;
+      const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaSemIcmsCalc;
       newInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofins);
       newInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_PIS_PERC);
       
@@ -276,7 +276,11 @@ function InvoiceEditorContent() {
         <Button onClick={handleSave} variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
           <Save className="mr-2 h-5 w-5" /> Save Data
         </Button>
-        <Button onClick={checkForOverlaps} variant="outline" className="border-accent text-accent-foreground hover:bg-accent/10 hover:text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
+        <Button 
+            onClick={checkForOverlaps} 
+            variant="outline" 
+            className="border-accent text-accent-foreground hover:bg-accent/10 hover:text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95"
+        >
           <ScanSearch className="mr-2 h-5 w-5" /> Check Overlaps
         </Button>
       </div>

@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3, FileText, MapPin, ChevronLeft } from 'lucide-react';
+import { HelpCircle, Edit3, FileText, MapPin, ChevronLeft, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
@@ -36,7 +36,7 @@ function CalculatorPageContent() {
   const { toast } = useToast();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [showMap, setShowMap] = useState(true); // Novo estado para controlar a visibilidade do mapa
+  const [showMap, setShowMap] = useState(true); 
   const [hoveredStateCode, setHoveredStateCode] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
   const [currentKwh, setCurrentKwh] = useState<number>(DEFAULT_KWH);
@@ -62,9 +62,9 @@ function CalculatorPageContent() {
     let initialStateCode = DEFAULT_UF;
     if (stateCodeFromUrl && statesData.find(s => s.code === stateCodeFromUrl && s.available)) {
       initialStateCode = stateCodeFromUrl;
-      setShowMap(false); // Se o estado está na URL, mostramos o simulador
+      setShowMap(false); 
     } else {
-      setShowMap(true); // Caso contrário, mostramos o mapa
+      setShowMap(true); 
     }
     
     const initialKwh = kwhFromUrl ? parseInt(kwhFromUrl, 10) : DEFAULT_KWH;
@@ -84,7 +84,7 @@ function CalculatorPageContent() {
             if (!defaultStateDetails && stateCodeFromUrl) { 
                 toast({ title: "Estado Indisponível", description: `O estado ${stateCodeFromUrl} não está disponível para simulação.`, variant: "destructive" });
             }
-            setShowMap(true); // Se o estado da URL não é válido/disponível, mostrar mapa
+            setShowMap(true); 
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,14 +94,12 @@ function CalculatorPageContent() {
     if (!isAuthenticated) return;
     
     const params = new URLSearchParams(searchParams.toString());
-    if (selectedState && !showMap) { // Só atualiza a URL se estivermos mostrando o simulador
+    if (selectedState && !showMap) { 
       params.set('state', selectedState.code);
       params.set('kwh', currentKwh.toString());
       router.replace(`/?${params.toString()}`, { scroll: false });
     } else if (showMap) {
-      // Se estivermos mostrando o mapa, removemos os parâmetros de estado e kwh da URL (ou mantemos kwh se quisermos)
       params.delete('state');
-      // params.delete('kwh'); // Descomente se quiser limpar o kwh ao voltar pro mapa
       router.replace(`/?${params.toString()}`, { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,10 +121,10 @@ function CalculatorPageContent() {
     const stateDetails = statesData.find(s => s.code === stateCode);
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
-      setShowMap(false); // Esconde o mapa e mostra o simulador
+      setShowMap(false); 
       const params = new URLSearchParams(searchParams.toString());
       params.set('state', stateCode);
-      params.set('kwh', currentKwh.toString()); // Mantém o kwh atual ou redefine
+      params.set('kwh', currentKwh.toString()); 
       router.push(`/?${params.toString()}`, { scroll: false });
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
@@ -142,7 +140,6 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
-    // Não precisa mexer no currentKwh, pode manter o último valor usado
   };
 
   const handleStateHover = (stateCode: string | null) => {
@@ -155,12 +152,10 @@ function CalculatorPageContent() {
     if (value < MIN_KWH_SLIDER) value = MIN_KWH_SLIDER;
     if (value > MAX_KWH_SLIDER) value = MAX_KWH_SLIDER;
     setCurrentKwh(value);
-    // A URL será atualizada pelo useEffect [selectedState, currentKwh, showMap]
   };
 
   const handleSliderChange = (value: number[]) => {
     setCurrentKwh(value[0]);
-    // A URL será atualizada pelo useEffect [selectedState, currentKwh, showMap]
   };
   
   const currentBillWithoutDiscount = parseFloat((currentKwh * KWH_TO_R_FACTOR).toFixed(2));
@@ -295,11 +290,11 @@ function CalculatorPageContent() {
       
       <div className="w-full max-w-4xl mx-auto mt-12 px-4">
         <Card className="shadow-2xl overflow-hidden bg-card">
-          <CardHeader className="bg-primary/10">
+          <CardHeader className="bg-primary/10 p-6">
             <CardTitle className="text-2xl font-bold text-primary text-center">
               Editor da Fatura (Simulação)
             </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
+            <CardDescription className="text-center text-muted-foreground mt-1">
               Os dados da simulação (ou do formulário de proposta) são carregados aqui. Você pode editar os campos diretamente.
             </CardDescription>
           </CardHeader>
@@ -325,3 +320,4 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
