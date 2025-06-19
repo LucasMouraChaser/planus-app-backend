@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -27,10 +28,11 @@ const EditableField: React.FC<EditableFieldProps> = ({
     ...inputStyle,
   };
 
-  if (isOverlapping) {
-    combinedStyle.border = '2px solid red';
-    combinedStyle.backgroundColor = 'rgba(255, 0, 0, 0.05)';
-  }
+  // Removed the following block to disable red highlighting for overlaps
+  // if (isOverlapping) {
+  //   combinedStyle.border = '2px solid red';
+  //   combinedStyle.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+  // }
 
 
   const fullSizeAndFontStyles: React.CSSProperties = {
@@ -64,3 +66,4 @@ const EditableField: React.FC<EditableFieldProps> = ({
 };
 
 export default EditableField;
+
