@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import Image from 'next/image'; // Importar Image
 import { usePathname, useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react'; // Import React, useState, useEffect
 import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert } from 'lucide-react'; // Added LayoutDashboard, ShieldAlert
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -70,8 +71,15 @@ export default function RootLayout({
     const { toggleSidebar, state: sidebarState, isMobile } = useSidebar();
     const currentPathname = usePathname(); // usePathname inside AppContent
 
-    // Placeholder: In a real app, get user role from auth context
-    const userRole = typeof window !== 'undefined' && sessionStorage.getItem('isLoggedIn') ? 'vendedor' : 'admin'; // Simple mock, default to admin if no explicit role
+    const [clientUserRole, setClientUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+      // This logic now runs only on the client after hydration
+      const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+      // If 'isLoggedIn' is true, it's 'vendedor', otherwise 'admin' based on previous mock logic
+      setClientUserRole(isLoggedIn ? 'vendedor' : 'admin');
+    }, []);
+
 
     return (
       <>
@@ -127,8 +135,8 @@ export default function RootLayout({
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
-              {/* Admin specific links */}
-              {userRole === 'admin' && (
+              {/* Admin specific links - now uses clientUserRole */}
+              {clientUserRole === 'admin' && (
                 <>
                   <SidebarMenuItem>
                     <Link href="/admin/dashboard">
@@ -157,8 +165,8 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="/plano-carreira">
-                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
+                <Link href="/career-plan">
+                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/career-plan'}>
                     <Rocket />
                     Plano de Carreira
                   </SidebarMenuButton>
