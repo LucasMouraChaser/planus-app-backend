@@ -52,17 +52,17 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   
   { name: 'item1TarifaEnergiaInjetadaREF', x: 548, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
-  { name: 'item1PisBase',    x: 618, y: 479, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
-  { name: 'item1PisAliq',    x: 655, y: 479, width: 48, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
-  { name: 'item1PisValor',   x: 670, y: 479, width: 53, height: 22, initialValue: "14,81", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1PisBase',    x: 625, y: 479, width: 35, height: 22, initialValue: "1.353,43", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1PisAliq',    x: 661, y: 479, width: 30, height: 22, initialValue: "1,0945", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1PisValor',   x: 692, y: 479, width: 30, height: 22, initialValue: "14,81", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
   
-  { name: 'item1CofinsBase', x: 622, y: 493, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
-  { name: 'item1CofinsAliq', x: 655, y: 493, width: 48, height: 22, initialValue: "4,9955", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
-  { name: 'item1CofinsValor',x: 670, y: 493, width: 53, height: 22, initialValue: "67,61", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1CofinsBase', x: 625, y: 493, width: 35, height: 22, initialValue: "1.353,43", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1CofinsAliq', x: 661, y: 493, width: 30, height: 22, initialValue: "4,9955", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1CofinsValor',x: 692, y: 493, width: 30, height: 22, initialValue: "67,61", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
   
-  { name: 'item1IcmsBase',   x: 622, y: 507, width: 63, height: 22, initialValue: "1.630,64", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
-  { name: 'item1IcmsPerc',   x: 655, y: 507, width: 48, height: 22, initialValue: "17,00", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" }, 
-  { name: 'item1IcmsRS',     x: 670, y: 507, width: 53, height: 22, initialValue: "277,21", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" }, 
+  { name: 'item1IcmsBase',   x: 625, y: 507, width: 35, height: 22, initialValue: "1.630,64", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" },
+  { name: 'item1IcmsPerc',   x: 661, y: 507, width: 30, height: 22, initialValue: "17,00", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" }, 
+  { name: 'item1IcmsRS',     x: 692, y: 507, width: 30, height: 22, initialValue: "277,21", style: { fontSize: '7px', background: 'white', color: '#000' }, className: "text-right" }, 
   
 
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px', color: '#000' } },
