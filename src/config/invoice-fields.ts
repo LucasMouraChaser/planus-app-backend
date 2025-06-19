@@ -48,7 +48,7 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Unidade', x: 200, y: 492, width: 40, height: 22, initialValue: "KWH", style: { fontSize: '8px', color: '#000' }, className: "text-center" },
   { name: 'item1Quantidade', x: 240, y: 492, width: 60, height: 22, initialValue: "1.500,00", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   { name: 'item1Tarifa', x: 288, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
-  { name: 'item1Valor', x: 348, y: 492, width: 90, height: 22, initialValue: "1.630,64", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item1Valor', x: 348, y: 492, width: 42, height: 16, initialValue: "1.630,64", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   
   { name: 'item1TarifaEnergiaInjetadaREF', x: 548, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
@@ -67,10 +67,10 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
 
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px', color: '#000' } },
   { name: 'item2Tarifa', x: 288, y: 504, width: 70, height: 22, initialValue: "0,847430", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
-  { name: 'item2Valor', x: 348, y: 504, width: 90, height: 22, initialValue: "146,60", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item2Valor', x: 348, y: 504, width: 42, height: 16, initialValue: "146,60", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
         
   { name: 'item3Desc', x: 55, y: 537, width: 132, height: 22, initialValue: "Contrib de Ilum Pub", style: { fontSize: '8px', background: 'white', color: '#000' } },
-  { name: 'item3Valor', x: 348, y: 537, width: 90, height: 22, initialValue: "13,75", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item3Valor', x: 348, y: 537, width: 42, height: 16, initialValue: "13,75", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
 ];
 
 
@@ -98,3 +98,4 @@ export const initialInvoiceData: InvoiceData = {
     
 
     
+
