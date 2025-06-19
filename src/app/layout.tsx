@@ -84,7 +84,7 @@ export default function RootLayout({
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Ranking de Performance" isActive={currentPathname === '/ranking'}>
                     <BarChart3 />
                     Ranking
@@ -92,7 +92,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="/" passHref legacyBehavior>
+                <Link href="/">
                   <SidebarMenuButton isActive={currentPathname === '/'} tooltip="Calculadora de Economia">
                     <Calculator />
                     Calculadora
@@ -100,7 +100,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="/proposal-generator" passHref legacyBehavior>
+                <Link href="/proposal-generator">
                   <SidebarMenuButton isActive={currentPathname === '/proposal-generator'} tooltip="Gerador de Proposta">
                     <FileText />
                     Proposta
@@ -108,7 +108,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Gestão de Clientes" isActive={currentPathname === '/crm'}>
                     <UsersRound />
                     CRM
@@ -116,7 +116,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Minha Carteira" isActive={currentPathname === '/carteira'}>
                     <Wallet />
                     Carteira
@@ -124,7 +124,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
                     <Rocket />
                     Plano de Carreira
@@ -132,7 +132,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Configurações de Usuários" isActive={currentPathname === '/gerenciar-usuarios'}>
                     <UserCog />
                     Gerenciar Usuários
@@ -140,7 +140,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#" passHref legacyBehavior>
+                <Link href="#">
                   <SidebarMenuButton tooltip="Meu Perfil" isActive={currentPathname === '/perfil'}>
                     <CircleUserRound />
                     Perfil
