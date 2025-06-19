@@ -48,7 +48,7 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1Unidade', x: 200, y: 492, width: 40, height: 22, initialValue: "KWH", style: { fontSize: '8px', color: '#000' }, className: "text-center" },
   { name: 'item1Quantidade', x: 240, y: 492, width: 60, height: 22, initialValue: "1.500,00", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   { name: 'item1Tarifa', x: 276, y: 492, width: 70, height: 22, initialValue: "1,093110", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
-  { name: 'item1Valor', x: 357, y: 492, width: 75, height: 16, initialValue: "1.630,64", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item1Valor', x: 347, y: 492, width: 75, height: 20, initialValue: "1.630,64", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
   
   { name: 'item1TarifaEnergiaInjetadaREF', x: 548, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
@@ -98,6 +98,7 @@ export const initialInvoiceData: InvoiceData = {
     
 
     
+
 
 
 
