@@ -188,14 +188,14 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
 
             const additionalSavingsWithSent = sentEnergyAnnualSaving - annualSaving;
             let comparisonMessage = "";
-            let comparisonColor = "text-muted-foreground";
+            let comparisonColor = "text-slate-700"; // Default to darker gray for light card
 
             if (additionalSavingsWithSent > 1) { // SENT saves significantly more
               comparisonMessage = `Com a SENT Energy, você economiza ${formatCurrency(additionalSavingsWithSent)} a mais anualmente!`;
-              comparisonColor = "text-accent-foreground dark:text-accent"; // Using accent for positive for SENT
+              comparisonColor = "text-green-600"; // Using a distinct green for positive for SENT on light card
             } else if (additionalSavingsWithSent < -1) { // Competitor saves significantly more
               comparisonMessage = `Com a ${competitor.name}, você economizaria ${formatCurrency(Math.abs(additionalSavingsWithSent))} a mais anualmente.`;
-              comparisonColor = "text-destructive";
+              comparisonColor = "text-red-600"; // Destructive red
             } else { // Similar savings
               comparisonMessage = "A economia anual é virtualmente a mesma em comparação com a SENT Energy.";
             }
@@ -203,9 +203,9 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
             const infoText = competitor.getInfoText(currentBillAmount, effectiveDiscountRate) + (competitor.additionalNote || "");
 
             return (
-              <div key={competitor.id} className="p-4 bg-card/60 backdrop-blur-md border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 ease-out space-y-3 flex flex-col">
+              <div key={competitor.id} className="p-4 bg-slate-200/70 backdrop-blur-lg border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 ease-out space-y-3 flex flex-col">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-sm font-semibold text-foreground min-w-0 break-words mr-2">{competitor.name}</h3>
+                  <h3 className="text-sm font-semibold text-slate-800 min-w-0 break-words mr-2">{competitor.name}</h3>
                   <Image
                     src={competitor.logoUrl}
                     alt={competitor.logoAlt}
@@ -215,19 +215,19 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
                     className="rounded object-contain flex-shrink-0"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground flex-grow" dangerouslySetInnerHTML={{ __html: infoText }} />
+                <p className="text-xs text-slate-700 flex-grow" dangerouslySetInnerHTML={{ __html: infoText }} />
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 bg-background rounded-md border text-center">
-                    <p className="text-muted-foreground text-xs">Economia Mensal</p>
+                  <div className="p-2 bg-slate-100/80 border border-slate-300/70 rounded-md text-center">
+                    <p className="text-slate-600 text-xs">Economia Mensal</p>
                     <p className="font-bold text-md text-primary">{formatCurrency(monthlySaving)}</p>
                   </div>
-                  <div className="p-2 bg-background rounded-md border text-center">
-                    <p className="text-muted-foreground text-xs">Economia Anual</p>
+                  <div className="p-2 bg-slate-100/80 border border-slate-300/70 rounded-md text-center">
+                    <p className="text-slate-600 text-xs">Economia Anual</p>
                     <p className="font-bold text-md text-primary">{formatCurrency(annualSaving)}</p>
                   </div>
                 </div>
                 <div className="mt-auto pt-3">
-                  <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                     <h4 className="flex items-center font-semibold text-sm text-primary mb-1">
                       <Sparkles className="w-4 h-4 mr-1.5 text-primary" />
                       vs. SENT Energy
