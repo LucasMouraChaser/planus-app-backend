@@ -13,7 +13,7 @@ interface StateInfoCardProps {
 export function StateInfoCard({ state }: StateInfoCardProps) {
   if (!state) {
     return (
-      <Card className="w-full max-w-md shadow-lg bg-card/60 backdrop-blur-lg border">
+      <Card className="w-full max-w-md shadow-lg bg-card/70 backdrop-blur-lg border">
         <CardHeader>
           <CardTitle className="text-xl font-bold text-primary">Selecione um Estado</CardTitle>
         </CardHeader>
@@ -27,7 +27,7 @@ export function StateInfoCard({ state }: StateInfoCardProps) {
   const IconComponent = state.icon;
 
   return (
-    <Card className="w-full max-w-md shadow-lg animate-in fade-in-50 bg-card/60 backdrop-blur-lg border">
+    <Card className="w-full max-w-md shadow-lg animate-in fade-in-50 bg-card/70 backdrop-blur-lg border">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-2xl font-bold text-primary flex items-center">

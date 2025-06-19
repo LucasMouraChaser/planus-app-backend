@@ -152,7 +152,7 @@ export default function ProposalGeneratorPage() {
 
   return (
     <main className="flex flex-col items-center justify-start min-h-screen bg-background p-4 md:p-8 font-body">
-      <Card className="w-full max-w-2xl shadow-xl bg-card/60 backdrop-blur-lg border">
+      <Card className="w-full max-w-2xl shadow-xl bg-card/70 backdrop-blur-lg border">
         <CardHeader>
           <CardTitle className="text-2xl md:text-3xl font-headline text-primary font-bold tracking-tight">
             Gerador de Proposta de Fatura
@@ -423,4 +423,3 @@ export default function ProposalGeneratorPage() {
 }
 
     
-

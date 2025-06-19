@@ -157,7 +157,7 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
   }
 
   return (
-    <Card className="shadow-lg transition-all duration-300 ease-out mt-8 bg-card/60 backdrop-blur-lg border">
+    <Card className="shadow-lg transition-all duration-300 ease-out mt-8 bg-card/70 backdrop-blur-lg border">
       <CardHeader>
         <CardTitle className="text-xl md:text-2xl font-bold text-primary text-center">Análise da Concorrência</CardTitle>
       </CardHeader>
@@ -203,7 +203,7 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
             const infoText = competitor.getInfoText(currentBillAmount, effectiveDiscountRate) + (competitor.additionalNote || "");
 
             return (
-              <div key={competitor.id} className="p-4 bg-card/50 backdrop-blur-md border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 ease-out space-y-3 flex flex-col">
+              <div key={competitor.id} className="p-4 bg-card/60 backdrop-blur-md border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 ease-out space-y-3 flex flex-col">
                 <div className="flex justify-between items-start">
                   <h3 className="text-sm font-semibold text-foreground min-w-0 break-words mr-2">{competitor.name}</h3>
                   <Image

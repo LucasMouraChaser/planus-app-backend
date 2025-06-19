@@ -43,7 +43,7 @@ export default function LoginPage() {
       />
       
       {/* Login Card */}
-      <Card className="w-full max-w-md z-10 bg-card/60 backdrop-blur-lg border shadow-2xl">
+      <Card className="w-full max-w-md z-10 bg-card/70 backdrop-blur-lg border shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-primary">Bem-vindo(a) de volta!</CardTitle>
           <CardDescription>Acesse o mapa interativo do Brasil.</CardDescription>

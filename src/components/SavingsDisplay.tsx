@@ -47,7 +47,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
 
   if (!savings || savings.monthlySaving === 0) {
     return (
-      <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/60 backdrop-blur-lg border text-card-foreground rounded-lg">
+      <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/70 backdrop-blur-lg border text-card-foreground rounded-lg">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-foreground flex items-center">
             <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
@@ -58,7 +58,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-4 flex flex-col items-center">
-           <Link href="/proposal-generator" passHref>
+           <Link href="/proposal-generator">
             <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
               <FileText className="mr-2 h-5 w-5" />
               INICIAR NOVA PROPOSTA
@@ -70,7 +70,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
   }
 
   return (
-    <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/60 backdrop-blur-lg border text-card-foreground rounded-lg">
+    <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/70 backdrop-blur-lg border text-card-foreground rounded-lg">
       <CardHeader className="pb-3">
         <CardTitle className="text-xl font-semibold text-foreground">
           Sua Economia Estimada
@@ -121,7 +121,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
         
         {/* Button Section */}
         <div className="pt-4">
-          <Link href="/proposal-generator" passHref>
+          <Link href="/proposal-generator">
             <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
               <FileText className="mr-2 h-5 w-5" />
               INICIAR NOVA PROPOSTA
