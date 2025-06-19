@@ -12,6 +12,7 @@ import { BrazilMapGraphic } from '@/components/BrazilMapGraphic';
 import { StateInfoCard } from '@/components/StateInfoCard';
 import { SavingsDisplay } from '@/components/SavingsDisplay';
 import InvoiceEditor from '@/components/invoice-editor';
+import { PlanusInvoiceDisplay } from '@/components/PlanusInvoiceDisplay'; // Import new component
 
 import { statesData } from '@/data/state-data';
 import type { StateInfo, SavingsResult, InvoiceData } from '@/types';
@@ -34,8 +35,8 @@ const SLIDER_STEP = 50;
 const DEFAULT_KWH = 1500;
 const DEFAULT_UF = 'MT';
 
-// Constantes para cálculos da fatura (duplicadas de invoice-editor para uso aqui)
-const TARIFA_ENERGIA = 1.093110;
+// Constantes para cálculos da fatura
+const TARIFA_ENERGIA = 1.093110; // R$/kWh
 const ALIQUOTA_PIS_PERC = 1.0945 / 100; 
 const ALIQUOTA_COFINS_PERC = 4.9955 / 100; 
 const ALIQUOTA_ICMS_PERC = 17.00 / 100;
@@ -157,7 +158,7 @@ function CalculatorPageContent() {
       const tarifaEnergiaSemIcmsCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
       newOriginalInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
       newOriginalInvoiceData.item2Tarifa = isencaoIcmsEnergiaGeradaParam === "sim" ? formatNumberToLocaleString(TARIFA_ENERGIA, 6) : formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
-      newOriginalInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput); // Valor da energia injetada
+      newOriginalInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput); 
       newOriginalInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
       
       const baseCalculoPisCofinsOriginal = consumoKwhInput * tarifaEnergiaSemIcmsCalc; 
@@ -181,63 +182,63 @@ function CalculatorPageContent() {
 
       // --- Calculate Planus Discounted Invoice Data ---
       const newPlanusInvoiceData = JSON.parse(JSON.stringify(newOriginalInvoiceData)) as InvoiceData; 
-      newPlanusInvoiceData.headerTitle = "ENTENDA SUA FATURA PLANUS"; // For Bowe layout
+      newPlanusInvoiceData.headerTitle = "ENTENDA SUA FATURA PLANUS"; 
       newPlanusInvoiceData.companyName = "ENERGIA ELÉTRICA FORNECIDA PLANUS COMERCIALIZADORA VAREJISTA LTDA";
       
       newPlanusInvoiceData.companyAddress = ""; 
       newPlanusInvoiceData.companyCityStateZip = "";
-      // newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // This might be set if Planus has a different CNPJ for the Bowe display
+      newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // Placeholder for Planus
       newPlanusInvoiceData.companyInscEst = "";
 
 
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
-      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum); // Use the specific bill amount
+      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum);
       
       const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
-      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto); // Discounted energy cost
+      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
 
-      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC);
+      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC); // PIS/COFINS on discounted energy, ex-ICMS
       newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_PIS_PERC);
       newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_COFINS_PERC);
       
-      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC);
+      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC); // ICMS on discounted energy
 
       newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorEnergiaComDesconto + cipValorInput - valorProdPropriaInput);
       
-      // Populate fields for Bowe layout
+      // Populate fields for PlanusInvoiceDisplay (bowe-like layout)
       newPlanusInvoiceData.boweNomeRazaoSocial = newOriginalInvoiceData.clienteNome;
       newPlanusInvoiceData.boweCpfCnpj = newOriginalInvoiceData.clienteCnpjCpf;
-      newPlanusInvoiceData.boweEnderecoCompleto = `${newOriginalInvoiceData.clienteEndereco} ${newOriginalInvoiceData.clienteBairro} ${newOriginalInvoiceData.clienteCidadeUF} CEP: ${params.get("clienteCep") || ""}`.trim();
+      newPlanusInvoiceData.boweEnderecoCompleto = `${newOriginalInvoiceData.clienteEndereco || ''} ${newOriginalInvoiceData.clienteBairro||''} ${newOriginalInvoiceData.clienteCidadeUF||''} CEP: ${params.get("clienteCep") || ""}`.trim();
       newPlanusInvoiceData.boweNumeroInstalacao = newOriginalInvoiceData.codigoClienteInstalacao;
-      newPlanusInvoiceData.boweMesReferencia = newOriginalInvoiceData.mesAnoReferencia.split('/')[0].trim() + "/" + newOriginalInvoiceData.mesAnoReferencia.split('/')[1].trim(); // MAR/2025 format
-      newPlanusInvoiceData.boweTipoLigacao = `${newOriginalInvoiceData.classificacao.split('-')[0]} ${newOriginalInvoiceData.ligacao}`; // e.g. Comercial Trifásico
+      newPlanusInvoiceData.boweMesReferencia = newOriginalInvoiceData.mesAnoReferencia.split('/')[0].trim() + "/" + newOriginalInvoiceData.mesAnoReferencia.split('/')[1].trim();
+      newPlanusInvoiceData.boweTipoLigacao = `${newOriginalInvoiceData.classificacao.split('-')[0]} ${newOriginalInvoiceData.ligacao}`;
       newPlanusInvoiceData.boweDataVencimento = newOriginalInvoiceData.dataVencimento;
       newPlanusInvoiceData.boweNumeroBoleto = "S/N"; // Placeholder or from proposal if added
-      newPlanusInvoiceData.boweTotalAPagar = newPlanusInvoiceData.valorTotalFatura;
+      newPlanusInvoiceData.boweTotalAPagar = newPlanusInvoiceData.valorTotalFatura; // This is the discounted total
       newPlanusInvoiceData.boweDataEmissao = format(hoje, 'dd/MM/yyyy');
 
       newPlanusInvoiceData.boweAntesValor = newOriginalInvoiceData.valorTotalFatura;
-      newPlanusInvoiceData.boweDepoisValor = newPlanusInvoiceData.valorTotalFatura; // This is the discounted total
+      newPlanusInvoiceData.boweDepoisValor = newPlanusInvoiceData.valorTotalFatura; 
       newPlanusInvoiceData.boweEconomiaMensalValor = formatNumberToCurrencyString(currentSavingsResult.monthlySaving);
-      // Placeholder for other Bowe specific items, can be made dynamic if data exists
-      newPlanusInvoiceData.boweEconomiaAcumuladaValor = "R$ 0,00"; 
-      newPlanusInvoiceData.boweReducaoCO2Valor = "0 t";
-      newPlanusInvoiceData.boweArvoresPlantadasValor = "0";
+      newPlanusInvoiceData.boweEconomiaAcumuladaValor = formatNumberToCurrencyString(currentSavingsResult.annualSaving); 
+      newPlanusInvoiceData.boweReducaoCO2Valor = "0 t"; // Placeholder
+      newPlanusInvoiceData.boweArvoresPlantadasValor = "0"; // Placeholder
 
-      // "Seus Custos Mensais" for Bowe
-      newPlanusInvoiceData.boweCustosDistribuidoraDesc = "Custos da distribuidora";
+      // "Seus Custos Mensais" for Planus Display
       newPlanusInvoiceData.boweCustosDistribuidoraValor = newOriginalInvoiceData.item3Valor; // CIP
-      newPlanusInvoiceData.boweEnergiaEletricaDesc = "Energia elétrica Planus";
       newPlanusInvoiceData.boweEnergiaEletricaQtd = newPlanusInvoiceData.item1Quantidade + " kWh";
       newPlanusInvoiceData.boweEnergiaEletricaTarifa = formatNumberToLocaleString(parseLocaleNumberString(newPlanusInvoiceData.item1Valor) / consumoKwhInput, 6);
       newPlanusInvoiceData.boweEnergiaEletricaValor = newPlanusInvoiceData.item1Valor;
-      newPlanusInvoiceData.boweRestituicaoPisCofinsDesc = "PIS/COFINS"; // Changed from Restituição
       newPlanusInvoiceData.boweRestituicaoPisCofinsValor = formatNumberToCurrencyString(parseLocaleNumberString(newPlanusInvoiceData.item1PisValor) + parseLocaleNumberString(newPlanusInvoiceData.item1CofinsValor));
-      newPlanusInvoiceData.boweCreditosDesc = "Créditos / En. Injetada";
       newPlanusInvoiceData.boweCreditosValor = valorProdPropriaInput > 0 ? `-${formatNumberToCurrencyString(valorProdPropriaInput)}` : "R$ 0,00";
       newPlanusInvoiceData.boweCustosTotalValor = newPlanusInvoiceData.valorTotalFatura;
       newPlanusInvoiceData.boweObservacao = currentSavingsResult.discountDescription;
 
+      // For "Quanto você gastaria sem a Planus" table
+      newPlanusInvoiceData.boweSemBowCustosDistribuidoraValor = newOriginalInvoiceData.item1Valor; // Original energy cost
+      newPlanusInvoiceData.boweSemBowIluminacaoPublicaValor = newOriginalInvoiceData.item3Valor; // Original CIP
+      newPlanusInvoiceData.boweSemBowDemaisCustosValor = "R$ 0,00"; // Placeholder for other costs if any (e.g. availability)
+      newPlanusInvoiceData.boweSemBowTotalValor = newOriginalInvoiceData.valorTotalFatura;
 
       setPlanusInvoiceData(newPlanusInvoiceData);
 
@@ -479,13 +480,13 @@ function CalculatorPageContent() {
       )}
       
       {shouldShowInvoiceEditor && originalInvoiceData && (
-        <div className="w-full max-w-4xl mx-auto mt-12 px-4">
+        <div className="w-full max-w-4xl mx-auto mt-8 px-2 md:px-4">
           <Card className="shadow-2xl overflow-hidden bg-card mb-8">
-            <CardHeader className="bg-primary/10 p-6">
-              <CardTitle className="text-2xl font-bold text-primary text-center">
+            <CardHeader className="bg-primary/10 p-4 md:p-6">
+              <CardTitle className="text-xl md:text-2xl font-bold text-primary text-center">
                 Editor da Fatura (Simulação Original Energisa)
               </CardTitle>
-              <CardDescription className="text-center text-muted-foreground mt-1">
+              <CardDescription className="text-center text-muted-foreground mt-1 text-xs md:text-sm">
                 Os dados do formulário de proposta são carregados aqui. Você pode editar os campos diretamente.
               </CardDescription>
             </CardHeader>
@@ -495,19 +496,17 @@ function CalculatorPageContent() {
           </Card>
 
           {planusInvoiceData && (
-            <Card className="shadow-2xl overflow-hidden bg-card mt-12">
-                <CardHeader className="bg-primary/10 p-6">
-                <CardTitle className="text-2xl font-bold text-primary text-center">
-                    Simulação da Fatura com Desconto Planus (Layout "Bowe")
-                </CardTitle>
-                <CardDescription className="text-center text-muted-foreground mt-1">
-                    Veja como ficaria sua fatura com os descontos aplicados, em um layout inspirado na fatura "Bowe".
-                </CardDescription>
+             <>
+                <CardHeader className="bg-primary/10 p-4 md:p-6 mt-10 rounded-t-lg">
+                  <CardTitle className="text-xl md:text-2xl font-bold text-primary text-center">
+                      Simulação da Fatura com Desconto Planus
+                  </CardTitle>
+                  <CardDescription className="text-center text-muted-foreground mt-1 text-xs md:text-sm">
+                      Veja como ficaria sua fatura com os descontos aplicados, em um layout inspirado na fatura "bowe".
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 md:p-2 bg-background">
-                <InvoiceEditor invoiceData={planusInvoiceData} isEditable={false} /> 
-                </CardContent>
-            </Card>
+                <PlanusInvoiceDisplay invoiceData={planusInvoiceData} />
+            </>
           )}
         </div>
       )}
@@ -528,3 +527,5 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
+    

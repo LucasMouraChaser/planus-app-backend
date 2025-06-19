@@ -50,44 +50,46 @@ export interface InvoiceData {
   item3Desc: string; 
   item3Valor: string;
   
-  // Fields for "bowe" layout / Planus
-  boweNomeRazaoSocial?: string; // Will be same as clienteNome but useful for explicit mapping
-  boweCpfCnpj?: string; // same as clienteCnpjCpf
-  boweEnderecoCompleto?: string; // Combination of rua, numero, bairro, cidade, uf, cep
-  boweNumeroInstalacao?: string; // same as codigoClienteInstalacao
-  boweMesReferencia?: string; // same as mesAnoReferencia
-  boweTipoLigacao?: string; // same as ligacao + classificacao (e.g., "Comercial Trifásico")
-  boweDataVencimento?: string; // same as dataVencimento
-  boweNumeroBoleto?: string; // New field, can be static or from proposal
-  boweTotalAPagar?: string; // same as valorTotalFatura (for Planus)
-  boweDataEmissao?: string; // New field, can be static or from proposal (e.g. today)
+  // Fields for "Planus" (bowe-like) layout. Prefix 'bowe' or 'planus' can be used.
+  // For clarity, I'll use 'bowe' as per previous discussion, but component can be PlanusInvoiceDisplay
+  boweNomeRazaoSocial?: string; 
+  boweCpfCnpj?: string; 
+  boweEnderecoCompleto?: string; 
+  boweNumeroInstalacao?: string; 
+  boweMesReferencia?: string; 
+  boweTipoLigacao?: string; 
+  boweDataVencimento?: string; 
+  boweNumeroBoleto?: string; 
+  boweTotalAPagar?: string; 
+  boweDataEmissao?: string; 
 
-  boweAntesValor?: string;
-  boweDepoisValor?: string;
+  boweAntesValor?: string; // "Antes da Planus" value
+  boweDepoisValor?: string; // "Depois da Planus" value (same as boweTotalAPagar)
   boweEconomiaMensalValor?: string;
-  boweEconomiaAcumuladaValor?: string; // Example, can be static for now
-  boweReducaoCO2Valor?: string; // Example, can be static for now
-  boweArvoresPlantadasValor?: string; // Example, can be static for now
+  boweEconomiaAcumuladaValor?: string; 
+  boweReducaoCO2Valor?: string; 
+  boweArvoresPlantadasValor?: string;
 
-  // For "Seus Custos Mensais" table in Bowe layout
-  boweCustosDistribuidoraDesc?: string;
-  boweCustosDistribuidoraValor?: string;
-  boweEnergiaEletricaDesc?: string;
-  boweEnergiaEletricaQtd?: string;
-  boweEnergiaEletricaTarifa?: string;
-  boweEnergiaEletricaValor?: string;
-  boweRestituicaoPisCofinsDesc?: string;
-  boweRestituicaoPisCofinsValor?: string;
-  boweCreditosDesc?: string;
-  boweCreditosValor?: string;
-  boweCustosTotalValor?: string; // Same as planusInvoiceData.valorTotalFatura
-  boweObservacao?: string; // New field
+  // For "Seus Custos Mensais" table in Planus layout
+  boweCustosDistribuidoraDesc?: string; // e.g. "Custos da distribuidora (CIP Cuiabá)"
+  boweCustosDistribuidoraValor?: string; // e.g. CIP value
+  boweEnergiaEletricaDesc?: string; // e.g. "Energia elétrica Planus"
+  boweEnergiaEletricaQtd?: string; // e.g. "1500 kWh"
+  boweEnergiaEletricaTarifa?: string; // e.g. "R$ 0,705000" (discounted unit price)
+  boweEnergiaEletricaValor?: string; // e.g. Discounted energy cost
+  boweRestituicaoPisCofinsDesc?: string; // e.g. "PIS/COFINS"
+  boweRestituicaoPisCofinsValor?: string; // e.g. Calculated PIS/COFINS on discounted energy
+  boweCreditosDesc?: string; // e.g. "Créditos Energia Injetada"
+  boweCreditosValor?: string; // e.g. Value of injected energy (can be negative)
+  boweCustosTotalValor?: string; // Same as boweTotalAPagar
 
-  // For "QUANTO VOCÊ GASTARIA SEM A BOW-E" table
-  boweSemBowCustosDistribuidoraValor?: string; // Original item1Valor
-  boweSemBowIluminacaoPublicaValor?: string; // Original item3Valor
-  boweSemBowDemaisCustosValor?: string; // Placeholder for now
-  boweSemBowTotalValor?: string; // Original valorTotalFatura
+  boweObservacao?: string; 
+
+  // For "QUANTO VOCÊ GASTARIA SEM A PLANUS" table
+  boweSemBowCustosDistribuidoraValor?: string; // Original item1Valor (Energia)
+  boweSemBowIluminacaoPublicaValor?: string; // Original item3Valor (CIP)
+  boweSemBowDemaisCustosValor?: string; // Placeholder for other costs (e.g., Custo Disponibilidade if separated)
+  boweSemBowTotalValor?: string; // Original valorTotalFatura (Energisa)
   
   // Placeholder for PIX details
   bowePixBeneficiario?: string;
@@ -98,13 +100,15 @@ export interface InvoiceData {
 }
 
 export interface FieldConfig {
-  name: keyof InvoiceData; // Make sure all names used exist in InvoiceData
+  name: keyof InvoiceData; 
   x: number;
   y: number;
   width: number;
   height: number;
-  initialValue?: string; // Make initialValue optional
+  initialValue?: string; 
   style?: React.CSSProperties;
   className?: string;
   isTextarea?: boolean;
 }
+
+    

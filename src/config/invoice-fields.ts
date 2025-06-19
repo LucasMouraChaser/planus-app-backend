@@ -74,87 +74,25 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
 ];
 
 
-export const PLANUS_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
-  // Header Section - Left Side (Based on Bowe Image)
-  { name: 'headerTitle', x: 300, y: 20, width: 250, height: 20, style: { fontSize: '14px', fontWeight: 'bold', color: '#D9087E' } , initialValue: "ENTENDA SUA FATURA!" }, // ENTENDA SUA FATURA!
-  { name: 'boweNomeRazaoSocial', x: 60, y: 90, width: 300, height: 18, style: { fontSize: '10px', fontWeight: 'bold', color: '#000' } }, // Nome/Razão Social
-  { name: 'boweCpfCnpj', x: 60, y: 105, width: 200, height: 18, style: { fontSize: '10px', color: '#555' } }, // CPF/CNPJ
-  { name: 'boweEnderecoCompleto', x: 60, y: 125, width: 300, height: 30, style: { fontSize: '9px', color: '#555' }, isTextarea: true }, // Endereço
-
-  // Header Section - Right Side
-  { name: 'boweNumeroInstalacao', x: 570, y: 68, width: 150, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-left' },
-  { name: 'boweMesReferencia', x: 570, y: 102, width: 150, height: 18, style: { fontSize: '10px', fontWeight: 'bold', color: '#D9087E' }, className: 'text-left' }, // Mês de Referência
-  { name: 'boweTipoLigacao', x: 570, y: 85, width: 150, height: 18, style: { fontSize: '10px', color: '#555' }, className: 'text-left' }, // Tipo de Ligação
-  { name: 'boweDataVencimento', x: 570, y: 119, width: 150, height: 18, style: { fontSize: '10px', fontWeight: 'bold', color: '#D9087E' }, className: 'text-left' }, // Data de Vencimento
-  { name: 'boweNumeroBoleto', x: 570, y: 136, width: 150, height: 18, style: { fontSize: '10px', color: '#555' }, className: 'text-left' }, // Número do Boleto
-  { name: 'boweTotalAPagar', x: 570, y: 153, width: 150, height: 20, style: { fontSize: '14px', fontWeight: 'bold', color: '#D9087E' }, className: 'text-left' }, // Total a Pagar
-  { name: 'boweDataEmissao', x: 570, y: 170, width: 150, height: 18, style: { fontSize: '10px', color: '#555' }, className: 'text-left' }, // Data de Emissão
-
-  // "Entenda sua Fatura" Icons section
-  // Labels are part of the background image. These fields are for the values.
-  { name: 'boweAntesValor',              x: 80,  y: 262, width: 100, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center' },
-  { name: 'boweDepoisValor',             x: 218, y: 262, width: 100, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center' },
-  { name: 'boweEconomiaMensalValor',     x: 350, y: 262, width: 100, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center' },
-  { name: 'boweEconomiaAcumuladaValor',  x: 480, y: 262, width: 100, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center', initialValue: "R$ 0,00" }, // Placeholder
-  { name: 'boweReducaoCO2Valor',         x: 600, y: 262, width: 70, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center', initialValue: "0 t" }, // Placeholder
-  { name: 'boweArvoresPlantadasValor',   x: 700, y: 262, width: 70, height: 20, style: { fontSize: '11px', fontWeight: 'bold', color: '#000' }, className: 'text-center', initialValue: "0" }, // Placeholder
-
-  // "Seus Custos Mensais" Table (approximated)
-  // Header text ("Descrição", "Quantidade", etc.) is part of the background.
-  // Row 1: Custos da distribuidora
-  { name: 'boweCustosDistribuidoraDesc',  x: 65, y: 341, width: 200, height: 18, style: { fontSize: '10px', color: '#000' }, initialValue: "Custos da distribuidora" },
-  { name: 'boweCustosDistribuidoraValor', x: 650, y: 341, width: 100, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right' },
-  // Row 2: Energia elétrica Planus
-  { name: 'boweEnergiaEletricaDesc',   x: 65, y: 359, width: 200, height: 18, style: { fontSize: '10px', color: '#000' } },
-  { name: 'boweEnergiaEletricaQtd',    x: 300, y: 359, width: 100, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right' },
-  { name: 'boweEnergiaEletricaTarifa', x: 450, y: 359, width: 130, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right' },
-  { name: 'boweEnergiaEletricaValor',  x: 650, y: 359, width: 100, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right' },
-  // Row 3: Restituição PIS/COFINS
-  { name: 'boweRestituicaoPisCofinsDesc', x: 65, y: 377, width: 200, height: 18, style: { fontSize: '10px', color: '#000' }, initialValue: "Restituição PIS/COFINS" },
-  { name: 'boweRestituicaoPisCofinsValor',x: 650, y: 377, width: 100, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right', initialValue: "-R$ 0,00" }, // As per Bowe image
-  // Row 4: Créditos Planus
-  { name: 'boweCreditosDesc',  x: 65, y: 395, width: 200, height: 18, style: { fontSize: '10px', color: '#000' }, initialValue: "Créditos Planus" },
-  { name: 'boweCreditosValor', x: 650, y: 395, width: 100, height: 18, style: { fontSize: '10px', color: '#000' }, className: 'text-right' },
-  // TOTAL Row
-  { name: 'boweCustosTotalValor', x: 650, y: 417, width: 100, height: 20, style: { fontSize: '12px', fontWeight: 'bold', color: '#D9087E' }, className: 'text-right' },
-  
-  // Observação
-  { name: 'boweObservacao', x: 65, y: 440, width: 400, height: 30, style: { fontSize: '9px', color: '#555' }, isTextarea: true, initialValue: "Observações adicionais aqui..." },
-
-  // PIX Section (simplified - labels are part of background)
-  { name: 'boweMesReferencia', x: 210, y: 688, width: 100, height: 16, style: { fontSize: '9px', color: '#000'}, className: 'text-left'}, // Mês de Referência (PIX)
-  { name: 'boweDataVencimento', x: 340, y: 688, width: 100, height: 16, style: { fontSize: '9px', color: '#000'}, className: 'text-left'}, // Data de Vencimento (PIX)
-  { name: 'boweTotalAPagar', x: 475, y: 688, width: 100, height: 16, style: { fontSize: '9px', fontWeight: 'bold', color: '#000'}, className: 'text-left'}, // Total a Pagar (PIX)
-  { name: 'boweNumeroInstalacao', x: 600, y: 688, width: 100, height: 16, style: { fontSize: '9px', color: '#000'}, className: 'text-left'}, // N° de Instalação (PIX)
-  { name: 'bowePixCodigo', x: 60, y: 705, width: 680, height: 20, style: { fontSize: '9px', color: '#000', letterSpacing: '1px' }, initialValue:"00190.00009 03730.402009 00007.8131731 10310001024400" }, // PIX Code
-  { name: 'bowePixBeneficiario', x: 60, y: 735, width: 400, height: 16, style: { fontSize: '9px', color: '#000' }, initialValue:"Beneficiário: PLANUS COMERCIALIZADORA VAREJISTA LTDA - CNPJ: XX.XXX.XXX/XXXX-XX" }, // Beneficiary
-];
-
-
 // Helper to generate initial data structure from a config
 const generateInitialData = (config: FieldConfig[]): Partial<InvoiceData> => {
   return config.reduce((acc, field) => {
-    acc[field.name] = field.initialValue || ""; // Use initialValue from config or empty string
+    if (field.initialValue !== undefined) {
+      acc[field.name] = field.initialValue;
+    } else {
+      acc[field.name] = ""; // Default to empty string if no initialValue
+    }
     return acc;
   }, {} as Partial<InvoiceData>);
 };
 
-// Generate default initial data for Energisa
-export const initialEnergisaData: InvoiceData = {
+export const initialInvoiceData: InvoiceData = {
   ...generateInitialData(ENERGISA_INVOICE_FIELDS_CONFIG),
   // Ensure all required fields of InvoiceData have a default, even if just empty string
+  // Many are covered by generateInitialData now. Add any missing ones explicitly.
   headerTitle: "SIMULACAO DE FATURA DA ENERGISA",
   companyName: "ENERGISA MATO GROSSO - DISTRIBUIDORA DE ENERGIA S A",
-  // ... other specific defaults for Energisa if not covered by ENERGISA_INVOICE_FIELDS_CONFIG's initialValues
-} as InvoiceData; // Cast as InvoiceData to satisfy type
+  // ... other specific defaults if not covered by ENERGISA_INVOICE_FIELDS_CONFIG's initialValues
+} as InvoiceData;
 
-// Generate default initial data for Planus (can be minimal as it's populated dynamically)
-export const initialPlanusData: InvoiceData = {
-  ...generateInitialData(PLANUS_INVOICE_FIELDS_CONFIG),
-  headerTitle: "ENTENDA SUA FATURA PLANUS",
-  companyName: "ENERGIA ELÉTRICA FORNECIDA PLANUS COMERCIALIZADORA VAREJISTA LTDA",
-  // ... other specific defaults for Planus
-} as InvoiceData; // Cast as InvoiceData
-
-
-export const initialInvoiceData = initialEnergisaData; // Default export for general use
+    
