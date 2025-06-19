@@ -109,7 +109,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#">
+                <Link href="/crm">
                   <SidebarMenuButton tooltip="Gestão de Clientes" isActive={currentPathname === '/crm'}>
                     <UsersRound />
                     CRM
@@ -204,7 +204,7 @@ export default function RootLayout({
             </Button>
             {/* You can add more header content here, like a title or search bar */}
           </header>
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 overflow-auto"> {/* Added overflow-auto here */}
             {children}
           </main>
         </SidebarInset>
@@ -230,3 +230,4 @@ export default function RootLayout({
     </html>
   );
 }
+
