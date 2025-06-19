@@ -454,25 +454,6 @@ function CalculatorPageContent() {
 
               <div className="flex flex-col space-y-6">
                 <SavingsDisplay savings={savings} />
-                <Card className="w-full shadow-xl mt-4 bg-card">
-                    <CardHeader>
-                        <CardTitle className="text-xl font-bold text-primary flex items-center">
-                            <HelpCircle className="mr-2 h-5 w-5" />
-                            Próximos Passos
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground mb-4">
-                            Gostou da simulação? Clique abaixo para preencher mais detalhes e visualizar uma simulação completa da sua fatura.
-                        </p>
-                        <Link href="/proposal-generator" passHref>
-                            <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
-                                <FileText className="mr-2 h-5 w-5" />
-                                INICIAR NOVA PROPOSTA
-                            </Button>
-                        </Link>
-                    </CardContent>
-                </Card>
               </div>
             </div>
           )}
