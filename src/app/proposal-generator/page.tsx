@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   clienteNome: z.string().min(1, "Nome do cliente é obrigatório."),
@@ -35,7 +37,7 @@ const formSchema = z.object({
   ligacao: z.enum(['MONOFASICO', 'BIFASICO', 'TRIFASICO', '']).optional().describe("Tipo de Fornecimento"),
   classificacao: z.string().optional().describe("Classe de Consumo"),
   
-  clienteCep: z.string().optional(),
+  clienteCep: z.string().optional().refine(val => val === "" || /^\d{5}-?\d{3}$/.test(val) || /^\d{8}$/.test(val), { message: "CEP inválido. Use XXXXX-XXX ou XXXXXXXX." }),
   clienteRua: z.string().optional(),
   clienteNumero: z.string().optional(),
   clienteComplemento: z.string().optional(),
@@ -52,6 +54,7 @@ type ProposalFormData = z.infer<typeof formSchema>;
 
 export default function ProposalGeneratorPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,11 +77,74 @@ export default function ProposalGeneratorPage() {
     },
   });
 
+  const cepValue = form.watch("clienteCep");
+
+  useEffect(() => {
+    const fetchAddress = async (cep: string) => {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        if (!response.ok) {
+          throw new Error('Erro ao buscar CEP');
+        }
+        const data = await response.json();
+        if (data.erro) {
+          toast({
+            title: "CEP não encontrado",
+            description: "Por favor, verifique o CEP digitado.",
+            variant: "destructive",
+          });
+          form.setValue("clienteRua", "");
+          form.setValue("clienteBairro", "");
+          form.setValue("clienteCidade", "");
+          form.setValue("clienteUF", "");
+        } else {
+          form.setValue("clienteRua", data.logradouro || "");
+          form.setValue("clienteBairro", data.bairro || "");
+          form.setValue("clienteCidade", data.localidade || "");
+          form.setValue("clienteUF", data.uf || "");
+          toast({
+            title: "Endereço preenchido",
+            description: "Os campos de endereço foram atualizados.",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+        toast({
+          title: "Erro na busca de CEP",
+          description: "Não foi possível buscar o endereço. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (cepValue) {
+      const cleanedCep = cepValue.replace(/\D/g, ''); // Remove non-digits
+      if (cleanedCep.length === 8) {
+        fetchAddress(cleanedCep);
+      } else {
+        // Limpa os campos se o CEP não estiver completo ou for inválido
+        if (form.getValues("clienteRua") || form.getValues("clienteBairro") || form.getValues("clienteCidade") || form.getValues("clienteUF")) {
+            // Só limpa se já houver algo preenchido por uma busca anterior, para não apagar digitação manual.
+            if (cleanedCep.length === 0 || cleanedCep.length < 8 && !/^\d{0,7}$/.test(cleanedCep)) { // Se o cep foi apagado ou ficou invalido
+                form.setValue("clienteRua", "");
+                form.setValue("clienteBairro", "");
+                form.setValue("clienteCidade", "");
+                form.setValue("clienteUF", "");
+            }
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cepValue, form.setValue, toast]);
+
+
   function onSubmit(values: ProposalFormData) {
     const queryParams = new URLSearchParams();
     (Object.keys(values) as Array<keyof ProposalFormData>).forEach((key) => {
-      if (values[key] !== undefined && values[key] !== null && values[key] !== "") {
-        queryParams.set(key, String(values[key]));
+      const value = values[key];
+      // Apenas adiciona aos query params se o valor não for undefined, null ou uma string vazia.
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        queryParams.set(key, String(value));
       }
     });
     router.push(`/?${queryParams.toString()}`);
@@ -118,7 +184,7 @@ export default function ProposalGeneratorPage() {
                   <FormItem>
                     <FormLabel>CPF/CNPJ</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 123.456.789-00" {...field} />
+                      <Input placeholder="Ex: 123.456.789-00 ou XX.XXX.XXX/XXXX-XX" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,8 +197,9 @@ export default function ProposalGeneratorPage() {
                   <FormItem>
                     <FormLabel>CEP</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: 78890-000" {...field} />
+                      <Input placeholder="Ex: 78890-000 ou 78890000" {...field} />
                     </FormControl>
+                    <FormDescription>Digite o CEP para buscar o endereço automaticamente.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -171,7 +238,7 @@ export default function ProposalGeneratorPage() {
                     <FormItem>
                       <FormLabel>Complemento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: QD18 LT11" {...field} />
+                        <Input placeholder="Ex: QD18 LT11, APTO 101" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -262,6 +329,7 @@ export default function ProposalGeneratorPage() {
                         <SelectItem value="MONOFASICO">Monofásico</SelectItem>
                         <SelectItem value="BIFASICO">Bifásico</SelectItem>
                         <SelectItem value="TRIFASICO">Trifásico</SelectItem>
+                        <SelectItem value="">Não especificado</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -354,3 +422,5 @@ export default function ProposalGeneratorPage() {
   );
 }
 
+
+    
