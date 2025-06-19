@@ -137,12 +137,12 @@ export default function CareerPlanPage() {
 
       <section className="text-center">
         <h2 className="text-3xl font-semibold text-primary mb-8">Explore Nossas Apresentações Detalhadas</h2>
-        <Card className="max-w-2xl mx-auto bg-card/70 backdrop-blur-lg border shadow-xl p-6">
-          <CardContent className="space-y-4">
+        <Card className="max-w-2xl mx-auto bg-card/70 backdrop-blur-lg border shadow-xl">
+          <CardContent className="space-y-6 p-6">
             <p className="text-muted-foreground">
               Aprofunde-se em cada aspecto do nosso plano de carreira e descubra como maximizar seus ganhos e desenvolvimento profissional.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 rounded-lg bg-black/10 dark:bg-white/5 p-6 shadow-inner">
               <Link href="/career-plan-presentation" passHref>
                 <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Eye className="mr-2 h-5 w-5" />
@@ -150,13 +150,13 @@ export default function CareerPlanPage() {
                 </Button>
               </Link>
               <Link href="/career-plan-mlm-analysis" passHref>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/60 hover:border-primary text-primary/80 hover:text-primary hover:bg-primary/10">
                   <BarChart className="mr-2 h-5 w-5" />
                   Análise do Modelo MLM
                 </Button>
               </Link>
               <Link href="/career-plan-mlm-escalonado" passHref>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/60 hover:border-primary text-primary/80 hover:text-primary hover:bg-primary/10">
                   <UsersRound className="mr-2 h-5 w-5" />
                  MLM Escalonado
                 </Button>
