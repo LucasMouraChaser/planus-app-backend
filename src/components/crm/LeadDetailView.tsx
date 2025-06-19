@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState, useEffect } from 'react';
-import { DollarSign, Zap, User, CalendarDays, MessageSquare, Send, Edit, Paperclip, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { DollarSign, Zap, User, CalendarDays, MessageSquare, Send, Edit, Paperclip, CheckCircle, XCircle, AlertTriangle, X } from 'lucide-react';
 // Placeholder for actual Firebase functions
 // import { fetchChatHistory, saveChatMessage, approveCrmLead, requestCrmLeadCorrection } from '@/lib/firebase/firestore';
 
@@ -191,3 +191,5 @@ export function LeadDetailView({ lead, onClose, onEdit, isAdmin, onApprove, onRe
   );
 }
 
+
+    
