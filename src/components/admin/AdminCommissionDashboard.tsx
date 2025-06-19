@@ -253,7 +253,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
                 <TableRow key={user.uid}>
                   <TableCell>{user.displayName || 'N/A'}</TableCell><TableCell>{user.email}</TableCell><TableCell>{user.cpf || 'N/A'}</TableCell>
                   <TableCell><span className={`px-2 py-1 text-xs rounded-full ${user.type === 'admin' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>{user.type}</span></TableCell>
-                  <TableCell>{format(new Date(user.createdAt as string), "dd/MM/yyyy", { locale: ptBR })}</TableCell>
+                  <TableCell>{user.createdAt ? format(new Date(user.createdAt as string), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
                   <TableCell><Button variant="ghost" size="icon"><Settings className="h-4 w-4"/></Button></TableCell>
                 </TableRow>
               ))}
@@ -274,7 +274,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
                 <TableRow key={req.id}>
                   <TableCell>{req.userName || req.userEmail}</TableCell><TableCell>{formatCurrency(req.amount)}</TableCell>
                   <TableCell>{req.withdrawalType === 'personal' ? 'Pessoal' : 'Rede MLM'}</TableCell><TableCell title={req.pixKey} className="truncate max-w-[150px]">{req.pixKeyType}: {req.pixKey}</TableCell>
-                  <TableCell>{format(new Date(req.requestedAt as string), "dd/MM/yy HH:mm", { locale: ptBR })}</TableCell>
+                  <TableCell>{req.requestedAt ? format(new Date(req.requestedAt as string), "dd/MM/yy HH:mm", { locale: ptBR }) : 'N/A'}</TableCell>
                   <TableCell><span className={`px-2 py-1 text-xs rounded-full ${req.status === 'concluido' ? 'bg-green-500/20 text-green-400' : req.status === 'pendente' ? 'bg-yellow-500/20 text-yellow-400' : req.status === 'falhou' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}`}>{req.status}</span></TableCell>
                   <TableCell><Button variant="outline" size="sm" onClick={() => handleOpenUpdateWithdrawalModal(req)}><ExternalLink className="h-3 w-3 mr-1"/>Detalhes</Button></TableCell>
                 </TableRow>
@@ -310,7 +310,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
               <p><strong>Usuário:</strong> {selectedWithdrawal.userName || selectedWithdrawal.userEmail}</p>
               <p><strong>Valor:</strong> {formatCurrency(selectedWithdrawal.amount)} ({selectedWithdrawal.withdrawalType})</p>
               <p><strong>PIX:</strong> {selectedWithdrawal.pixKeyType} - {selectedWithdrawal.pixKey}</p>
-              <p><strong>Solicitado em:</strong> {format(new Date(selectedWithdrawal.requestedAt as string), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+              <p><strong>Solicitado em:</strong> {selectedWithdrawal.requestedAt ? format(new Date(selectedWithdrawal.requestedAt as string), "dd/MM/yyyy HH:mm", { locale: ptBR }) : 'N/A'}</p>
             </div>
             <Form {...updateWithdrawalForm}>
               <form onSubmit={updateWithdrawalForm.handleSubmit(handleUpdateWithdrawal)} className="space-y-4 pt-2">

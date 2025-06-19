@@ -57,16 +57,15 @@ export interface LeadDocumentData {
   naturality?: string; // Naturalidade do cliente
   maritalStatus?: string; // Estado civil
   profession?: string; // Profissão
-  createdAt: Timestamp; // Obrigatório
-  lastContact: Timestamp; // Obrigatório
+  createdAt: Timestamp | string; // Obrigatório - Timestamp for Firestore, string for client
+  lastContact: Timestamp | string; // Obrigatório - Timestamp for Firestore, string for client
   userId: string; // UID do Firebase Auth do vendedor/usuário que criou o lead - Obrigatório
 }
 
-export interface LeadWithId extends LeadDocumentData {
+export interface LeadWithId extends Omit<LeadDocumentData, 'createdAt' | 'lastContact'> {
   id: string;
-  // Timestamps are converted to ISO strings for client-side usage
-  createdAt: string;
-  lastContact: string;
+  createdAt: string; // Always string on client
+  lastContact: string; // Always string on client
 }
 
 export interface ChatMessage {
@@ -80,4 +79,19 @@ export interface Stage {
   id: StageId;
   title: string;
   colorClass: string; // Tailwind color class for the stage header/accent
+}
+
+export interface RankingDisplayEntry {
+  rankPosition: number;
+  userId: string;
+  userName: string;
+  userPhotoUrl?: string;
+  mainScoreDisplay: string; // Ex: "R$ 150.000,00" ou "75 Vendas"
+  mainScoreValue: number; // Raw numeric value for sorting
+  detailScore1Label?: string;
+  detailScore1Value?: string | number;
+  detailScore2Label?: string;
+  detailScore2Value?: string | number;
+  periodIdentifier: string; // e.g., "monthly_current", "all_time"
+  criteriaIdentifier: string; // e.g., "totalSalesValue", "numberOfSales"
 }

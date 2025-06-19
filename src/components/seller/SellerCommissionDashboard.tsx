@@ -131,7 +131,7 @@ export default function SellerCommissionDashboard({ loggedInUser }: SellerCommis
                   <TableCell>{formatCurrency(lead.value)}</TableCell>
                   <TableCell>{lead.kwh} kWh</TableCell>
                   <TableCell><span className={`px-2 py-0.5 text-xs rounded-full ${getStageBadgeStyle(lead.stageId)}`}>{STAGES_CONFIG.find(s=>s.id === lead.stageId)?.title || lead.stageId}</span></TableCell>
-                  <TableCell>{format(parseISO(lead.lastContact), "dd/MM/yy HH:mm", {locale: ptBR})}</TableCell>
+                  <TableCell>{lead.lastContact ? format(parseISO(lead.lastContact), "dd/MM/yy HH:mm", {locale: ptBR}) : 'N/A'}</TableCell>
                 </TableRow>
               ))}
                {leads.length === 0 && (

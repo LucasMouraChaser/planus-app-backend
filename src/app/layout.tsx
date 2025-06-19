@@ -157,7 +157,7 @@ export default function RootLayout({
                 </>
               )}
               <SidebarMenuItem>
-                <Link href="#">
+                <Link href="/ranking">
                   <SidebarMenuButton tooltip="Ranking de Performance" isActive={currentPathname === '/ranking'}>
                     <BarChart3 />
                     Ranking
@@ -166,7 +166,7 @@ export default function RootLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/career-plan">
-                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/career-plan'}>
+                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/career-plan' || currentPathname.startsWith('/career-plan/')}>
                     <Rocket />
                     Plano de Carreira
                   </SidebarMenuButton>

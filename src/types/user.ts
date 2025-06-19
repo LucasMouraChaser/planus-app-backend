@@ -4,7 +4,7 @@ import type { Timestamp } from 'firebase/firestore';
 export type UserType = 'admin' | 'vendedor' | 'cliente'; // Add other types as needed
 
 // Represents the data structure for a user in Firestore
-export interface FirestoreUser {
+export type FirestoreUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
@@ -15,19 +15,34 @@ export interface FirestoreUser {
   personalBalance?: number; // Saldo de comissões de vendas diretas
   mlmBalance?: number; // Saldo de comissões da rede MLM
   uplineUid?: string; // UID do usuário que indicou este usuário
-  downlineUids?: string[]; // Array de UIDs dos usuários diretamente indicados
+  downlineUids?: string[]; // Array de UIDs dos usuários diretamente indicados por este usuário
   mlmLevel?: number; // Nível do usuário na estrutura MLM
-}
+};
 
 // Placeholder for the user object available in the auth context
-export interface AppUser {
+export type AppUser = {
   uid: string;
   email: string | null;
-  displayName: string | null;
+  displayName:
+    | (string & {
+        // This type is a string that can be extended with additional properties.
+        //
+        // This allows for other related types to be assignable here if needed.
+        //
+        // For example:
+        //
+        // ```
+        // type DisplayNameWithTitle = string & { title: string };
+        //
+        // const user: AppUser = {
+        //   displayName: Object.assign("John Doe", { title: "Mr." }),
+        // };
+        // ```
+      })
+    | null;
   cpf?: string;
   type: UserType;
   photoURL?: string | null;
   personalBalance: number;
   mlmBalance: number;
-  // Add other relevant fields from your auth context
-}
+  // Add other relevant fields from
