@@ -14,14 +14,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  // SidebarTrigger, // No longer using the default PanelLeft SidebarTrigger from here for the main toggle
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -74,19 +73,16 @@ export default function RootLayout({
       <>
         <Sidebar>
           <SidebarHeader className="p-4">
-            {/* Avatar toggle button removed from here */}
             <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
               <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
               <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
             </div>
-            {/* Placeholder for a logo when collapsed, if needed */}
-            {/* <YourLogoOrIcon className="h-8 w-8 group-data-[state=expanded]:hidden mx-auto" /> */}
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Ranking de Performance">
+                  <SidebarMenuButton tooltip="Ranking de Performance" isActive={currentPathname === '/ranking'}>
                     <BarChart3 />
                     Ranking
                   </SidebarMenuButton>
@@ -101,8 +97,16 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <Link href="/proposal-generator" passHref legacyBehavior>
+                  <SidebarMenuButton isActive={currentPathname === '/proposal-generator'} tooltip="Gerador de Proposta">
+                    <FileText />
+                    Proposta
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Gestão de Clientes">
+                  <SidebarMenuButton tooltip="Gestão de Clientes" isActive={currentPathname === '/crm'}>
                     <UsersRound />
                     CRM
                   </SidebarMenuButton>
@@ -110,7 +114,7 @@ export default function RootLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Minha Carteira">
+                  <SidebarMenuButton tooltip="Minha Carteira" isActive={currentPathname === '/carteira'}>
                     <Wallet />
                     Carteira
                   </SidebarMenuButton>
@@ -118,7 +122,7 @@ export default function RootLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Planejamento de Carreira">
+                  <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
                     <Rocket />
                     Plano de Carreira
                   </SidebarMenuButton>
@@ -126,7 +130,7 @@ export default function RootLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Configurações de Usuários">
+                  <SidebarMenuButton tooltip="Configurações de Usuários" isActive={currentPathname === '/gerenciar-usuarios'}>
                     <UserCog />
                     Gerenciar Usuários
                   </SidebarMenuButton>
@@ -134,7 +138,7 @@ export default function RootLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="#" passHref legacyBehavior>
-                  <SidebarMenuButton tooltip="Meu Perfil">
+                  <SidebarMenuButton tooltip="Meu Perfil" isActive={currentPathname === '/perfil'}>
                     <CircleUserRound />
                     Perfil
                   </SidebarMenuButton>
@@ -173,7 +177,6 @@ export default function RootLayout({
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          {/* This header is now the main top bar for the content area and contains the sidebar toggle */}
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 py-2">
             <Button
               variant="ghost"
@@ -182,11 +185,10 @@ export default function RootLayout({
               className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground"
               aria-label="Toggle sidebar"
             >
-              <Avatar className="h-8 w-8 bg-primary"> {/* Green background for avatar */}
-                <AvatarFallback className="text-primary-foreground">N</AvatarFallback> {/* Initials or icon */}
+              <Avatar className="h-8 w-8 bg-primary">
+                <AvatarFallback className="text-primary-foreground">BV</AvatarFallback>
               </Avatar>
             </Button>
-            {/* Other header content like breadcrumbs or page title can go here */}
           </header>
           <main className="flex-1 p-4 md:p-6">
             {children}
@@ -203,10 +205,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-        <title>Energisa App</title>
+        <title>BrasilVis App</title>
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider defaultOpen> {/* Ensure defaultOpen is suitable, or manage via cookie/state */}
+        <SidebarProvider defaultOpen>
           <AppContent />
         </SidebarProvider>
         <Toaster />
