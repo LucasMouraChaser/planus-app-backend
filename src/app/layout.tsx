@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
+import Image from 'next/image'; // Importar Image
 import { usePathname, useRouter } from 'next/navigation';
 import { BarChart3, Calculator, UsersRound, Wallet, Rocket, UserCog, CircleUserRound, LogOut, FileText, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -54,7 +55,7 @@ export default function RootLayout({
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
           <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-          <title>Login - Energisa App</title>
+          <title>Login - BrasilVis App</title>
         </head>
         <body className="font-body antialiased">
           {children}
@@ -180,6 +181,15 @@ export default function RootLayout({
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
+          <Image
+            src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
+            alt="Blurred Background"
+            layout="fill"
+            objectFit="cover"
+            objectPosition="center"
+            className="z-[-1] filter blur-lg"
+            data-ai-hint="abstract background"
+          />
           <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 py-2">
             <Button
               variant="ghost"
