@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCap
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, Users, DollarSign, BarChart2, HelpCircle, TrendingUp, Check, Network, Lightbulb } from 'lucide-react';
+import { ChevronLeft, Users, DollarSign, BarChart2, HelpCircle, TrendingUp, Check, Network, Lightbulb, ArrowRightCircle } from 'lucide-react';
 
 const mlmLevels = [
   { level: "Nível 1 (Indicados Diretos)", commission: "5%", exampleGain: "R$ 50,00" },
@@ -211,3 +211,4 @@ export default function CareerPlanMlmAnalysisPage() {
     </div>
   );
 }
+
