@@ -21,11 +21,11 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3, FileText } from 'lucide-react'; // FileText adicionado aqui
+import { HelpCircle, Edit3, FileText } from 'lucide-react';
 
-const KWH_TO_R_FACTOR = 1.0907; // Tarifa média para cálculo inicial da conta
+const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
-const MAX_KWH_SLIDER = 50000; // Aumentado para cobrir faixas maiores
+const MAX_KWH_SLIDER = 50000; 
 const SLIDER_STEP = 50;
 const DEFAULT_KWH = 1500;
 const DEFAULT_UF = 'MT';
@@ -35,13 +35,26 @@ function CalculatorPageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [hoveredStateCode, setHoveredStateCode] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
   const [currentKwh, setCurrentKwh] = useState<number>(DEFAULT_KWH);
   const [savings, setSavings] = useState<SavingsResult | null>(null);
   
-  // Ler estado da URL e definir o estado selecionado inicialmente
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+      if (!loggedIn) {
+        router.replace('/login');
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return; // Não processe até estar autenticado
+
     const stateCodeFromUrl = searchParams.get('state');
     const kwhFromUrl = searchParams.get('kwh');
 
@@ -61,45 +74,56 @@ function CalculatorPageContent() {
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
     } else {
-      // Se o estado da URL não for válido/disponível, ou nenhum estado for passado,
-      // tenta selecionar o estado padrão (MT) se estiver disponível.
       const defaultStateDetails = statesData.find(s => s.code === DEFAULT_UF && s.available);
       setSelectedState(defaultStateDetails || null);
-      if (!defaultStateDetails && stateCodeFromUrl) { // Se nem MT está disponível e veio algo na URL
+      if (!defaultStateDetails && stateCodeFromUrl) { 
          toast({ title: "Estado Indisponível", description: `O estado ${stateCodeFromUrl} não está disponível para simulação.`, variant: "destructive" });
       }
     }
-  }, [searchParams, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, toast, isAuthenticated]); // Adicionado isAuthenticated como dependência
 
-  // Atualizar URL quando o estado selecionado ou kWh mudar
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (selectedState) {
-      params.set('state', selectedState.code);
-    }
-    params.set('kwh', currentKwh.toString());
-    // router.replace torna a URL mais limpa, mas pode causar re-renderizações.
-    // window.history.replaceState({}, '', `?${params.toString()}`); // Alternativa para não recarregar
-  }, [selectedState, currentKwh, router]);
+    if (!isAuthenticated) return;
+    // Esta lógica de atualizar a URL pode ser desnecessária se o estado inicial já é lido da URL
+    // e a navegação entre propostas e calculadora já atualiza a URL.
+    // Avaliar se é preciso ou se causa re-renderizações indesejadas.
+    // const params = new URLSearchParams(searchParams.toString()); // Usar searchParams existentes como base
+    // if (selectedState) {
+    //   params.set('state', selectedState.code);
+    // } else {
+    //   params.delete('state');
+    // }
+    // params.set('kwh', currentKwh.toString());
+    // router.replace(`?${params.toString()}`, { scroll: false }); 
+  }, [selectedState, currentKwh, router, searchParams, isAuthenticated]);
 
 
-  // Calcular economia
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     if (selectedState && selectedState.available) {
       const billAmountInReais = currentKwh * KWH_TO_R_FACTOR;
       setSavings(calculateSavings(billAmountInReais));
     } else {
-      setSavings(null); // Reseta a economia se nenhum estado disponível estiver selecionado
+      setSavings(null); 
     }
-  }, [currentKwh, selectedState]);
+  }, [currentKwh, selectedState, isAuthenticated]);
 
   const handleStateClick = (stateCode: string) => {
     const stateDetails = statesData.find(s => s.code === stateCode);
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
+      // Atualizar URL ao clicar no estado
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('state', stateCode);
+      router.push(`?${params.toString()}`, { scroll: false });
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
-      setSelectedState(null); // Limpa seleção se indisponível
+      setSelectedState(null); 
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('state');
+      router.push(`?${params.toString()}`, { scroll: false });
     }
   };
 
@@ -109,17 +133,35 @@ function CalculatorPageContent() {
 
   const handleKwhInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let value = parseInt(event.target.value, 10);
-    if (isNaN(value)) value = MIN_KWH_SLIDER; // ou manter o valor anterior
+    if (isNaN(value)) value = MIN_KWH_SLIDER; 
     if (value < MIN_KWH_SLIDER) value = MIN_KWH_SLIDER;
     if (value > MAX_KWH_SLIDER) value = MAX_KWH_SLIDER;
     setCurrentKwh(value);
+    // Atualizar URL ao mudar o input de kWh
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('kwh', value.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleSliderChange = (value: number[]) => {
     setCurrentKwh(value[0]);
+    // Atualizar URL ao mudar o slider
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('kwh', value[0].toString());
+    router.push(`?${params.toString()}`, { scroll: false });
   };
   
   const currentBillWithoutDiscount = parseFloat((currentKwh * KWH_TO_R_FACTOR).toFixed(2));
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-lg font-medium">Verificando autenticação...</p>
+      </div>
+    );
+  }
+
 
   return (
     <main className="flex flex-col items-center justify-start min-h-screen bg-background p-4 md:p-8 font-body">
@@ -134,7 +176,6 @@ function CalculatorPageContent() {
       </header>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        {/* Coluna do Mapa e Info do Estado */}
         <div className="flex flex-col items-center space-y-6">
           <Card className="w-full shadow-xl">
             <CardHeader>
@@ -163,7 +204,6 @@ function CalculatorPageContent() {
            )}
         </div>
 
-        {/* Coluna do Simulador e Economia */}
         <div className="flex flex-col space-y-6">
           <Card className="w-full shadow-xl">
             <CardHeader>
@@ -231,7 +271,6 @@ function CalculatorPageContent() {
         </div>
       </div>
       
-      {/* Seção do Editor de Fatura */}
       <div className="w-full max-w-4xl mx-auto mt-12">
         <Card className="shadow-2xl overflow-hidden">
           <CardHeader className="bg-primary/5">
@@ -254,7 +293,6 @@ function CalculatorPageContent() {
 
 export default function HomePage() {
   return (
-    // Suspense é necessário porque CalculatorPageContent usa useSearchParams
     <Suspense fallback={
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
@@ -265,4 +303,3 @@ export default function HomePage() {
     </Suspense>
   );
 }
-

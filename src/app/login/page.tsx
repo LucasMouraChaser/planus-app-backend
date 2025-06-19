@@ -19,6 +19,12 @@ export default function LoginPage() {
     event.preventDefault();
     // Simulação de login
     console.log("Login attempt with:", { email, password });
+    
+    // Simular login bem-sucedido
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('isLoggedIn', 'true');
+    }
+    
     // Redirecionar para a página principal (calculadora)
     router.push('/'); 
   };
@@ -91,3 +97,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
