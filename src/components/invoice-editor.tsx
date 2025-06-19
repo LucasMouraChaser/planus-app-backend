@@ -4,11 +4,11 @@
 import type React from 'react';
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Save, ScanSearch, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react'; // Removed Save, ScanSearch
 import { addDays, subDays, format, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import EditableField from './editable-field';
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button'; // Button import removed as it's no longer used here
 import { useToast } from '@/hooks/use-toast';
 import type { InvoiceData } from '@/types/invoice';
 import { INVOICE_FIELDS_CONFIG, initialInvoiceData as defaultInitialData } from '@/config/invoice-fields';
@@ -236,11 +236,12 @@ function InvoiceEditorContent() {
       });
     } else {
       setOverlapWarningMsg(null);
-      toast({
-        title: 'Overlap Check Complete',
-        description: 'No overlaps detected.',
-        duration: 3000,
-      });
+      // Optionally, show a success toast if no overlaps are found.
+      // toast({
+      //   title: 'Overlap Check Complete',
+      //   description: 'No overlaps detected.',
+      //   duration: 3000,
+      // });
     }
   }, [toast]);
   
@@ -272,6 +273,8 @@ function InvoiceEditorContent() {
 
   return (
     <div className="w-full flex flex-col items-center">
+      {/* Buttons removed as per request */}
+      {/* 
       <div className="mb-6 flex flex-wrap gap-4 justify-center">
         <Button onClick={handleSave} variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
           <Save className="mr-2 h-5 w-5" /> Save Data
@@ -284,6 +287,7 @@ function InvoiceEditorContent() {
           <ScanSearch className="mr-2 h-5 w-5" /> Check Overlaps
         </Button>
       </div>
+      */}
 
       {overlapWarningMsg && (
         <div className="mb-4 p-3 bg-destructive/10 border border-destructive text-destructive-foreground rounded-lg shadow-sm flex items-center text-sm max-w-xl w-full">
@@ -339,4 +343,6 @@ const InvoiceEditor: React.FC = () => {
 };
 
 export default InvoiceEditor;
+    
+
     
