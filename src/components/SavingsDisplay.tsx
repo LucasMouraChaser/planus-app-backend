@@ -47,7 +47,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
 
   if (!savings || savings.monthlySaving === 0) {
     return (
-      <Card className="w-full shadow-lg animate-in fade-in-50 bg-card text-card-foreground rounded-lg">
+      <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/60 backdrop-blur-lg border text-card-foreground rounded-lg">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-foreground flex items-center">
             <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
@@ -70,7 +70,7 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
   }
 
   return (
-    <Card className="w-full shadow-lg animate-in fade-in-50 bg-card text-card-foreground rounded-lg">
+    <Card className="w-full shadow-lg animate-in fade-in-50 bg-card/60 backdrop-blur-lg border text-card-foreground rounded-lg">
       <CardHeader className="pb-3">
         <CardTitle className="text-xl font-semibold text-foreground">
           Sua Economia Estimada
@@ -132,3 +132,4 @@ export function SavingsDisplay({ savings }: SavingsDisplayProps) {
     </Card>
   );
 }
+

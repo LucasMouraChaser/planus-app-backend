@@ -393,7 +393,7 @@ function CalculatorPageContent() {
 
           {showMap && (
             <div className="w-full max-w-6xl mx-auto flex justify-center mb-12 px-4">
-              <Card className="w-full md:w-2/3 lg:w-1/2 shadow-xl bg-card">
+              <Card className="w-full md:w-2/3 lg:w-1/2 shadow-xl bg-card/60 backdrop-blur-lg border">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold text-primary flex items-center">
                     <MapPin className="mr-2 h-5 w-5" />
@@ -417,7 +417,7 @@ function CalculatorPageContent() {
             <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 px-4">
               <div className="flex flex-col items-center space-y-6">
                 <StateInfoCard state={selectedState} />
-                <Card className="w-full shadow-xl bg-card">
+                <Card className="w-full shadow-xl bg-card/60 backdrop-blur-lg border">
                     <CardHeader>
                     <CardTitle className="text-xl font-bold text-primary flex items-center">
                         <FileText className="mr-2 h-5 w-5" /> 
@@ -478,7 +478,7 @@ function CalculatorPageContent() {
       
       {shouldShowInvoiceEditor && originalInvoiceData && (
         <div className="w-full max-w-4xl mx-auto mt-8 px-2 md:px-4">
-          <Card className="shadow-2xl overflow-hidden bg-card mb-8">
+          <Card className="shadow-2xl overflow-hidden bg-card/60 backdrop-blur-lg border mb-8">
             <CardHeader className="bg-primary/10 p-4 md:p-6">
               <CardTitle className="text-xl md:text-2xl font-bold text-primary text-center">
                 Editor da Fatura (Simulação Original Energisa)
@@ -506,7 +506,7 @@ function CalculatorPageContent() {
             </>
           )}
            {/* Competitor Analysis Section - Rendered also in invoice editor mode if savings data is available */}
-           {savings && (
+           {savings && originalInvoiceData && (
               <div className="w-full max-w-6xl mx-auto px-4 my-8">
                 <CompetitorComparisonDisplay 
                   currentBillAmount={parseLocaleNumberString(originalInvoiceData?.item1Valor) || 0} 
