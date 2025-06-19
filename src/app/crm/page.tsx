@@ -7,7 +7,7 @@ import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { LeadDetailView } from '@/components/crm/LeadDetailView';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Users, Filter } from 'lucide-react';
+import { PlusCircle, Users, Filter, Plus } from 'lucide-react'; // Added Plus
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Timestamp } from 'firebase/firestore'; // For mock data
 
@@ -148,8 +148,18 @@ function CrmPageContent() {
       
       <KanbanBoard leads={leads} onViewLeadDetails={handleViewLeadDetails} />
 
+      {/* Floating Action Button */}
+      <Button 
+        onClick={() => handleOpenForm()}
+        className="fixed bottom-6 left-6 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg z-20"
+        aria-label="Adicionar Novo Lead"
+        size="icon"
+      >
+        <Plus className="w-7 h-7" />
+      </Button>
+
       <Dialog open={isFormOpen} onOpenChange={(open) => !open && handleCloseForm()}>
-        <DialogContent className="sm:max-w-[600px] bg-card/80 backdrop-blur-xl border shadow-2xl text-foreground">
+        <DialogContent className="sm:max-w-[600px] bg-card/70 backdrop-blur-lg border shadow-2xl text-foreground">
           <DialogHeader>
             <DialogTitle className="text-primary">{editingLead ? 'Editar Lead' : 'Criar Novo Lead'}</DialogTitle>
             <DialogDescription>
@@ -197,3 +207,5 @@ export default function CRMPage() {
     </Suspense>
   );
 }
+
+    
