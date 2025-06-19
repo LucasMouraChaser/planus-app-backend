@@ -16,7 +16,7 @@ import InvoiceEditor from '@/components/invoice-editor';
 import { statesData } from '@/data/state-data';
 import type { StateInfo, SavingsResult, InvoiceData } from '@/types';
 import { calculateSavings } from '@/lib/discount-calculator';
-import { initialInvoiceData as defaultInitialInvoiceData, INVOICE_FIELDS_CONFIG } from '@/config/invoice-fields';
+import { initialInvoiceData as defaultInitialInvoiceData, ENERGISA_INVOICE_FIELDS_CONFIG } from '@/config/invoice-fields';
 
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -40,9 +40,14 @@ const ALIQUOTA_PIS_PERC = 1.0945 / 100;
 const ALIQUOTA_COFINS_PERC = 4.9955 / 100; 
 const ALIQUOTA_ICMS_PERC = 17.00 / 100;
 
-const formatNumberToCurrencyString = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(value)) return "0,00";
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatNumberToCurrencyString = (value: number | null | undefined, includeSymbol = true): string => {
+  if (value === null || value === undefined || isNaN(value)) return includeSymbol ? "R$ 0,00" : "0,00";
+  return value.toLocaleString('pt-BR', { 
+    style: includeSymbol ? 'currency' : 'decimal', 
+    currency: 'BRL', 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  });
 };
 
 const formatNumberToLocaleString = (value: number | null | undefined, fractionDigits: number = 2): string => {
@@ -55,14 +60,16 @@ const formatNumberToLocaleString = (value: number | null | undefined, fractionDi
 
 const parseLocaleNumberString = (str: string | null | undefined): number => {
   if (!str) return 0;
-  return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  const cleanedString = String(str).replace("R$", "").trim().replace(/\./g, '').replace(',', '.');
+  return parseFloat(cleanedString);
 };
 
 const formatUc = (uc: string | null | undefined): string => {
-  if (!uc || uc.length < 3) return uc || "";
-  const firstDigit = uc.charAt(0);
-  const lastDigit = uc.charAt(uc.length - 1);
-  const middleDigits = uc.substring(1, uc.length - 1);
+  if (!uc || String(uc).length < 3) return uc || "";
+  const ucStr = String(uc);
+  const firstDigit = ucStr.charAt(0);
+  const lastDigit = ucStr.charAt(ucStr.length - 1);
+  const middleDigits = ucStr.substring(1, ucStr.length - 1);
   return `${firstDigit} / ${middleDigits} - ${lastDigit}`;
 };
 
@@ -102,10 +109,9 @@ function CalculatorPageContent() {
 
     if (hasProposalData) {
       setShouldShowInvoiceEditor(true);
-      setShowMap(false); // Hide map if proposal data is present
+      setShowMap(false); 
 
-      // --- Calculate Original Invoice Data ---
-      const newOriginalInvoiceData = { ...defaultInitialInvoiceData };
+      const newOriginalInvoiceData = { ...defaultInitialInvoiceData } as InvoiceData;
       
       params.forEach((value, key) => {
         if (key in newOriginalInvoiceData && key !== 'codigoClienteInstalacao') {
@@ -126,7 +132,7 @@ function CalculatorPageContent() {
       const uf = params.get("clienteUF") || "";
       newOriginalInvoiceData.clienteCidadeUF = (cidade && uf) ? `${cidade}/${uf}` : cidade || defaultInitialInvoiceData.clienteCidadeUF;
       newOriginalInvoiceData.clienteCnpjCpf = params.get("clienteCnpjCpf") || newOriginalInvoiceData.clienteCnpjCpf;
-      newOriginalInvoiceData.codigoClienteInstalacao = formatUc(params.get("codigoClienteInstalacao") || defaultInitialInvoiceData.codigoClienteInstalacao);
+      newOriginalInvoiceData.codigoClienteInstalacao = formatUc(params.get("codigoClienteInstalacao") || newOriginalInvoiceData.codigoClienteInstalacao);
       newOriginalInvoiceData.ligacao = params.get("ligacao") || newOriginalInvoiceData.ligacao;
       newOriginalInvoiceData.classificacao = params.get("classificacao") || newOriginalInvoiceData.classificacao;
 
@@ -143,71 +149,103 @@ function CalculatorPageContent() {
       const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria") || newOriginalInvoiceData.valorProducaoPropria);
       const isencaoIcmsEnergiaGeradaParam = params.get("isencaoIcmsEnergiaGerada") || "nao";
 
-      const valorConsumoPrincipal = consumoKwhInput * TARIFA_ENERGIA;
-      newOriginalInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipal + cipValorInput - valorProdPropriaInput); 
+      const valorConsumoPrincipalOriginal = consumoKwhInput * TARIFA_ENERGIA;
+      newOriginalInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipalOriginal + cipValorInput - valorProdPropriaInput); 
       newOriginalInvoiceData.item1Quantidade = formatNumberToLocaleString(consumoKwhInput, 2);
-      newOriginalInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipal);
+      newOriginalInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipalOriginal);
 
       const tarifaEnergiaSemIcmsCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
       newOriginalInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
       newOriginalInvoiceData.item2Tarifa = isencaoIcmsEnergiaGeradaParam === "sim" ? formatNumberToLocaleString(TARIFA_ENERGIA, 6) : formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
-      newOriginalInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput);
+      newOriginalInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput); // Valor da energia injetada
       newOriginalInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
       
-      const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaSemIcmsCalc; // Base para PIS/COFINS é sobre a energia sem ICMS
-      newOriginalInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofins);
-      newOriginalInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_PIS_PERC);
-      newOriginalInvoiceData.item1CofinsBase = formatNumberToCurrencyString(baseCalculoPisCofins);
-      newOriginalInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_COFINS_PERC);
-      newOriginalInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipal); // ICMS sobre o valor total da energia
-      newOriginalInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipal * ALIQUOTA_ICMS_PERC);
+      const baseCalculoPisCofinsOriginal = consumoKwhInput * tarifaEnergiaSemIcmsCalc; 
+      newOriginalInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofinsOriginal);
+      newOriginalInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofinsOriginal * ALIQUOTA_PIS_PERC);
+      newOriginalInvoiceData.item1CofinsBase = formatNumberToCurrencyString(baseCalculoPisCofinsOriginal);
+      newOriginalInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofinsOriginal * ALIQUOTA_COFINS_PERC);
+      newOriginalInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipalOriginal); 
+      newOriginalInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipalOriginal * ALIQUOTA_ICMS_PERC);
       
-      INVOICE_FIELDS_CONFIG.forEach(field => {
+      ENERGISA_INVOICE_FIELDS_CONFIG.forEach(field => {
         if (!(field.name in newOriginalInvoiceData) && field.initialValue) {
-            newOriginalInvoiceData[field.name] = field.initialValue;
+            newOriginalInvoiceData[field.name as keyof InvoiceData] = field.initialValue;
         }
-         // Ensure fixed display fields have their default values if not calculated
         const fixedDisplayFields: (keyof InvoiceData)[] = ['item1Tarifa', 'item1PisAliq', 'item1CofinsAliq', 'item1IcmsPerc'];
-        if (fixedDisplayFields.includes(field.name)) {
-             newOriginalInvoiceData[field.name] = field.initialValue;
+        if (fixedDisplayFields.includes(field.name as keyof InvoiceData) && field.initialValue) {
+             newOriginalInvoiceData[field.name as keyof InvoiceData] = field.initialValue;
         }
       });
       setOriginalInvoiceData(newOriginalInvoiceData);
 
       // --- Calculate Planus Discounted Invoice Data ---
-      const newPlanusInvoiceData = JSON.parse(JSON.stringify(newOriginalInvoiceData)); // Deep copy
-      newPlanusInvoiceData.headerTitle = "SIMULAÇÃO FATURA COM DESCONTO PLANUS";
+      const newPlanusInvoiceData = JSON.parse(JSON.stringify(newOriginalInvoiceData)) as InvoiceData; 
+      newPlanusInvoiceData.headerTitle = "ENTENDA SUA FATURA PLANUS"; // For Bowe layout
       newPlanusInvoiceData.companyName = "ENERGIA ELÉTRICA FORNECIDA PLANUS COMERCIALIZADORA VAREJISTA LTDA";
-      // Clear Energisa specific address details for Planus version as per target image
+      
       newPlanusInvoiceData.companyAddress = ""; 
       newPlanusInvoiceData.companyCityStateZip = "";
-      // newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // Keep or set Planus CNPJ if available
+      // newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // This might be set if Planus has a different CNPJ for the Bowe display
       newPlanusInvoiceData.companyInscEst = "";
 
 
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
-      const savingsResult = calculateSavings(valorEnergiaOriginalNum);
+      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum); // Use the specific bill amount
       
-      const valorEnergiaComDesconto = valorEnergiaOriginalNum - savingsResult.monthlySaving;
-      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
+      const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
+      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto); // Discounted energy cost
 
       const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC);
-      newPlanusInvoiceData.item1PisBase = formatNumberToCurrencyString(basePisCofinsDescontado);
       newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_PIS_PERC);
-      newPlanusInvoiceData.item1CofinsBase = formatNumberToCurrencyString(basePisCofinsDescontado);
       newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_COFINS_PERC);
       
-      newPlanusInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorEnergiaComDesconto);
       newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC);
 
       newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorEnergiaComDesconto + cipValorInput - valorProdPropriaInput);
+      
+      // Populate fields for Bowe layout
+      newPlanusInvoiceData.boweNomeRazaoSocial = newOriginalInvoiceData.clienteNome;
+      newPlanusInvoiceData.boweCpfCnpj = newOriginalInvoiceData.clienteCnpjCpf;
+      newPlanusInvoiceData.boweEnderecoCompleto = `${newOriginalInvoiceData.clienteEndereco} ${newOriginalInvoiceData.clienteBairro} ${newOriginalInvoiceData.clienteCidadeUF} CEP: ${params.get("clienteCep") || ""}`.trim();
+      newPlanusInvoiceData.boweNumeroInstalacao = newOriginalInvoiceData.codigoClienteInstalacao;
+      newPlanusInvoiceData.boweMesReferencia = newOriginalInvoiceData.mesAnoReferencia.split('/')[0].trim() + "/" + newOriginalInvoiceData.mesAnoReferencia.split('/')[1].trim(); // MAR/2025 format
+      newPlanusInvoiceData.boweTipoLigacao = `${newOriginalInvoiceData.classificacao.split('-')[0]} ${newOriginalInvoiceData.ligacao}`; // e.g. Comercial Trifásico
+      newPlanusInvoiceData.boweDataVencimento = newOriginalInvoiceData.dataVencimento;
+      newPlanusInvoiceData.boweNumeroBoleto = "S/N"; // Placeholder or from proposal if added
+      newPlanusInvoiceData.boweTotalAPagar = newPlanusInvoiceData.valorTotalFatura;
+      newPlanusInvoiceData.boweDataEmissao = format(hoje, 'dd/MM/yyyy');
+
+      newPlanusInvoiceData.boweAntesValor = newOriginalInvoiceData.valorTotalFatura;
+      newPlanusInvoiceData.boweDepoisValor = newPlanusInvoiceData.valorTotalFatura; // This is the discounted total
+      newPlanusInvoiceData.boweEconomiaMensalValor = formatNumberToCurrencyString(currentSavingsResult.monthlySaving);
+      // Placeholder for other Bowe specific items, can be made dynamic if data exists
+      newPlanusInvoiceData.boweEconomiaAcumuladaValor = "R$ 0,00"; 
+      newPlanusInvoiceData.boweReducaoCO2Valor = "0 t";
+      newPlanusInvoiceData.boweArvoresPlantadasValor = "0";
+
+      // "Seus Custos Mensais" for Bowe
+      newPlanusInvoiceData.boweCustosDistribuidoraDesc = "Custos da distribuidora";
+      newPlanusInvoiceData.boweCustosDistribuidoraValor = newOriginalInvoiceData.item3Valor; // CIP
+      newPlanusInvoiceData.boweEnergiaEletricaDesc = "Energia elétrica Planus";
+      newPlanusInvoiceData.boweEnergiaEletricaQtd = newPlanusInvoiceData.item1Quantidade + " kWh";
+      newPlanusInvoiceData.boweEnergiaEletricaTarifa = formatNumberToLocaleString(parseLocaleNumberString(newPlanusInvoiceData.item1Valor) / consumoKwhInput, 6);
+      newPlanusInvoiceData.boweEnergiaEletricaValor = newPlanusInvoiceData.item1Valor;
+      newPlanusInvoiceData.boweRestituicaoPisCofinsDesc = "PIS/COFINS"; // Changed from Restituição
+      newPlanusInvoiceData.boweRestituicaoPisCofinsValor = formatNumberToCurrencyString(parseLocaleNumberString(newPlanusInvoiceData.item1PisValor) + parseLocaleNumberString(newPlanusInvoiceData.item1CofinsValor));
+      newPlanusInvoiceData.boweCreditosDesc = "Créditos / En. Injetada";
+      newPlanusInvoiceData.boweCreditosValor = valorProdPropriaInput > 0 ? `-${formatNumberToCurrencyString(valorProdPropriaInput)}` : "R$ 0,00";
+      newPlanusInvoiceData.boweCustosTotalValor = newPlanusInvoiceData.valorTotalFatura;
+      newPlanusInvoiceData.boweObservacao = currentSavingsResult.discountDescription;
+
+
       setPlanusInvoiceData(newPlanusInvoiceData);
 
     } else {
       setShouldShowInvoiceEditor(false);
       setOriginalInvoiceData(null);
       setPlanusInvoiceData(null);
-      // Process calculator states if no proposal data
+      
       const stateCodeFromUrl = searchParams.get('state');
       const kwhFromUrl = searchParams.get('kwh');
       let initialStateCode = DEFAULT_UF;
@@ -241,12 +279,11 @@ function CalculatorPageContent() {
   }, [searchParams, isAuthenticated, toast]); 
 
   useEffect(() => {
-    if (!isAuthenticated || shouldShowInvoiceEditor) return; // Don't update URL if editor is shown from proposal
+    if (!isAuthenticated || shouldShowInvoiceEditor) return; 
     
     const currentParams = new URLSearchParams(searchParams.toString());
     const newParams = new URLSearchParams();
 
-    // Preserve non-calculator params if any (though unlikely if editor isn't shown)
     currentParams.forEach((value, key) => {
         if (key !== 'state' && key !== 'kwh') {
             newParams.set(key, value);
@@ -257,8 +294,6 @@ function CalculatorPageContent() {
       newParams.set('state', selectedState.code);
       newParams.set('kwh', currentKwh.toString());
     }
-    // No else needed to delete 'state' and 'kwh' if showMap is true,
-    // as we are constructing newParams from scratch for these.
     
     if (newParams.toString() !== currentParams.toString().split('&').filter(p=>!p.startsWith('state=') && !p.startsWith('kwh=')).join('&')) {
         router.replace(`/?${newParams.toString()}`, { scroll: false });
@@ -283,7 +318,6 @@ function CalculatorPageContent() {
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
       setShowMap(false); 
-      // URL update handled by useEffect
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
     }
@@ -293,7 +327,6 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
-    // URL update handled by useEffect
   };
 
   const handleStateHover = (stateCode: string | null) => {
@@ -379,7 +412,7 @@ function CalculatorPageContent() {
                 <Card className="w-full shadow-xl bg-card">
                     <CardHeader>
                     <CardTitle className="text-xl font-bold text-primary flex items-center">
-                        <FileText className="mr-2 h-5 w-5" /> {/* Changed from Edit3 */}
+                        <FileText className="mr-2 h-5 w-5" /> 
                         Simulador de Consumo
                     </CardTitle>
                     <CardDescription>
@@ -450,7 +483,7 @@ function CalculatorPageContent() {
           <Card className="shadow-2xl overflow-hidden bg-card mb-8">
             <CardHeader className="bg-primary/10 p-6">
               <CardTitle className="text-2xl font-bold text-primary text-center">
-                Editor da Fatura (Simulação Original)
+                Editor da Fatura (Simulação Original Energisa)
               </CardTitle>
               <CardDescription className="text-center text-muted-foreground mt-1">
                 Os dados do formulário de proposta são carregados aqui. Você pode editar os campos diretamente.
@@ -465,10 +498,10 @@ function CalculatorPageContent() {
             <Card className="shadow-2xl overflow-hidden bg-card mt-12">
                 <CardHeader className="bg-primary/10 p-6">
                 <CardTitle className="text-2xl font-bold text-primary text-center">
-                    Simulação da Fatura com Desconto Planus
+                    Simulação da Fatura com Desconto Planus (Layout "Bowe")
                 </CardTitle>
                 <CardDescription className="text-center text-muted-foreground mt-1">
-                    Veja como ficaria sua fatura com os descontos aplicados.
+                    Veja como ficaria sua fatura com os descontos aplicados, em um layout inspirado na fatura "Bowe".
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 md:p-2 bg-background">
@@ -495,4 +528,3 @@ export default function HomePage() {
     </Suspense>
   );
 }
-
