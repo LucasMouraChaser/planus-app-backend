@@ -5,6 +5,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { format, addDays, subDays, getDaysInMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 import { BrazilMapGraphic } from '@/components/BrazilMapGraphic';
 import { StateInfoCard } from '@/components/StateInfoCard';
@@ -12,8 +14,10 @@ import { SavingsDisplay } from '@/components/SavingsDisplay';
 import InvoiceEditor from '@/components/invoice-editor';
 
 import { statesData } from '@/data/state-data';
-import type { StateInfo, SavingsResult } from '@/types';
+import type { StateInfo, SavingsResult, InvoiceData } from '@/types';
 import { calculateSavings } from '@/lib/discount-calculator';
+import { initialInvoiceData as defaultInitialInvoiceData, INVOICE_FIELDS_CONFIG } from '@/config/invoice-fields';
+
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,14 +25,47 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3, MapPin, ChevronLeft, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
+import { HelpCircle, MapPin, ChevronLeft, FileText } from 'lucide-react';
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
 const MAX_KWH_SLIDER = 50000; 
 const SLIDER_STEP = 50;
 const DEFAULT_KWH = 1500;
-const DEFAULT_UF = 'MT'; // Default UF
+const DEFAULT_UF = 'MT';
+
+// Constantes para cálculos da fatura (duplicadas de invoice-editor para uso aqui)
+const TARIFA_ENERGIA = 1.093110;
+const ALIQUOTA_PIS_PERC = 1.0945 / 100; 
+const ALIQUOTA_COFINS_PERC = 4.9955 / 100; 
+const ALIQUOTA_ICMS_PERC = 17.00 / 100;
+
+const formatNumberToCurrencyString = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) return "0,00";
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const formatNumberToLocaleString = (value: number | null | undefined, fractionDigits: number = 2): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    if (fractionDigits === 0) return "0";
+    return "0," + "0".repeat(fractionDigits);
+  }
+  return value.toLocaleString('pt-BR', { minimumFractionDigits: fractionDigits, maximumFractionDigits: fractionDigits });
+};
+
+const parseLocaleNumberString = (str: string | null | undefined): number => {
+  if (!str) return 0;
+  return parseFloat(str.replace(/\./g, '').replace(',', '.'));
+};
+
+const formatUc = (uc: string | null | undefined): string => {
+  if (!uc || uc.length < 3) return uc || "";
+  const firstDigit = uc.charAt(0);
+  const lastDigit = uc.charAt(uc.length - 1);
+  const middleDigits = uc.substring(1, uc.length - 1);
+  return `${firstDigit} / ${middleDigits} - ${lastDigit}`;
+};
+
 
 function CalculatorPageContent() {
   const router = useRouter();
@@ -41,7 +78,10 @@ function CalculatorPageContent() {
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
   const [currentKwh, setCurrentKwh] = useState<number>(DEFAULT_KWH);
   const [savings, setSavings] = useState<SavingsResult | null>(null);
+  
   const [shouldShowInvoiceEditor, setShouldShowInvoiceEditor] = useState(false);
+  const [originalInvoiceData, setOriginalInvoiceData] = useState<InvoiceData | null>(null);
+  const [planusInvoiceData, setPlanusInvoiceData] = useState<InvoiceData | null>(null);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -57,75 +97,174 @@ function CalculatorPageContent() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const stateCodeFromUrl = searchParams.get('state');
-    const kwhFromUrl = searchParams.get('kwh');
-    const clienteNomeFromUrl = searchParams.get('clienteNome'); // Key indicator for proposal data
+    const params = new URLSearchParams(searchParams.toString());
+    const hasProposalData = !!params.get("clienteNome");
 
-    if (clienteNomeFromUrl) {
+    if (hasProposalData) {
       setShouldShowInvoiceEditor(true);
+      setShowMap(false); // Hide map if proposal data is present
+
+      // --- Calculate Original Invoice Data ---
+      const newOriginalInvoiceData = { ...defaultInitialInvoiceData };
+      
+      params.forEach((value, key) => {
+        if (key in newOriginalInvoiceData && key !== 'codigoClienteInstalacao') {
+          newOriginalInvoiceData[key as keyof InvoiceData] = value;
+        }
+      });
+
+      newOriginalInvoiceData.clienteNome = params.get("clienteNome") || newOriginalInvoiceData.clienteNome;
+      const rua = params.get("clienteRua") || "";
+      const numero = params.get("clienteNumero") || "";
+      const complemento = params.get("clienteComplemento") || "";
+      let enderecoCompleto = rua;
+      if (numero) enderecoCompleto += `, ${numero}`;
+      if (complemento) enderecoCompleto += ` - ${complemento}`;
+      newOriginalInvoiceData.clienteEndereco = enderecoCompleto || defaultInitialInvoiceData.clienteEndereco;
+      newOriginalInvoiceData.clienteBairro = params.get("clienteBairro") || newOriginalInvoiceData.clienteBairro;
+      const cidade = params.get("clienteCidade") || "";
+      const uf = params.get("clienteUF") || "";
+      newOriginalInvoiceData.clienteCidadeUF = (cidade && uf) ? `${cidade}/${uf}` : cidade || defaultInitialInvoiceData.clienteCidadeUF;
+      newOriginalInvoiceData.clienteCnpjCpf = params.get("clienteCnpjCpf") || newOriginalInvoiceData.clienteCnpjCpf;
+      newOriginalInvoiceData.codigoClienteInstalacao = formatUc(params.get("codigoClienteInstalacao") || defaultInitialInvoiceData.codigoClienteInstalacao);
+      newOriginalInvoiceData.ligacao = params.get("ligacao") || newOriginalInvoiceData.ligacao;
+      newOriginalInvoiceData.classificacao = params.get("classificacao") || newOriginalInvoiceData.classificacao;
+
+      const hoje = new Date();
+      newOriginalInvoiceData.mesAnoReferencia = format(hoje, 'MMMM / yyyy', { locale: ptBR }).toUpperCase();
+      newOriginalInvoiceData.dataVencimento = format(addDays(hoje, 10), 'dd/MM/yyyy');
+      newOriginalInvoiceData.leituraAnteriorData = format(subDays(hoje, 30), 'dd/MM/yyyy');
+      newOriginalInvoiceData.leituraAtualData = format(hoje, 'dd/MM/yyyy');
+      newOriginalInvoiceData.numDiasFaturamento = getDaysInMonth(hoje).toString();
+      newOriginalInvoiceData.proximaLeituraData = format(addDays(hoje, 30), 'dd/MM/yyyy');
+      
+      const consumoKwhInput = parseLocaleNumberString(params.get("item1Quantidade") || newOriginalInvoiceData.item1Quantidade);
+      const cipValorInput = parseLocaleNumberString(params.get("item3Valor") || newOriginalInvoiceData.item3Valor);
+      const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria") || newOriginalInvoiceData.valorProducaoPropria);
+      const isencaoIcmsEnergiaGeradaParam = params.get("isencaoIcmsEnergiaGerada") || "nao";
+
+      const valorConsumoPrincipal = consumoKwhInput * TARIFA_ENERGIA;
+      newOriginalInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorConsumoPrincipal + cipValorInput - valorProdPropriaInput); 
+      newOriginalInvoiceData.item1Quantidade = formatNumberToLocaleString(consumoKwhInput, 2);
+      newOriginalInvoiceData.item1Valor = formatNumberToCurrencyString(valorConsumoPrincipal);
+
+      const tarifaEnergiaSemIcmsCalc = TARIFA_ENERGIA * (1 - ALIQUOTA_ICMS_PERC);
+      newOriginalInvoiceData.item1TarifaEnergiaInjetadaREF = formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
+      newOriginalInvoiceData.item2Tarifa = isencaoIcmsEnergiaGeradaParam === "sim" ? formatNumberToLocaleString(TARIFA_ENERGIA, 6) : formatNumberToLocaleString(tarifaEnergiaSemIcmsCalc, 6);
+      newOriginalInvoiceData.item2Valor = formatNumberToCurrencyString(valorProdPropriaInput);
+      newOriginalInvoiceData.item3Valor = formatNumberToCurrencyString(cipValorInput);
+      
+      const baseCalculoPisCofins = consumoKwhInput * tarifaEnergiaSemIcmsCalc; // Base para PIS/COFINS é sobre a energia sem ICMS
+      newOriginalInvoiceData.item1PisBase = formatNumberToCurrencyString(baseCalculoPisCofins);
+      newOriginalInvoiceData.item1PisValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_PIS_PERC);
+      newOriginalInvoiceData.item1CofinsBase = formatNumberToCurrencyString(baseCalculoPisCofins);
+      newOriginalInvoiceData.item1CofinsValor = formatNumberToCurrencyString(baseCalculoPisCofins * ALIQUOTA_COFINS_PERC);
+      newOriginalInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorConsumoPrincipal); // ICMS sobre o valor total da energia
+      newOriginalInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorConsumoPrincipal * ALIQUOTA_ICMS_PERC);
+      
+      INVOICE_FIELDS_CONFIG.forEach(field => {
+        if (!(field.name in newOriginalInvoiceData) && field.initialValue) {
+            newOriginalInvoiceData[field.name] = field.initialValue;
+        }
+         // Ensure fixed display fields have their default values if not calculated
+        const fixedDisplayFields: (keyof InvoiceData)[] = ['item1Tarifa', 'item1PisAliq', 'item1CofinsAliq', 'item1IcmsPerc'];
+        if (fixedDisplayFields.includes(field.name)) {
+             newOriginalInvoiceData[field.name] = field.initialValue;
+        }
+      });
+      setOriginalInvoiceData(newOriginalInvoiceData);
+
+      // --- Calculate Planus Discounted Invoice Data ---
+      const newPlanusInvoiceData = JSON.parse(JSON.stringify(newOriginalInvoiceData)); // Deep copy
+      newPlanusInvoiceData.headerTitle = "SIMULAÇÃO FATURA COM DESCONTO PLANUS";
+      newPlanusInvoiceData.companyName = "ENERGIA ELÉTRICA FORNECIDA PLANUS COMERCIALIZADORA VAREJISTA LTDA";
+      // Clear Energisa specific address details for Planus version as per target image
+      newPlanusInvoiceData.companyAddress = ""; 
+      newPlanusInvoiceData.companyCityStateZip = "";
+      // newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // Keep or set Planus CNPJ if available
+      newPlanusInvoiceData.companyInscEst = "";
+
+
+      const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
+      const savingsResult = calculateSavings(valorEnergiaOriginalNum);
+      
+      const valorEnergiaComDesconto = valorEnergiaOriginalNum - savingsResult.monthlySaving;
+      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
+
+      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC);
+      newPlanusInvoiceData.item1PisBase = formatNumberToCurrencyString(basePisCofinsDescontado);
+      newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_PIS_PERC);
+      newPlanusInvoiceData.item1CofinsBase = formatNumberToCurrencyString(basePisCofinsDescontado);
+      newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_COFINS_PERC);
+      
+      newPlanusInvoiceData.item1IcmsBase = formatNumberToCurrencyString(valorEnergiaComDesconto);
+      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC);
+
+      newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorEnergiaComDesconto + cipValorInput - valorProdPropriaInput);
+      setPlanusInvoiceData(newPlanusInvoiceData);
+
     } else {
       setShouldShowInvoiceEditor(false);
-    }
+      setOriginalInvoiceData(null);
+      setPlanusInvoiceData(null);
+      // Process calculator states if no proposal data
+      const stateCodeFromUrl = searchParams.get('state');
+      const kwhFromUrl = searchParams.get('kwh');
+      let initialStateCode = DEFAULT_UF;
+      if (stateCodeFromUrl && statesData.find(s => s.code === stateCodeFromUrl && s.available)) {
+        initialStateCode = stateCodeFromUrl;
+        setShowMap(false); 
+      } else {
+        setShowMap(true); 
+      }
+      const initialKwh = kwhFromUrl ? parseInt(kwhFromUrl, 10) : DEFAULT_KWH;
+      setCurrentKwh((!isNaN(initialKwh) && initialKwh >= MIN_KWH_SLIDER && initialKwh <= MAX_KWH_SLIDER) ? initialKwh : DEFAULT_KWH);
 
-    let initialStateCode = DEFAULT_UF;
-    if (stateCodeFromUrl && statesData.find(s => s.code === stateCodeFromUrl && s.available)) {
-      initialStateCode = stateCodeFromUrl;
-      setShowMap(false); 
-    } else {
-      // If no state in URL, or invalid/unavailable state, ensure map is shown.
-      // This handles the initial load or when URL state param is removed/invalid.
-      setShowMap(true); 
-    }
-    
-    const initialKwh = kwhFromUrl ? parseInt(kwhFromUrl, 10) : DEFAULT_KWH;
-    if (!isNaN(initialKwh) && initialKwh >= MIN_KWH_SLIDER && initialKwh <= MAX_KWH_SLIDER) {
-      setCurrentKwh(initialKwh);
-    } else {
-      setCurrentKwh(DEFAULT_KWH);
-    }
-
-    if (stateCodeFromUrl) {
+      if (stateCodeFromUrl) {
         const stateDetails = statesData.find(s => s.code === initialStateCode);
         if (stateDetails && stateDetails.available) {
             setSelectedState(stateDetails);
-            // setShowMap(false); // Already handled above
         } else {
-            // If state from URL is not available or invalid, fallback to default and show map.
             const defaultStateDetails = statesData.find(s => s.code === DEFAULT_UF && s.available);
             setSelectedState(defaultStateDetails || null);
             if (!defaultStateDetails && stateCodeFromUrl) { 
                 toast({ title: "Estado Indisponível", description: `O estado ${stateCodeFromUrl} não está disponível para simulação.`, variant: "destructive" });
             }
-            setShowMap(true); // Explicitly show map if state from URL is problematic
+            setShowMap(true);
         }
-    } else {
-      // No state in URL, ensure we are on map view and no state is selected for calculator details.
-      setShowMap(true);
-      setSelectedState(null); // Clear selected state if no state in URL
+      } else {
+        setShowMap(true);
+        setSelectedState(null);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, toast, isAuthenticated]); 
+  }, [searchParams, isAuthenticated, toast]); 
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || shouldShowInvoiceEditor) return; // Don't update URL if editor is shown from proposal
     
-    const params = new URLSearchParams(searchParams.toString());
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const newParams = new URLSearchParams();
+
+    // Preserve non-calculator params if any (though unlikely if editor isn't shown)
+    currentParams.forEach((value, key) => {
+        if (key !== 'state' && key !== 'kwh') {
+            newParams.set(key, value);
+        }
+    });
+
     if (selectedState && !showMap) { 
-      params.set('state', selectedState.code);
-      params.set('kwh', currentKwh.toString());
-      // Preserve other params (like proposal data) when updating calculator state
-      router.replace(`/?${params.toString()}`, { scroll: false });
-    } else if (showMap) {
-      params.delete('state');
-      // params.delete('kwh'); // Keep kwh if user is just returning to map to select another state,
-                              // but currentKwh state will be used. The URL might not reflect this intermediate kwh.
-                              // Or clear it if we want the URL to be clean when map is shown.
-                              // Let's clear it for consistency if the calculator details are hidden.
-      params.delete('kwh'); 
-      router.replace(`/?${params.toString()}`, { scroll: false });
+      newParams.set('state', selectedState.code);
+      newParams.set('kwh', currentKwh.toString());
+    }
+    // No else needed to delete 'state' and 'kwh' if showMap is true,
+    // as we are constructing newParams from scratch for these.
+    
+    if (newParams.toString() !== currentParams.toString().split('&').filter(p=>!p.startsWith('state=') && !p.startsWith('kwh=')).join('&')) {
+        router.replace(`/?${newParams.toString()}`, { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedState, currentKwh, showMap, isAuthenticated]);
+  }, [selectedState, currentKwh, showMap, isAuthenticated, shouldShowInvoiceEditor]);
 
 
   useEffect(() => {
@@ -144,14 +283,9 @@ function CalculatorPageContent() {
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
       setShowMap(false); 
-      // Update URL with selected state and current kWh
-      const params = new URLSearchParams(searchParams.toString()); // Preserve existing params
-      params.set('state', stateCode);
-      params.set('kwh', currentKwh.toString()); 
-      router.push(`/?${params.toString()}`, { scroll: false });
+      // URL update handled by useEffect
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
-      // Don't change selectedState or showMap here, let the URL params drive this if user clicks a bad link
     }
   };
 
@@ -159,8 +293,7 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
-    // URL will be updated by the useEffect watching [selectedState, currentKwh, showMap]
-    // Proposal params in URL, if any, will remain, so editor might stay visible.
+    // URL update handled by useEffect
   };
 
   const handleStateHover = (stateCode: string | null) => {
@@ -190,140 +323,159 @@ function CalculatorPageContent() {
     );
   }
 
-
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-0">
-      <header className="mb-8 text-center py-4">
-        <h1 className="text-3xl md:text-4xl font-headline text-primary font-bold tracking-tight">
-          Calculadora de Economia de Energia
-        </h1>
-        {!showMap && selectedState && (
-          <Button variant="outline" onClick={handleReturnToMap} className="mt-4">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Selecionar Outro Estado
-          </Button>
-        )}
-        {showMap && (
-            <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl mx-auto">
-                Clique em um estado no mapa para iniciar a simulação.
-            </p>
-        )}
-         {!showMap && selectedState && (
-             <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl mx-auto">
-                Ajuste o consumo para o estado de <strong className="text-primary">{selectedState.name}</strong> e veja o quanto você pode economizar.
-                Depois, clique em "Iniciar Nova Proposta" para personalizar sua fatura.
-            </p>
-         )}
-      </header>
+      {!shouldShowInvoiceEditor && (
+        <>
+          <header className="mb-8 text-center py-4">
+            <h1 className="text-3xl md:text-4xl font-headline text-primary font-bold tracking-tight">
+              Calculadora de Economia de Energia
+            </h1>
+            {!showMap && selectedState && (
+              <Button variant="outline" onClick={handleReturnToMap} className="mt-4">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Selecionar Outro Estado
+              </Button>
+            )}
+            {showMap && (
+                <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl mx-auto">
+                    Clique em um estado no mapa para iniciar a simulação.
+                </p>
+            )}
+            {!showMap && selectedState && (
+                <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl mx-auto">
+                    Ajuste o consumo para o estado de <strong className="text-primary">{selectedState.name}</strong> e veja o quanto você pode economizar.
+                    Depois, clique em "Iniciar Nova Proposta" para personalizar sua fatura.
+                </p>
+            )}
+          </header>
 
-      {showMap && (
-        <div className="w-full max-w-6xl mx-auto flex justify-center mb-12 px-4">
-          <Card className="w-full md:w-2/3 lg:w-1/2 shadow-xl bg-card">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-primary flex items-center">
-                <MapPin className="mr-2 h-5 w-5" />
-                Selecione seu Estado no Mapa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <BrazilMapGraphic
-                selectedStateCode={selectedState?.code || null}
-                hoveredStateCode={hoveredStateCode}
-                onStateClick={handleStateClick}
-                onStateHover={handleStateHover}
-                className="max-w-md"
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {!showMap && selectedState && (
-        <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 px-4">
-          <div className="flex flex-col items-center space-y-6">
-            <StateInfoCard state={selectedState} />
-             <Card className="w-full shadow-xl bg-card">
+          {showMap && (
+            <div className="w-full max-w-6xl mx-auto flex justify-center mb-12 px-4">
+              <Card className="w-full md:w-2/3 lg:w-1/2 shadow-xl bg-card">
                 <CardHeader>
-                <CardTitle className="text-xl font-bold text-primary flex items-center">
-                    <Edit3 className="mr-2 h-5 w-5" />
-                    Simulador de Consumo
-                </CardTitle>
-                <CardDescription>
-                    Ajuste seu consumo mensal em kWh para ver a estimativa para {selectedState.name}.
-                </CardDescription>
+                  <CardTitle className="text-xl font-bold text-primary flex items-center">
+                    <MapPin className="mr-2 h-5 w-5" />
+                    Selecione seu Estado no Mapa
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                <div>
-                    <Label htmlFor="kwhInput" className="text-sm font-medium">Consumo Mensal (kWh)</Label>
-                    <Input
-                    id="kwhInput"
-                    type="number"
-                    value={currentKwh}
-                    onChange={handleKwhInputChange}
-                    min={MIN_KWH_SLIDER}
-                    max={MAX_KWH_SLIDER}
-                    step={SLIDER_STEP}
-                    className="mt-1 text-lg"
-                    />
-                </div>
-                <Slider
-                    value={[currentKwh]}
-                    onValueChange={handleSliderChange}
-                    min={MIN_KWH_SLIDER}
-                    max={MAX_KWH_SLIDER}
-                    step={SLIDER_STEP}
-                    aria-label="Slider de Consumo kWh"
-                />
-                <div className="p-3 bg-secondary rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Sua conta atual estimada (sem desconto):</p>
-                    <p className="text-2xl font-semibold text-primary">
-                    {currentBillWithoutDiscount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </p>
-                </div>
+                <CardContent className="flex justify-center">
+                  <BrazilMapGraphic
+                    selectedStateCode={selectedState?.code || null}
+                    hoveredStateCode={hoveredStateCode}
+                    onStateClick={handleStateClick}
+                    onStateHover={handleStateHover}
+                    className="max-w-md"
+                  />
                 </CardContent>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          )}
 
-          <div className="flex flex-col space-y-6">
-            <SavingsDisplay savings={savings} />
-            <Card className="w-full shadow-xl mt-4 bg-card">
-                <CardHeader>
+          {!showMap && selectedState && (
+            <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 px-4">
+              <div className="flex flex-col items-center space-y-6">
+                <StateInfoCard state={selectedState} />
+                <Card className="w-full shadow-xl bg-card">
+                    <CardHeader>
                     <CardTitle className="text-xl font-bold text-primary flex items-center">
-                        <HelpCircle className="mr-2 h-5 w-5" />
-                        Próximos Passos
+                        <FileText className="mr-2 h-5 w-5" /> {/* Changed from Edit3 */}
+                        Simulador de Consumo
                     </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                        Gostou da simulação? Clique abaixo para preencher mais detalhes e visualizar uma simulação completa da sua fatura.
-                    </p>
-                    <Link href="/proposal-generator" passHref>
-                        <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
-                            <FileText className="mr-2 h-5 w-5" />
-                            INICIAR NOVA PROPOSTA
-                        </Button>
-                    </Link>
-                </CardContent>
-            </Card>
-          </div>
-        </div>
+                    <CardDescription>
+                        Ajuste seu consumo mensal em kWh para ver a estimativa para {selectedState.name}.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                    <div>
+                        <Label htmlFor="kwhInput" className="text-sm font-medium">Consumo Mensal (kWh)</Label>
+                        <Input
+                        id="kwhInput"
+                        type="number"
+                        value={currentKwh}
+                        onChange={handleKwhInputChange}
+                        min={MIN_KWH_SLIDER}
+                        max={MAX_KWH_SLIDER}
+                        step={SLIDER_STEP}
+                        className="mt-1 text-lg"
+                        />
+                    </div>
+                    <Slider
+                        value={[currentKwh]}
+                        onValueChange={handleSliderChange}
+                        min={MIN_KWH_SLIDER}
+                        max={MAX_KWH_SLIDER}
+                        step={SLIDER_STEP}
+                        aria-label="Slider de Consumo kWh"
+                    />
+                    <div className="p-3 bg-secondary rounded-md text-center">
+                        <p className="text-sm text-muted-foreground">Sua conta atual estimada (sem desconto):</p>
+                        <p className="text-2xl font-semibold text-primary">
+                        {currentBillWithoutDiscount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </p>
+                    </div>
+                    </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex flex-col space-y-6">
+                <SavingsDisplay savings={savings} />
+                <Card className="w-full shadow-xl mt-4 bg-card">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-bold text-primary flex items-center">
+                            <HelpCircle className="mr-2 h-5 w-5" />
+                            Próximos Passos
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mb-4">
+                            Gostou da simulação? Clique abaixo para preencher mais detalhes e visualizar uma simulação completa da sua fatura.
+                        </p>
+                        <Link href="/proposal-generator" passHref>
+                            <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
+                                <FileText className="mr-2 h-5 w-5" />
+                                INICIAR NOVA PROPOSTA
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </>
       )}
       
-      {shouldShowInvoiceEditor && (
+      {shouldShowInvoiceEditor && originalInvoiceData && (
         <div className="w-full max-w-4xl mx-auto mt-12 px-4">
-          <Card className="shadow-2xl overflow-hidden bg-card">
+          <Card className="shadow-2xl overflow-hidden bg-card mb-8">
             <CardHeader className="bg-primary/10 p-6">
               <CardTitle className="text-2xl font-bold text-primary text-center">
-                Editor da Fatura (Simulação)
+                Editor da Fatura (Simulação Original)
               </CardTitle>
               <CardDescription className="text-center text-muted-foreground mt-1">
-                Os dados da simulação (ou do formulário de proposta) são carregados aqui. Você pode editar os campos diretamente.
+                Os dados do formulário de proposta são carregados aqui. Você pode editar os campos diretamente.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 md:p-2 bg-background">
-              <InvoiceEditor />
+              <InvoiceEditor invoiceData={originalInvoiceData} onInvoiceDataChange={setOriginalInvoiceData} isEditable={true} />
             </CardContent>
           </Card>
+
+          {planusInvoiceData && (
+            <Card className="shadow-2xl overflow-hidden bg-card mt-12">
+                <CardHeader className="bg-primary/10 p-6">
+                <CardTitle className="text-2xl font-bold text-primary text-center">
+                    Simulação da Fatura com Desconto Planus
+                </CardTitle>
+                <CardDescription className="text-center text-muted-foreground mt-1">
+                    Veja como ficaria sua fatura com os descontos aplicados.
+                </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 md:p-2 bg-background">
+                <InvoiceEditor invoiceData={planusInvoiceData} isEditable={false} /> 
+                </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>
@@ -343,3 +495,4 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
