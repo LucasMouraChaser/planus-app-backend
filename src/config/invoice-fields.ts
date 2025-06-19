@@ -67,10 +67,10 @@ export const ENERGISA_INVOICE_FIELDS_CONFIG: FieldConfig[] = [
 
   { name: 'item2Desc', x: 55, y: 504, width: 132, height: 22, initialValue: "Energia Atv Injetada", style: { fontSize: '8px', color: '#000' } },
   { name: 'item2Tarifa', x: 276, y: 504, width: 70, height: 22, initialValue: "0,847430", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
-  { name: 'item2Valor', x: 357, y: 504, width: 75, height: 16, initialValue: "146,60", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item2Valor', x: 330, y: 504, width: 75, height: 20, initialValue: "146,60", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
         
   { name: 'item3Desc', x: 55, y: 537, width: 132, height: 22, initialValue: "Contrib de Ilum Pub", style: { fontSize: '8px', background: 'white', color: '#000' } },
-  { name: 'item3Valor', x: 357, y: 537, width: 75, height: 16, initialValue: "13,75", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
+  { name: 'item3Valor', x: 330, y: 537, width: 75, height: 20, initialValue: "13,75", style: { fontSize: '8px', color: '#000' }, className: "text-right" },
 ];
 
 
@@ -98,6 +98,7 @@ export const initialInvoiceData: InvoiceData = {
     
 
     
+
 
 
 
