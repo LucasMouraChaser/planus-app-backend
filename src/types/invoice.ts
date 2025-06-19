@@ -49,8 +49,6 @@ export interface InvoiceData {
   item2Valor: string; 
   item3Desc: string; 
   item3Valor: string;
-  totalPisValor: string;
-  // totalIcmsValor: string; // Removed as per user request to eliminate overlap
   [key: string]: string; 
 }
 
