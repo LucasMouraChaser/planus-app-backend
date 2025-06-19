@@ -157,7 +157,7 @@ export default function RootLayout({
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="#">
+                <Link href="/plano-carreira">
                   <SidebarMenuButton tooltip="Planejamento de Carreira" isActive={currentPathname === '/plano-carreira'}>
                     <Rocket />
                     Plano de Carreira
