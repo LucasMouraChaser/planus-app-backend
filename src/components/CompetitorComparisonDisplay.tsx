@@ -153,7 +153,7 @@ interface CompetitorComparisonDisplayProps {
 
 const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ currentBillAmount, sentEnergyAnnualSaving }) => {
   if (currentBillAmount <= 0 || sentEnergyAnnualSaving === undefined) {
-    return null; // Or some placeholder if no valid bill amount or SENT savings
+    return null; // Or some placeholder if no valid bill amount or Planus savings
   }
 
   return (
@@ -186,18 +186,18 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
               effectiveDiscountRate = competitor.exampleEffectiveRate * 100;
             }
 
-            const additionalSavingsWithSent = sentEnergyAnnualSaving - annualSaving;
+            const additionalSavingsWithPlanus = sentEnergyAnnualSaving - annualSaving;
             let comparisonMessage = "";
-            let comparisonColor = "text-muted-foreground"; // Default for similar savings on dark glass
+            let comparisonColor = "text-muted-foreground"; 
 
-            if (additionalSavingsWithSent > 1) { // SENT saves significantly more
-              comparisonMessage = `Com a SENT Energy, você economiza ${formatCurrency(additionalSavingsWithSent)} a mais anualmente!`;
-              comparisonColor = "text-green-400"; // Brighter green for dark background
-            } else if (additionalSavingsWithSent < -1) { // Competitor saves significantly more
-              comparisonMessage = `Com a ${competitor.name}, você economizaria ${formatCurrency(Math.abs(additionalSavingsWithSent))} a mais anualmente.`;
-              comparisonColor = "text-red-400"; // Brighter red for dark background
-            } else { // Similar savings
-              comparisonMessage = "A economia anual é virtualmente a mesma em comparação com a SENT Energy.";
+            if (additionalSavingsWithPlanus > 1) { 
+              comparisonMessage = `Com a Planus Energia, você economiza ${formatCurrency(additionalSavingsWithPlanus)} a mais anualmente!`;
+              comparisonColor = "text-green-400"; 
+            } else if (additionalSavingsWithPlanus < -1) { 
+              comparisonMessage = `Com a ${competitor.name}, você economizaria ${formatCurrency(Math.abs(additionalSavingsWithPlanus))} a mais anualmente.`;
+              comparisonColor = "text-red-400"; 
+            } else { 
+              comparisonMessage = "A economia anual é virtualmente a mesma em comparação com a Planus Energia.";
             }
             
             const infoText = competitor.getInfoText(currentBillAmount, effectiveDiscountRate) + (competitor.additionalNote || "");
@@ -230,7 +230,7 @@ const CompetitorComparisonDisplay: FC<CompetitorComparisonDisplayProps> = ({ cur
                   <div className="p-3 bg-neutral-800/70 backdrop-blur-md border border-neutral-700 rounded-lg">
                     <h4 className="flex items-center font-semibold text-sm text-primary mb-1">
                       <Sparkles className="w-4 h-4 mr-1.5 text-primary" />
-                      vs. SENT Energy
+                      vs. Planus Energia
                     </h4>
                     <p className={`text-xs text-center ${comparisonColor}`}>
                       {comparisonMessage}
