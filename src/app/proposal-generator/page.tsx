@@ -34,7 +34,7 @@ const formSchema = z.object({
   clienteCnpjCpf: z.string().optional(),
   codigoClienteInstalacao: z.string().optional().describe("Unidade Consumidora (UC)"),
   item1Quantidade: z.string().min(1, "Consumo KWh é obrigatório.").refine(val => !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "Consumo KWh deve ser um número válido." }),
-  ligacao: z.enum(['MONOFASICO', 'BIFASICO', 'TRIFASICO', '']).optional().describe("Tipo de Fornecimento"),
+  ligacao: z.enum(['MONOFASICO', 'BIFASICO', 'TRIFASICO', 'NAO_INFORMADO', '']).optional().describe("Tipo de Fornecimento"),
   classificacao: z.string().optional().describe("Classe de Consumo"),
   
   clienteCep: z.string().optional().refine(val => val === "" || /^\d{5}-?\d{3}$/.test(val) || /^\d{8}$/.test(val), { message: "CEP inválido. Use XXXXX-XXX ou XXXXXXXX." }),
@@ -329,7 +329,7 @@ export default function ProposalGeneratorPage() {
                         <SelectItem value="MONOFASICO">Monofásico</SelectItem>
                         <SelectItem value="BIFASICO">Bifásico</SelectItem>
                         <SelectItem value="TRIFASICO">Trifásico</SelectItem>
-                        <SelectItem value="">Não especificado</SelectItem>
+                        <SelectItem value="NAO_INFORMADO">Não especificado</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
