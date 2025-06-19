@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3, FileText, MapPin, ChevronLeft, TrendingUp, AlertTriangle } from 'lucide-react';
+import { HelpCircle, Edit3, MapPin, ChevronLeft, FileText, TrendingUp, AlertTriangle } from 'lucide-react';
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
@@ -41,6 +41,7 @@ function CalculatorPageContent() {
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
   const [currentKwh, setCurrentKwh] = useState<number>(DEFAULT_KWH);
   const [savings, setSavings] = useState<SavingsResult | null>(null);
+  const [shouldShowInvoiceEditor, setShouldShowInvoiceEditor] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -58,12 +59,21 @@ function CalculatorPageContent() {
 
     const stateCodeFromUrl = searchParams.get('state');
     const kwhFromUrl = searchParams.get('kwh');
+    const clienteNomeFromUrl = searchParams.get('clienteNome'); // Key indicator for proposal data
+
+    if (clienteNomeFromUrl) {
+      setShouldShowInvoiceEditor(true);
+    } else {
+      setShouldShowInvoiceEditor(false);
+    }
 
     let initialStateCode = DEFAULT_UF;
     if (stateCodeFromUrl && statesData.find(s => s.code === stateCodeFromUrl && s.available)) {
       initialStateCode = stateCodeFromUrl;
       setShowMap(false); 
     } else {
+      // If no state in URL, or invalid/unavailable state, ensure map is shown.
+      // This handles the initial load or when URL state param is removed/invalid.
       setShowMap(true); 
     }
     
@@ -78,14 +88,20 @@ function CalculatorPageContent() {
         const stateDetails = statesData.find(s => s.code === initialStateCode);
         if (stateDetails && stateDetails.available) {
             setSelectedState(stateDetails);
+            // setShowMap(false); // Already handled above
         } else {
+            // If state from URL is not available or invalid, fallback to default and show map.
             const defaultStateDetails = statesData.find(s => s.code === DEFAULT_UF && s.available);
             setSelectedState(defaultStateDetails || null);
             if (!defaultStateDetails && stateCodeFromUrl) { 
                 toast({ title: "Estado Indisponível", description: `O estado ${stateCodeFromUrl} não está disponível para simulação.`, variant: "destructive" });
             }
-            setShowMap(true); 
+            setShowMap(true); // Explicitly show map if state from URL is problematic
         }
+    } else {
+      // No state in URL, ensure we are on map view and no state is selected for calculator details.
+      setShowMap(true);
+      setSelectedState(null); // Clear selected state if no state in URL
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, toast, isAuthenticated]); 
@@ -97,9 +113,15 @@ function CalculatorPageContent() {
     if (selectedState && !showMap) { 
       params.set('state', selectedState.code);
       params.set('kwh', currentKwh.toString());
+      // Preserve other params (like proposal data) when updating calculator state
       router.replace(`/?${params.toString()}`, { scroll: false });
     } else if (showMap) {
       params.delete('state');
+      // params.delete('kwh'); // Keep kwh if user is just returning to map to select another state,
+                              // but currentKwh state will be used. The URL might not reflect this intermediate kwh.
+                              // Or clear it if we want the URL to be clean when map is shown.
+                              // Let's clear it for consistency if the calculator details are hidden.
+      params.delete('kwh'); 
       router.replace(`/?${params.toString()}`, { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,17 +144,14 @@ function CalculatorPageContent() {
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
       setShowMap(false); 
-      const params = new URLSearchParams(searchParams.toString());
+      // Update URL with selected state and current kWh
+      const params = new URLSearchParams(searchParams.toString()); // Preserve existing params
       params.set('state', stateCode);
       params.set('kwh', currentKwh.toString()); 
       router.push(`/?${params.toString()}`, { scroll: false });
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
-      setSelectedState(null); 
-      setShowMap(true);
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('state');
-      router.push(`?${params.toString()}`, { scroll: false });
+      // Don't change selectedState or showMap here, let the URL params drive this if user clicks a bad link
     }
   };
 
@@ -140,6 +159,8 @@ function CalculatorPageContent() {
     setShowMap(true);
     setSelectedState(null);
     setSavings(null);
+    // URL will be updated by the useEffect watching [selectedState, currentKwh, showMap]
+    // Proposal params in URL, if any, will remain, so editor might stay visible.
   };
 
   const handleStateHover = (stateCode: string | null) => {
@@ -288,21 +309,23 @@ function CalculatorPageContent() {
         </div>
       )}
       
-      <div className="w-full max-w-4xl mx-auto mt-12 px-4">
-        <Card className="shadow-2xl overflow-hidden bg-card">
-          <CardHeader className="bg-primary/10 p-6">
-            <CardTitle className="text-2xl font-bold text-primary text-center">
-              Editor da Fatura (Simulação)
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground mt-1">
-              Os dados da simulação (ou do formulário de proposta) são carregados aqui. Você pode editar os campos diretamente.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 md:p-2 bg-background">
-             <InvoiceEditor />
-          </CardContent>
-        </Card>
-      </div>
+      {shouldShowInvoiceEditor && (
+        <div className="w-full max-w-4xl mx-auto mt-12 px-4">
+          <Card className="shadow-2xl overflow-hidden bg-card">
+            <CardHeader className="bg-primary/10 p-6">
+              <CardTitle className="text-2xl font-bold text-primary text-center">
+                Editor da Fatura (Simulação)
+              </CardTitle>
+              <CardDescription className="text-center text-muted-foreground mt-1">
+                Os dados da simulação (ou do formulário de proposta) são carregados aqui. Você pode editar os campos diretamente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 md:p-2 bg-background">
+              <InvoiceEditor />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
@@ -320,4 +343,3 @@ export default function HomePage() {
     </Suspense>
   );
 }
-
