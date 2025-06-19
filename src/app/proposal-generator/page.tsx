@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const formSchema = z.object({
@@ -44,6 +45,7 @@ const formSchema = z.object({
 
   item3Valor: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "CIP/COSIP deve ser um número válido ou vazio." }),
   valorProducaoPropria: z.string().optional().refine(val => val === "" || !isNaN(parseFloat(val.replace('.', '').replace(',', '.'))), { message: "Valor da produção própria deve ser um número válido ou vazio." }),
+  isencaoIcmsEnergiaGerada: z.enum(['sim', 'nao']).default('nao').describe("Há isenção de ICMS na Energia Gerada?"),
 });
 
 type ProposalFormData = z.infer<typeof formSchema>;
@@ -68,6 +70,7 @@ export default function ProposalGeneratorPage() {
       clienteUF: "",
       item3Valor: "13,75", // Default CIP
       valorProducaoPropria: "0", // Default energia injetada
+      isencaoIcmsEnergiaGerada: "nao",
     },
   });
 
@@ -279,6 +282,39 @@ export default function ProposalGeneratorPage() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="isencaoIcmsEnergiaGerada"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Há isenção de ICMS na Energia Gerada?</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="sim" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Sim</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="nao" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Não</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      Isto afeta a tarifa exibida para a "Energia Ativa Injetada" na fatura.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="item3Valor"
@@ -317,3 +353,4 @@ export default function ProposalGeneratorPage() {
     </main>
   );
 }
+
