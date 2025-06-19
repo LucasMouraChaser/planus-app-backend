@@ -28,6 +28,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch"; // Importação adicionada
 
 const formSchema = z.object({
   clienteNome: z.string().min(1, "Nome do cliente é obrigatório."),
@@ -467,3 +468,4 @@ export default function ProposalGeneratorPage() {
     </main>
   );
 }
+
