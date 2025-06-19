@@ -9,24 +9,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Simulação de login
-    console.log("Login attempt with:", { email, password });
-    
-    // Simular login bem-sucedido
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('isLoggedIn', 'true');
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Firebase onAuthStateChanged in layout.tsx will handle redirect
+      router.push('/'); 
+    } catch (error: any) {
+      console.error("Login error:", error);
+      let errorMessage = "Falha no login. Verifique suas credenciais.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = "Email ou senha inválidos.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Formato de email inválido.";
+      }
+      toast({
+        title: "Erro de Login",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Redirecionar para a página principal (calculadora)
-    router.push('/'); 
   };
 
   return (
@@ -62,6 +78,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="pl-10"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -77,11 +94,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="pl-10"
+                  disabled={isLoading}
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              Entrar
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
+              {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>
@@ -97,4 +115,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -7,13 +7,15 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format, addDays, subDays, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 import { BrazilMapGraphic } from '@/components/BrazilMapGraphic';
 import { StateInfoCard } from '@/components/StateInfoCard';
 import { SavingsDisplay } from '@/components/SavingsDisplay';
 import InvoiceEditor from '@/components/invoice-editor';
 import { PlanusInvoiceDisplay } from '@/components/PlanusInvoiceDisplay'; 
-import CompetitorComparisonDisplay from '@/components/CompetitorComparisonDisplay'; // Import new component
+import CompetitorComparisonDisplay from '@/components/CompetitorComparisonDisplay';
 
 import { statesData } from '@/data/state-data';
 import type { StateInfo, SavingsResult, InvoiceData } from '@/types';
@@ -28,7 +30,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, MapPin, ChevronLeft, FileText } from 'lucide-react';
+import { HelpCircle, MapPin, ChevronLeft, FileText, Loader2 } from 'lucide-react';
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
@@ -82,7 +84,9 @@ function CalculatorPageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  
   const [showMap, setShowMap] = useState(true); 
   const [hoveredStateCode, setHoveredStateCode] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<StateInfo | null>(null);
@@ -95,18 +99,18 @@ function CalculatorPageContent() {
   const [planusInvoiceData, setPlanusInvoiceData] = useState<InvoiceData | null>(null);
   
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const loggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
-      if (!loggedIn) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setIsLoadingAuth(false);
+      if (!user) {
         router.replace('/login');
-      } else {
-        setIsAuthenticated(true);
       }
-    }
+    });
+    return () => unsubscribe();
   }, [router]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (isLoadingAuth || !currentUser) return; // Wait for auth state and user
 
     const params = new URLSearchParams(searchParams.toString());
     const hasProposalData = !!params.get("clienteNome");
@@ -153,7 +157,7 @@ function CalculatorPageContent() {
       const cipValorInput = parseLocaleNumberString(params.get("item3Valor") || newOriginalInvoiceData.item3Valor);
       const valorProdPropriaInput = parseLocaleNumberString(params.get("valorProducaoPropria") || newOriginalInvoiceData.valorProducaoPropria);
       const isencaoIcmsEnergiaGeradaParam = params.get("isencaoIcmsEnergiaGerada") || "nao";
-      const fidelityParam = params.get("comFidelidade") === 'true'; // Assuming it might come from proposal
+      const fidelityParam = params.get("comFidelidade") === 'true';
       setIsFidelityEnabled(fidelityParam);
 
 
@@ -199,7 +203,7 @@ function CalculatorPageContent() {
 
 
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
-      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum, fidelityParam); // Pass fidelity status
+      const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum, fidelityParam);
       setSavings(currentSavingsResult); 
       
       const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
@@ -282,10 +286,10 @@ function CalculatorPageContent() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, isAuthenticated, toast]); 
+  }, [searchParams, isLoadingAuth, currentUser, toast]); 
 
   useEffect(() => {
-    if (!isAuthenticated || shouldShowInvoiceEditor) return; 
+    if (isLoadingAuth || !currentUser || shouldShowInvoiceEditor) return; 
     
     const currentParams = new URLSearchParams(searchParams.toString());
     const newParams = new URLSearchParams();
@@ -305,11 +309,11 @@ function CalculatorPageContent() {
         router.replace(`/?${newParams.toString()}`, { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedState, currentKwh, showMap, isAuthenticated, shouldShowInvoiceEditor]);
+  }, [selectedState, currentKwh, showMap, isLoadingAuth, currentUser, shouldShowInvoiceEditor]);
 
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (isLoadingAuth || !currentUser) return;
 
     if (selectedState && selectedState.available && !showMap && !shouldShowInvoiceEditor) {
       const billAmountInReais = currentKwh * KWH_TO_R_FACTOR;
@@ -317,7 +321,7 @@ function CalculatorPageContent() {
     } else if (!shouldShowInvoiceEditor) { 
       setSavings(null); 
     }
-  }, [currentKwh, selectedState, isAuthenticated, showMap, shouldShowInvoiceEditor, isFidelityEnabled]);
+  }, [currentKwh, selectedState, isLoadingAuth, currentUser, showMap, shouldShowInvoiceEditor, isFidelityEnabled]);
 
   const handleStateClick = (stateCode: string) => {
     const stateDetails = statesData.find(s => s.code === stateCode);
@@ -357,10 +361,10 @@ function CalculatorPageContent() {
   
   const currentBillWithoutDiscount = parseFloat((currentKwh * KWH_TO_R_FACTOR).toFixed(2));
 
-  if (isAuthenticated === null) {
+  if (isLoadingAuth || !currentUser) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
         <p className="text-lg font-medium">Verificando autenticação...</p>
       </div>
     );
@@ -542,7 +546,7 @@ export default function HomePage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
         <p className="text-lg font-medium">Carregando calculadora e editor...</p>
       </div>
     }>
@@ -550,5 +554,3 @@ export default function HomePage() {
     </Suspense>
   );
 }
-
-    
