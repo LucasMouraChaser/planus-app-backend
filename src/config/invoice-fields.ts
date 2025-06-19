@@ -54,7 +54,7 @@ export const INVOICE_FIELDS_CONFIG: FieldConfig[] = [
   { name: 'item1TarifaEnergiaInjetadaREF', x: 555, y: 493, width: 65, height: 22, initialValue: "0,847430", style: { fontSize: '7px', color: '#555' }, className: "text-right" }, 
   
   // Campos de Tributos - PIS (Linha 1)
-  { name: 'item1PisBase',    x: 624, y: 479, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
+  { name: 'item1PisBase',    x: 620, y: 479, width: 63, height: 22, initialValue: "1.353,43", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   { name: 'item1PisAliq',    x: 667, y: 479, width: 48, height: 22, initialValue: "1,0945", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   { name: 'item1PisValor',   x: 702, y: 479, width: 53, height: 22, initialValue: "14,81", style: { fontSize: '8px', background: 'white' }, className: "text-right" },
   

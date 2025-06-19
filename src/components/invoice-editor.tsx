@@ -1,7 +1,9 @@
+
 "use client";
 
 import type React from 'react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Save, ScanSearch, AlertTriangle } from 'lucide-react';
 import EditableField from './editable-field';
 import { Button } from '@/components/ui/button';
@@ -9,12 +11,43 @@ import { useToast } from '@/hooks/use-toast';
 import type { InvoiceData } from '@/types/invoice';
 import { INVOICE_FIELDS_CONFIG, initialInvoiceData as defaultInitialData } from '@/config/invoice-fields';
 
-const InvoiceEditor: React.FC = () => {
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>(defaultInitialData);
+// Helper component to use useSearchParams
+function InvoiceEditorContent() {
+  const searchParams = useSearchParams();
+  const [invoiceData, setInvoiceData] = useState<InvoiceData>(() => {
+    const queryData: Partial<InvoiceData> = {};
+    let hasQueryData = false;
+    for (const key in defaultInitialData) {
+      if (searchParams.has(key)) {
+        queryData[key as keyof InvoiceData] = searchParams.get(key) as string;
+        hasQueryData = true;
+      }
+    }
+    return hasQueryData ? { ...defaultInitialData, ...queryData } : defaultInitialData;
+  });
+
   const fieldRefs = useRef<Record<string, SVGForeignObjectElement | null>>({});
   const [overlappingFields, setOverlappingFields] = useState<Set<string>>(new Set());
-  const [overlapWarningMsg, setOverlapWarningMsg] = useState<string | null>(null); // For text display
+  const [overlapWarningMsg, setOverlapWarningMsg] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const queryData: Partial<InvoiceData> = {};
+    let hasQueryData = false;
+    for (const key in defaultInitialData) {
+      if (searchParams.has(key)) {
+        queryData[key as keyof InvoiceData] = searchParams.get(key) as string;
+        hasQueryData = true;
+      }
+    }
+    if (hasQueryData) {
+      setInvoiceData(prevData => ({ ...prevData, ...queryData }));
+    }
+    // We only want to run this once when searchParams are available,
+    // or if they change, to re-initialize.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -69,12 +102,6 @@ const InvoiceEditor: React.FC = () => {
     }
   }, [toast]);
   
-  // For client-side only logic like getBoundingClientRect
-  useEffect(() => {
-    // This effect could be used to run initial checks if needed,
-    // but for now, the check is manual via button.
-  }, []);
-
 
   const handleSave = () => {
     try {
@@ -142,7 +169,7 @@ const InvoiceEditor: React.FC = () => {
               y={field.y}
               width={field.width}
               height={field.height}
-              value={invoiceData[field.name]}
+              value={invoiceData[field.name] || ''} // Ensure value is not undefined
               onChange={handleInputChange}
               inputStyle={field.style}
               inputClassName={field.className}
@@ -154,6 +181,15 @@ const InvoiceEditor: React.FC = () => {
         </svg>
       </div>
     </div>
+  );
+}
+
+// Main component wraps the content with Suspense for useSearchParams
+const InvoiceEditor: React.FC = () => {
+  return (
+    <Suspense fallback={<div>Carregando dados da fatura...</div>}>
+      <InvoiceEditorContent />
+    </Suspense>
   );
 };
 
