@@ -21,14 +21,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, Edit3, FileText } from 'lucide-react';
+import { HelpCircle, Edit3, FileText, Building } from 'lucide-react'; // Added Building as example, FileText used
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
 const MAX_KWH_SLIDER = 50000; 
 const SLIDER_STEP = 50;
 const DEFAULT_KWH = 1500;
-const DEFAULT_UF = 'MT';
+const DEFAULT_UF = 'MT'; // Default UF
 
 function CalculatorPageContent() {
   const router = useRouter();
@@ -81,21 +81,20 @@ function CalculatorPageContent() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, toast, isAuthenticated]); // Adicionado isAuthenticated como dependência
+  }, [searchParams, toast, isAuthenticated]); 
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    // Esta lógica de atualizar a URL pode ser desnecessária se o estado inicial já é lido da URL
-    // e a navegação entre propostas e calculadora já atualiza a URL.
-    // Avaliar se é preciso ou se causa re-renderizações indesejadas.
-    // const params = new URLSearchParams(searchParams.toString()); // Usar searchParams existentes como base
+    // This effect might not be strictly necessary anymore if URL is primarily driven by user actions
+    // Keeping it for now, but could be re-evaluated.
+    // const params = new URLSearchParams(searchParams.toString()); 
     // if (selectedState) {
     //   params.set('state', selectedState.code);
     // } else {
-    //   params.delete('state');
+    //    params.delete('state'); // Or set to default?
     // }
     // params.set('kwh', currentKwh.toString());
-    // router.replace(`?${params.toString()}`, { scroll: false }); 
+    // router.replace(`/?${params.toString()}`, { scroll: false }); 
   }, [selectedState, currentKwh, router, searchParams, isAuthenticated]);
 
 
@@ -114,10 +113,9 @@ function CalculatorPageContent() {
     const stateDetails = statesData.find(s => s.code === stateCode);
     if (stateDetails && stateDetails.available) {
       setSelectedState(stateDetails);
-      // Atualizar URL ao clicar no estado
       const params = new URLSearchParams(searchParams.toString());
       params.set('state', stateCode);
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`/?${params.toString()}`, { scroll: false });
     } else if (stateDetails) {
       toast({ title: "Estado Indisponível", description: `${stateDetails.name} ainda não está disponível para simulação.`, variant: "destructive" });
       setSelectedState(null); 
@@ -137,15 +135,13 @@ function CalculatorPageContent() {
     if (value < MIN_KWH_SLIDER) value = MIN_KWH_SLIDER;
     if (value > MAX_KWH_SLIDER) value = MAX_KWH_SLIDER;
     setCurrentKwh(value);
-    // Atualizar URL ao mudar o input de kWh
     const params = new URLSearchParams(searchParams.toString());
     params.set('kwh', value.toString());
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`/?${params.toString()}`, { scroll: false });
   };
 
   const handleSliderChange = (value: number[]) => {
     setCurrentKwh(value[0]);
-    // Atualizar URL ao mudar o slider
     const params = new URLSearchParams(searchParams.toString());
     params.set('kwh', value[0].toString());
     router.push(`?${params.toString()}`, { scroll: false });
@@ -164,20 +160,20 @@ function CalculatorPageContent() {
 
 
   return (
-    <main className="flex flex-col items-center justify-start min-h-screen bg-background p-4 md:p-8 font-body">
+    <div className="flex flex-col items-center justify-start min-h-screen p-0"> {/* Adjusted padding for page within layout */}
       <header className="mb-8 text-center py-4">
         <h1 className="text-3xl md:text-4xl font-headline text-primary font-bold tracking-tight">
           Calculadora de Economia de Energia
         </h1>
         <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl mx-auto">
-          Selecione seu estado, ajuste o consumo e veja o quanto você pode economizar com a Energisa.
+          Selecione seu estado, ajuste o consumo e veja o quanto você pode economizar.
           Depois, clique em "Iniciar Nova Proposta" para personalizar sua fatura.
         </p>
       </header>
 
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 px-4">
         <div className="flex flex-col items-center space-y-6">
-          <Card className="w-full shadow-xl">
+          <Card className="w-full shadow-xl bg-card">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-primary">Selecione seu Estado</CardTitle>
             </CardHeader>
@@ -193,7 +189,7 @@ function CalculatorPageContent() {
           </Card>
           {selectedState && <StateInfoCard state={selectedState} />}
            {!selectedState && (
-             <Card className="w-full shadow-lg">
+             <Card className="w-full shadow-lg bg-card">
                 <CardHeader>
                     <CardTitle className="text-xl font-bold text-primary">Nenhum Estado Selecionado</CardTitle>
                 </CardHeader>
@@ -205,7 +201,7 @@ function CalculatorPageContent() {
         </div>
 
         <div className="flex flex-col space-y-6">
-          <Card className="w-full shadow-xl">
+          <Card className="w-full shadow-xl bg-card">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-primary flex items-center">
                 <Edit3 className="mr-2 h-5 w-5" />
@@ -248,7 +244,7 @@ function CalculatorPageContent() {
           
           <SavingsDisplay savings={savings} />
 
-          <Card className="w-full shadow-xl mt-4">
+          <Card className="w-full shadow-xl mt-4 bg-card">
              <CardHeader>
                 <CardTitle className="text-xl font-bold text-primary flex items-center">
                     <HelpCircle className="mr-2 h-5 w-5" />
@@ -257,7 +253,7 @@ function CalculatorPageContent() {
              </CardHeader>
              <CardContent>
                 <p className="text-muted-foreground mb-4">
-                    Gostou da simulação? Clique abaixo para preencher mais detalhes e visualizar uma simulação completa da sua fatura Energisa.
+                    Gostou da simulação? Clique abaixo para preencher mais detalhes e visualizar uma simulação completa da sua fatura.
                 </p>
                 <Link href="/proposal-generator" passHref>
                     <Button variant="default" size="lg" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground shadow-md transition-all hover:shadow-lg active:scale-95">
@@ -271,22 +267,22 @@ function CalculatorPageContent() {
         </div>
       </div>
       
-      <div className="w-full max-w-4xl mx-auto mt-12">
-        <Card className="shadow-2xl overflow-hidden">
-          <CardHeader className="bg-primary/5">
+      <div className="w-full max-w-4xl mx-auto mt-12 px-4">
+        <Card className="shadow-2xl overflow-hidden bg-card">
+          <CardHeader className="bg-primary/10">
             <CardTitle className="text-2xl font-bold text-primary text-center">
-              Editor da Fatura Energisa (Simulação)
+              Editor da Fatura (Simulação)
             </CardTitle>
             <CardDescription className="text-center text-muted-foreground">
               Os dados da simulação (ou do formulário de proposta) são carregados aqui. Você pode editar os campos diretamente.
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-0 md:p-2">
+          <CardContent className="p-0 md:p-2 bg-background"> {/* Ensure editor background contrasts card */}
              <InvoiceEditor />
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -303,3 +299,4 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
