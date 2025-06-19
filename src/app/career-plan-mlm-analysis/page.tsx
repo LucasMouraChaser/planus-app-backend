@@ -267,11 +267,11 @@ export default function MlmAnalysisPage() {
             <Card className="bg-slate-800/50 border-slate-700 p-6">
               <h3 className="text-lg font-semibold text-amber-400 mb-3">🚀 VANTAGENS DO MODELO</h3>
               <ul className="space-y-2 text-sm text-muted-foreground list-disc list-inside pl-2">
-                <li>Cliente: 25% de economia garantida</li>
-                <li>Você: Comissão sobre margem real</li>
-                <li>Recorrente: Ganho mensal contínuo</li>
-                <li>Escalável: Sem limite de clientes</li>
-                <li>Transparente: Valores claros</li>
+                <li>✅ Cliente: 25% de economia garantida</li>
+                <li>✅ Você: Comissão sobre margem real</li>
+                <li>✅ Recorrente: Ganho mensal contínuo</li>
+                <li>✅ Escalável: Sem limite de clientes</li>
+                <li>✅ Transparente: Valores claros</li>
               </ul>
               <div className="bg-amber-500/10 p-3 rounded-md text-center mt-4">
                 <strong className="text-amber-500 text-sm">🎯 Ganha-Ganha: Cliente economiza, você prospera!</strong>
@@ -485,3 +485,5 @@ export default function MlmAnalysisPage() {
   );
 }
 
+
+    
