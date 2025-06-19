@@ -1,7 +1,8 @@
 // src/types/user.ts
 import type { Timestamp } from 'firebase/firestore';
 
-export type UserType = 'admin' | 'vendedor' | 'cliente'; // Add other types as needed
+// Updated UserType to include all specified roles
+export type UserType = 'admin' | 'vendedor' | 'user' | 'prospector' | 'pending_setup';
 
 // Represents the data structure for a user in Firestore
 export type FirestoreUser = {
@@ -46,3 +47,4 @@ export type AppUser = {
   personalBalance: number;
   mlmBalance: number;
   // Add other relevant fields from
+};
