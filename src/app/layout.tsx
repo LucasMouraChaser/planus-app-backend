@@ -53,12 +53,12 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
       if (!appUser && currentPathname !== '/login') {
         router.replace('/login');
       } else if (appUser && currentPathname === '/login') {
-        router.replace('/'); // Redirect to a default authenticated page
+        router.replace('/'); 
       }
     }
   }, [isLoadingAuth, appUser, currentPathname, router]);
 
-  if (isLoadingAuth && currentPathname !== '/login') { // Show loader only for protected pages
+  if (isLoadingAuth && currentPathname !== '/login') { 
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
         <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
@@ -66,25 +66,6 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
       </div>
     );
   }
-
-
-  // Component for the user display in the header when sidebar is collapsed (desktop)
-  const CollapsedHeaderUserDisplay = () => {
-    if (!appUser) return null;
-    return (
-      <div className="flex items-center gap-2"> {/* Container for Avatar and Name */}
-        <Avatar className="h-9 w-9">
-          <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
-          <AvatarFallback className="text-sm">
-            {appUser.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser.email ? appUser.email.charAt(0).toUpperCase() : "U")}
-          </AvatarFallback>
-        </Avatar>
-        <span className="text-sm font-medium text-foreground">
-          {appUser.displayName || appUser.email?.split('@')[0]}
-        </span>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -228,8 +209,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         </div>
         
         <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          {/* Toggle Button Area - this is the item on the far left */}
-          {isMobile ? ( // Mobile: Menu icon
+          {isMobile && (
             <Button
               variant="ghost"
               size="icon"
@@ -239,28 +219,30 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </Button>
-          ) : sidebarState === 'collapsed' ? ( // Desktop + Collapsed: Avatar and Name button
+          )}
+          {!isMobile && sidebarState === 'collapsed' && appUser && (
             <Button
               variant="ghost"
               onClick={toggleSidebar}
-              className="p-1 h-auto rounded-md text-foreground hover:bg-accent hover:text-accent-foreground -ml-1" // Adjust padding/margin as needed
+              className="p-0 h-auto rounded-full text-foreground hover:bg-accent/20 hover:text-accent-foreground -ml-1" 
               aria-label="Toggle sidebar"
             >
-              <CollapsedHeaderUserDisplay />
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
+                <AvatarFallback className="text-sm bg-muted text-muted-foreground">
+                  {appUser.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser.email ? appUser.email.charAt(0).toUpperCase() : "U")}
+                </AvatarFallback>
+              </Avatar>
             </Button>
-          ) : ( 
-            // Desktop + Expanded: No toggle button here, or a minimal spacer if needed for title alignment.
-            // Based on the image, when sidebar is expanded, title is simply at the left.
-            null 
           )}
 
-           {/* Title - This will take up the remaining space if the header is display: flex */}
-           {/* The gap-x-4 on the parent <header> will provide space if a toggle button is rendered before it. */}
-           <div className="flex-grow"> {/* Ensures title takes available space */}
-             <h1 className="text-lg font-semibold text-primary truncate">
-               BrasilVis Energia
-             </h1>
-           </div>
+           {(isMobile || (!isMobile && sidebarState === 'expanded')) && (
+             <div className="flex-grow"> 
+               <h1 className="text-lg font-semibold text-primary truncate">
+                 BrasilVis Energia
+               </h1>
+             </div>
+           )}
         </header>
 
         <main className="flex-1 overflow-auto">
