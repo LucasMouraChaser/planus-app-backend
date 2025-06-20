@@ -5,9 +5,10 @@ import { Suspense, useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import Image from 'next/image';
+// import Image from 'next/image'; // Not used for profile picture display yet
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 import { Button } from "@/components/ui/button";
 import {
@@ -31,22 +32,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { UserCircle, Edit3, Save, X, Mail, Shield, Calendar, KeyRound, Camera } from 'lucide-react';
+import { UserCircle, Edit3, Save, X, Mail, Shield, Calendar, KeyRound, Camera, Loader2 } from 'lucide-react';
 
-import type { AppUser, FirestoreUser } from '@/types/user'; // Assuming AppUser contains necessary fields
-
-// Mock user data - replace with actual data from auth context
-const MOCK_USER_PROFILE: AppUser & { createdAt?: string; cpf?: string } = {
-  uid: 'user123',
-  email: 'usuario@example.com',
-  displayName: 'Usuário Exemplo Silva',
-  type: 'vendedor',
-  photoURL: 'https://placehold.co/150x150.png?text=UE',
-  personalBalance: 1250.75, // Example field from AppUser
-  mlmBalance: 875.20,    // Example field from AppUser
-  createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(), // Example: 30 days ago
-  cpf: "123.456.789-00", // Example CPF
-};
+import type { AppUser } from '@/types/user'; 
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, "O nome deve ter pelo menos 2 caracteres.").max(50, "O nome não pode exceder 50 caracteres."),
@@ -68,23 +57,33 @@ type PasswordFormData = z.infer<typeof passwordFormSchema>;
 
 function ProfilePageContent() {
   const { toast } = useToast();
-  const [userData, setUserData] = useState<AppUser & { createdAt?: string; cpf?: string } | null>(null);
+  const { appUser, isLoadingAuth: isLoadingAuthContext } = useAuth(); // Use context
+  const router = useRouter(); // For redirection
+
+  // Local state for UI interaction, userData will come from appUser context
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  
+  // Local state for storing form data based on appUser from context
+  const [userData, setUserData] = useState<AppUser | null>(null);
 
-  // Simulate fetching user data
   useEffect(() => {
-    setUserData(MOCK_USER_PROFILE);
-    if (MOCK_USER_PROFILE.photoURL) {
-        setPreviewImage(MOCK_USER_PROFILE.photoURL);
+    if (!isLoadingAuthContext && !appUser) {
+      router.replace('/login');
+    } else if (appUser) {
+      setUserData(appUser); // Set local userData from context's appUser
+      setPreviewImage(appUser.photoURL || null);
+      profileForm.reset({ displayName: appUser.displayName || "" });
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingAuthContext, appUser, router]);
+
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      displayName: userData?.displayName || "",
+      displayName: "", // Will be set by useEffect
     },
   });
 
@@ -97,25 +96,25 @@ function ProfilePageContent() {
     },
   });
 
-  useEffect(() => {
-    if (userData) {
-      profileForm.reset({
-        displayName: userData.displayName || "",
-      });
-      setPreviewImage(userData.photoURL || null);
-    }
-  }, [userData, profileForm.reset, profileForm]);
 
   const handleProfileSubmit = (values: ProfileFormData) => {
     // In a real app, call an updateProfile function from your auth context
+    // This function would update Firebase Auth profile and Firestore document
     console.log("Profile update data:", values);
     // if (values.photoFile && values.photoFile.length > 0) {
     //   console.log("New photo file:", values.photoFile[0]);
-    //   // Handle file upload here
+    //   // Handle file upload here, then update photoURL in Firestore and Auth
     // }
-    setUserData(prev => prev ? { ...prev, displayName: values.displayName } : null);
+    
+    // Simulate update locally and in context (actual update would be via context function)
+    if (userData) {
+        const updatedUser = { ...userData, displayName: values.displayName };
+        setUserData(updatedUser); 
+        // Ideally, context would have a function like: updateAppUserProfile({ displayName: values.displayName, photoFile: values.photoFile?.[0] })
+    }
+
     toast({
-      title: "Perfil Atualizado",
+      title: "Perfil Atualizado (Simulado)",
       description: "Suas informações foram salvas com sucesso.",
     });
     setIsEditingProfile(false);
@@ -124,6 +123,7 @@ function ProfilePageContent() {
   const handlePasswordChangeSubmit = (values: PasswordFormData) => {
     console.log("Password change data:", values);
     // In a real app, call a changePassword function from your auth context
+    // This function would handle re-authentication if needed and update Firebase Auth password
     toast({
         title: "Senha Atualizada (Simulado)",
         description: "Sua senha foi alterada com sucesso.",
@@ -135,20 +135,24 @@ function ProfilePageContent() {
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
         const file = event.target.files[0];
-        // profileForm.setValue('photoFile', event.target.files); // Set for react-hook-form
+        // profileForm.setValue('photoFile', event.target.files); // Set for react-hook-form if using it for file
         setPreviewImage(URL.createObjectURL(file)); // Set for immediate preview
+        // Note: Actual upload and URL update would happen in handleProfileSubmit or a context function
     }
   };
 
 
-  if (!userData) {
+  if (isLoadingAuthContext || !userData) { // Check both context loading and local userData
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
         <p className="text-lg font-medium">Carregando perfil...</p>
       </div>
     );
   }
+  
+  const createdAtString = userData.createdAt ? (typeof userData.createdAt === 'string' ? userData.createdAt : (userData.createdAt as any).toDate().toISOString()) : null;
+
 
   return (
     <div className="container mx-auto px-4 py-8 text-foreground">
@@ -190,9 +194,9 @@ function ProfilePageContent() {
                          CPF: <span className="font-medium text-foreground ml-1">{userData.cpf}</span>
                     </div>
                 )}
-                {userData.createdAt && (
+                {createdAtString && (
                     <div className="flex items-center justify-center md:justify-start text-muted-foreground">
-                        <Calendar size={16} className="mr-2 text-primary/80" /> Membro desde: <span className="font-medium text-foreground ml-1">{format(parseISO(userData.createdAt), "dd/MM/yyyy", { locale: ptBR })}</span>
+                        <Calendar size={16} className="mr-2 text-primary/80" /> Membro desde: <span className="font-medium text-foreground ml-1">{format(parseISO(createdAtString), "dd/MM/yyyy", { locale: ptBR })}</span>
                     </div>
                 )}
               </div>
@@ -302,7 +306,7 @@ export default function ProfilePage() {
   return (
     <Suspense fallback={
       <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
         <p className="text-lg font-medium">Carregando...</p>
       </div>
     }>

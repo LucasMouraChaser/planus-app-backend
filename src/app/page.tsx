@@ -7,8 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format, addDays, subDays, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 import { BrazilMapGraphic } from '@/components/BrazilMapGraphic';
 import { StateInfoCard } from '@/components/StateInfoCard';
@@ -30,7 +29,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from '@/components/ui/button';
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { HelpCircle, MapPin, ChevronLeft, FileText, Loader2 } from 'lucide-react';
+import { MapPin, ChevronLeft, FileText, Loader2 } from 'lucide-react'; // Removed HelpCircle
 
 const KWH_TO_R_FACTOR = 1.0907; 
 const MIN_KWH_SLIDER = 100;
@@ -83,9 +82,7 @@ function CalculatorPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const { firebaseUser, appUser, isLoadingAuth } = useAuth(); // Use context
   
   const [showMap, setShowMap] = useState(true); 
   const [hoveredStateCode, setHoveredStateCode] = useState<string | null>(null);
@@ -99,18 +96,15 @@ function CalculatorPageContent() {
   const [planusInvoiceData, setPlanusInvoiceData] = useState<InvoiceData | null>(null);
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setIsLoadingAuth(false);
-      if (!user) {
+    if (!isLoadingAuth && !firebaseUser) {
+        // This case should be handled by RootLayout's redirect,
+        // but as a fallback, ensure user is redirected if not logged in.
         router.replace('/login');
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    }
+  }, [isLoadingAuth, firebaseUser, router]);
 
   useEffect(() => {
-    if (isLoadingAuth || !currentUser) return; // Wait for auth state and user
+    if (isLoadingAuth || !firebaseUser) return; // Wait for auth state and user
 
     const params = new URLSearchParams(searchParams.toString());
     const hasProposalData = !!params.get("clienteNome");
@@ -286,10 +280,10 @@ function CalculatorPageContent() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, isLoadingAuth, currentUser, toast]); 
+  }, [searchParams, isLoadingAuth, firebaseUser, toast]); 
 
   useEffect(() => {
-    if (isLoadingAuth || !currentUser || shouldShowInvoiceEditor) return; 
+    if (isLoadingAuth || !firebaseUser || shouldShowInvoiceEditor) return; 
     
     const currentParams = new URLSearchParams(searchParams.toString());
     const newParams = new URLSearchParams();
@@ -309,11 +303,11 @@ function CalculatorPageContent() {
         router.replace(`/?${newParams.toString()}`, { scroll: false });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedState, currentKwh, showMap, isLoadingAuth, currentUser, shouldShowInvoiceEditor]);
+  }, [selectedState, currentKwh, showMap, isLoadingAuth, firebaseUser, shouldShowInvoiceEditor]);
 
 
   useEffect(() => {
-    if (isLoadingAuth || !currentUser) return;
+    if (isLoadingAuth || !firebaseUser) return;
 
     if (selectedState && selectedState.available && !showMap && !shouldShowInvoiceEditor) {
       const billAmountInReais = currentKwh * KWH_TO_R_FACTOR;
@@ -321,7 +315,7 @@ function CalculatorPageContent() {
     } else if (!shouldShowInvoiceEditor) { 
       setSavings(null); 
     }
-  }, [currentKwh, selectedState, isLoadingAuth, currentUser, showMap, shouldShowInvoiceEditor, isFidelityEnabled]);
+  }, [currentKwh, selectedState, isLoadingAuth, firebaseUser, showMap, shouldShowInvoiceEditor, isFidelityEnabled]);
 
   const handleStateClick = (stateCode: string) => {
     const stateDetails = statesData.find(s => s.code === stateCode);
@@ -361,14 +355,27 @@ function CalculatorPageContent() {
   
   const currentBillWithoutDiscount = parseFloat((currentKwh * KWH_TO_R_FACTOR).toFixed(2));
 
-  if (isLoadingAuth || !currentUser) {
+  if (isLoadingAuth) { // Show loader while auth state is resolving
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
         <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
-        <p className="text-lg font-medium">Verificando autenticação...</p>
+        <p className="text-lg font-medium">Carregando...</p>
       </div>
     );
   }
+
+  if (!firebaseUser && !isLoadingAuth) {
+    // This state should ideally be caught by RootLayout's redirect.
+    // If somehow reached, it indicates user is not logged in.
+    // The redirect in RootLayout or the useEffect in this component should handle it.
+    return (
+         <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
+            <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
+            <p className="text-lg font-medium">Redirecionando para login...</p>
+        </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-0">

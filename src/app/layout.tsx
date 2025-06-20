@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Metadata } from 'next';
+// import type { Metadata } from 'next'; // Metadata can be an issue with "use client" at root
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import {
@@ -21,12 +21,13 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { ReactNode } from 'react'; // Removed useState, useEffect from here
+import { signOut } from 'firebase/auth'; // User type from firebase/auth
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'; // Import AuthProvider and useAuth
 
 // Metadata can still be defined but might not be used if the whole component is client-side
 // export const metadata: Metadata = {
@@ -42,45 +43,28 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
   const { toggleSidebar, state: sidebarState, isMobile } = useSidebar();
   const currentPathname = usePathname();
   const router = useRouter();
-
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
-  const [userAppRole, setUserAppRole] = useState<string | null>(null); // 'admin', 'vendedor', or null
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setFirebaseUser(user);
-      if (user) {
-        // Simplified role assignment: 'lucasmoura@sentenergia.com' is admin, others are 'vendedor'
-        // In a real app, this would come from Firestore or custom claims.
-        if (user.email === 'lucasmoura@sentenergia.com') {
-          setUserAppRole('admin');
-        } else {
-          setUserAppRole('vendedor');
-        }
-        if (currentPathname === '/login') {
-          router.replace('/'); // Redirect from login if already authenticated
-        }
-      } else {
-        setUserAppRole(null);
-        if (currentPathname !== '/login') {
-          router.replace('/login');
-        }
-      }
-      setIsLoadingAuth(false);
-    });
-    return () => unsubscribe();
-  }, [router, currentPathname]);
+  const { appUser, userAppRole, isLoadingAuth } = useAuth(); // Use context
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // onAuthStateChanged will handle redirect to /login
+      router.replace('/login'); // Explicit redirect after signOut
     } catch (error) {
       console.error("Logout error:", error);
-      // Handle logout error if needed
     }
   };
+
+  // This useEffect handles redirection based on auth state
+  React.useEffect(() => {
+    if (!isLoadingAuth) {
+      if (!appUser && currentPathname !== '/login') {
+        router.replace('/login');
+      } else if (appUser && currentPathname === '/login') {
+        router.replace('/');
+      }
+    }
+  }, [isLoadingAuth, appUser, currentPathname, router]);
+
 
   if (isLoadingAuth) {
     return (
@@ -91,17 +75,24 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     );
   }
   
-  // If not authenticated and not on login page, this content won't render due to redirect in useEffect.
-  // If on login page, RootLayout handles rendering only children (login page itself).
+  // If not authenticated and not on login page, redirect is handled by useEffect.
+  // If on login page and authenticated, redirect to home is handled.
+  // This component might still render briefly before redirect, or not at all if redirect happens fast.
 
   return (
     <>
       <Sidebar>
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-2">
+             <Avatar className="h-10 w-10 bg-primary hover:bg-primary/90">
+                <AvatarImage src={appUser?.photoURL || undefined} alt={appUser?.displayName || "Usuário"} data-ai-hint="user avatar small" />
+                <AvatarFallback className="text-primary-foreground font-semibold">
+                    {appUser?.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser?.email ? appUser.email.charAt(0).toUpperCase() : "U")}
+                </AvatarFallback>
+            </Avatar>
             <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
-               <h2 className="text-lg font-semibold text-sidebar-foreground truncate">BrasilVis</h2>
-               <p className="text-xs text-sidebar-foreground/70 truncate">Menu Principal</p>
+               <h2 className="text-base font-semibold text-sidebar-foreground truncate">{ appUser?.displayName || appUser?.email || "Usuário"}</h2>
+               <p className="text-xs text-sidebar-foreground/70 truncate capitalize">{userAppRole || "Não logado"}</p>
             </div>
           </div>
         </SidebarHeader>
@@ -123,14 +114,16 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Link href="/dashboard/seller">
-                <SidebarMenuButton isActive={currentPathname === '/dashboard/seller'} tooltip="Meu Painel">
-                  <LayoutDashboard />
-                  Meu Painel
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
+            {userAppRole === 'vendedor' && (
+              <SidebarMenuItem>
+                <Link href="/dashboard/seller">
+                  <SidebarMenuButton isActive={currentPathname === '/dashboard/seller'} tooltip="Meu Painel">
+                    <LayoutDashboard />
+                    Meu Painel
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <Link href="/crm">
                 <SidebarMenuButton tooltip="Gestão de Clientes" isActive={currentPathname === '/crm'}>
@@ -217,24 +210,26 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         <Image
           src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
           alt="Blurred Background"
-          layout="fill"
-          objectFit="cover"
-          objectPosition="center"
+          fill // Changed from layout="fill"
+          sizes="100vw" // Added for fill
+          style={{objectFit: "cover", objectPosition: "center"}} // Changed from objectFit, objectPosition
           className="z-[-1] filter blur-lg"
           data-ai-hint="abstract background"
+          priority // Consider adding priority if it's LCP
         />
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 py-2">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground"
+            className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground md:hidden" // Hide on md and up
             aria-label="Toggle sidebar"
           >
-            <Avatar className="h-8 w-8 bg-primary hover:bg-primary/90">
-              <AvatarFallback className="text-primary-foreground font-semibold">BV</AvatarFallback>
-            </Avatar>
+             <Menu className="h-6 w-6" />
           </Button>
+           <div className="flex-grow text-center md:text-left">
+             <h1 className="text-lg font-semibold text-primary truncate">BrasilVis Energia</h1>
+           </div>
         </header>
         <main className="flex-1 overflow-auto">
           {children}
@@ -252,7 +247,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Hide sidebar and full app structure on login page
+  // Render only children for login page, AuthProvider handles auth state
   if (pathname === '/login') {
     return (
       <html lang="pt-BR" className="dark">
@@ -264,7 +259,9 @@ export default function RootLayout({
           <title>Login - BrasilVis App</title>
         </head>
         <body className="font-body antialiased">
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           <Toaster />
         </body>
       </html>
@@ -281,9 +278,11 @@ export default function RootLayout({
         <title>BrasilVis App</title>
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider defaultOpen>
-          <AppContent>{children}</AppContent>
-        </SidebarProvider>
+        <AuthProvider>
+          <SidebarProvider defaultOpen>
+            <AppContent>{children}</AppContent>
+          </SidebarProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

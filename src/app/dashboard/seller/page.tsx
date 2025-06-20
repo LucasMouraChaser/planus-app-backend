@@ -1,33 +1,43 @@
+
 // src/app/dashboard/seller/page.tsx
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react'; // Added useEffect
+import { useRouter } from 'next/navigation'; // Added useRouter
 import SellerCommissionDashboard from '@/components/seller/SellerCommissionDashboard';
-import type { AppUser } from '@/types/user'; // Placeholder for AppUser
-
-// Mock loggedInUser - replace with actual auth context
-const MOCK_SELLER_USER: AppUser = { 
-  uid: 'user1', 
-  email: 'vendedor1@example.com', 
-  displayName: 'Vendedor Um', 
-  type: 'vendedor',
-  personalBalance: 1250.75,
-  mlmBalance: 350.50,
-  photoURL: 'https://placehold.co/100x100.png',
-};
+import type { AppUser } from '@/types/user'; 
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { Loader2 } from 'lucide-react';
 
 export default function SellerDashboardPage() {
-  // In a real app, you'd get the loggedInUser from your auth context
-  const loggedInUser = MOCK_SELLER_USER;
+  const { appUser, isLoadingAuth, userAppRole } = useAuth(); // Use context
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoadingAuth && (!appUser || userAppRole !== 'vendedor')) {
+      // Redirect if not loading, and not a seller, or no appUser (not logged in)
+      router.replace('/login'); 
+    }
+  }, [isLoadingAuth, appUser, userAppRole, router]);
+
+  if (isLoadingAuth || !appUser || userAppRole !== 'vendedor') {
+    // Show loader while checking auth or if user is not a seller
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
+        <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
+        <p className="text-lg font-medium">Carregando dados do vendedor...</p>
+      </div>
+    );
+  }
 
   return (
     <Suspense fallback={
       <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <Loader2 className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4" />
         <p className="text-lg font-medium">Carregando Painel do Vendedor...</p>
       </div>
     }>
-      <SellerCommissionDashboard loggedInUser={loggedInUser} />
+      <SellerCommissionDashboard loggedInUser={appUser as AppUser} />
     </Suspense>
   );
 }
