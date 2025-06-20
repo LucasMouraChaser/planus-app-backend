@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/toaster";
 import {
   SidebarProvider,
   Sidebar,
-  SidebarHeader,
   SidebarContent,
   SidebarFooter,
   SidebarMenu,
@@ -24,7 +23,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -34,7 +33,7 @@ interface AppContentProps {
 }
 
 const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { toggleSidebar, state: sidebarState, isMobile, openMobile, setOpenMobile } = useSidebar();
+  const { toggleSidebar, state: sidebarState, isMobile, openMobile } = useSidebar();
   const currentPathname = usePathname();
   const router = useRouter();
   const { appUser, userAppRole, isLoadingAuth } = useAuth();
@@ -80,20 +79,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
   return (
     <>
       <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarHeader className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-             <Avatar className="h-10 w-10 bg-primary hover:bg-primary/90">
-                <AvatarImage src={appUser?.photoURL || undefined} alt={appUser?.displayName || "Usuário"} data-ai-hint="user avatar small" />
-                <AvatarFallback className="text-primary-foreground font-semibold">
-                    {appUser?.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser?.email ? appUser.email.charAt(0).toUpperCase() : "U")}
-                </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-               <h2 className="text-base font-semibold text-sidebar-foreground truncate">{ appUser?.displayName || appUser?.email || "Usuário"}</h2>
-               <p className="text-xs text-sidebar-foreground/70 truncate capitalize">{userAppRole || "Não logado"}</p>
-            </div>
-          </div>
-        </SidebarHeader>
+        {/* SidebarHeader REMOVIDO */}
         <SidebarContent>
           <SidebarMenu>
              <SidebarMenuItem>
@@ -218,26 +204,36 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
           />
         </div>
         
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-x-3 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
           {appUser && (
-             <Button
+            <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
               className="rounded-full h-9 w-9 p-0 text-foreground hover:bg-accent hover:text-accent-foreground -ml-1"
               aria-label="Toggle sidebar"
             >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
-                <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                  {appUser.displayName ? appUser.displayName.substring(0,2).toUpperCase() : (appUser.email ? appUser.email.substring(0,2).toUpperCase() : "U")}
-                </AvatarFallback>
-              </Avatar>
+              {isMobile ? (
+                <Menu className="h-5 w-5" />
+              ) : (
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
+                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+                    {appUser.displayName ? appUser.displayName.substring(0,2).toUpperCase() : (appUser.email ? appUser.email.substring(0,2).toUpperCase() : "U")}
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </Button>
           )}
-          <h1 className="text-lg font-semibold text-primary truncate">
-            BrasilVis Energia
-          </h1>
+          {(!isMobile || (isMobile && !openMobile)) && (
+            <h1 className={cn(
+                "text-lg font-semibold text-primary truncate flex-grow",
+                (!isMobile && sidebarState === 'collapsed') ? "hidden" : "block" 
+              )}
+            >
+              BrasilVis Energia
+            </h1>
+          )}
         </header>
 
         <main className="flex-1 overflow-auto">
