@@ -60,7 +60,17 @@ export default function LoginPage() {
       
       {/* Login Card */}
       <Card className="w-full max-w-md z-10 bg-card/70 backdrop-blur-lg border shadow-2xl">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Image
+              src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/6fcd1f5f2911ab2dce68546d03c967214790d0ba/LOGO_LOGO_BRANCA.png"
+              alt="Planus Logo"
+              width={180} 
+              height={60} 
+              priority
+              data-ai-hint="company logo white"
+            />
+          </div>
           <CardTitle className="text-3xl font-bold text-primary">Bem-vindo(a) de volta!</CardTitle>
           <CardDescription>Acesse o mapa interativo do Brasil.</CardDescription>
         </CardHeader>
