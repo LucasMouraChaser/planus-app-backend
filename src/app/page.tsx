@@ -195,21 +195,38 @@ function CalculatorPageContent() {
       newPlanusInvoiceData.companyCnpj = "XX.XXX.XXX/XXXX-XX"; // Placeholder for Planus
       newPlanusInvoiceData.companyInscEst = "";
 
-
       const valorEnergiaOriginalNum = parseLocaleNumberString(newOriginalInvoiceData.item1Valor);
       const currentSavingsResult = calculateSavings(valorEnergiaOriginalNum, fidelityParam);
-      setSavings(currentSavingsResult); 
+      setSavings(currentSavingsResult);
       
-      const valorEnergiaComDesconto = valorEnergiaOriginalNum - currentSavingsResult.monthlySaving;
-      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorEnergiaComDesconto);
+      const ligacaoParam = params.get("ligacao") || "NAO_INFORMADO";
+      let kwhAdjustment = 0;
+      if (ligacaoParam === 'MONOFASICO') {
+          kwhAdjustment = 30;
+      } else if (ligacaoParam === 'BIFASICO') {
+          kwhAdjustment = 50;
+      } else if (ligacaoParam === 'TRIFASICO') {
+          kwhAdjustment = 100;
+      }
 
-      const basePisCofinsDescontado = valorEnergiaComDesconto * (1 - ALIQUOTA_ICMS_PERC); 
-      newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_PIS_PERC);
-      newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(basePisCofinsDescontado * ALIQUOTA_COFINS_PERC);
+      const custoDisponibilidade = kwhAdjustment * TARIFA_ENERGIA;
+      const consumoKwhPlanus = consumoKwhInput - kwhAdjustment;
       
-      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(valorEnergiaComDesconto * ALIQUOTA_ICMS_PERC); 
+      const valorEnergiaPlanusBruto = consumoKwhPlanus * TARIFA_ENERGIA;
+      const valorLinhaEnergiaPlanus = valorEnergiaPlanusBruto - currentSavingsResult.monthlySaving;
+      
+      const valorLinhaDistribuidoraPlanus = cipValorInput + custoDisponibilidade;
+      
+      newPlanusInvoiceData.item1Quantidade = formatNumberToLocaleString(consumoKwhPlanus, 2);
+      newPlanusInvoiceData.item1Valor = formatNumberToCurrencyString(valorLinhaEnergiaPlanus);
 
-      newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(valorEnergiaComDesconto + cipValorInput - valorProdPropriaInput);
+      // Zero out taxes for Planus invoice display
+      newPlanusInvoiceData.item1PisValor = formatNumberToCurrencyString(0);
+      newPlanusInvoiceData.item1CofinsValor = formatNumberToCurrencyString(0);
+      newPlanusInvoiceData.item1IcmsRS = formatNumberToCurrencyString(0);
+      
+      const totalPlanus = valorLinhaEnergiaPlanus + valorLinhaDistribuidoraPlanus - valorProdPropriaInput;
+      newPlanusInvoiceData.valorTotalFatura = formatNumberToCurrencyString(totalPlanus);
       
       newPlanusInvoiceData.boweNomeRazaoSocial = newOriginalInvoiceData.clienteNome;
       newPlanusInvoiceData.boweCpfCnpj = newOriginalInvoiceData.clienteCnpjCpf;
@@ -229,11 +246,11 @@ function CalculatorPageContent() {
       newPlanusInvoiceData.boweReducaoCO2Valor = "0 t"; 
       newPlanusInvoiceData.boweArvoresPlantadasValor = "0"; 
 
-      newPlanusInvoiceData.boweCustosDistribuidoraValor = newOriginalInvoiceData.item3Valor; 
+      newPlanusInvoiceData.boweCustosDistribuidoraValor = formatNumberToCurrencyString(valorLinhaDistribuidoraPlanus);
       newPlanusInvoiceData.boweEnergiaEletricaQtd = newPlanusInvoiceData.item1Quantidade + " kWh";
-      newPlanusInvoiceData.boweEnergiaEletricaTarifa = formatNumberToLocaleString(parseLocaleNumberString(newPlanusInvoiceData.item1Valor) / consumoKwhInput, 6);
+      newPlanusInvoiceData.boweEnergiaEletricaTarifa = formatNumberToLocaleString(consumoKwhPlanus > 0 ? valorLinhaEnergiaPlanus / consumoKwhPlanus : 0, 6);
       newPlanusInvoiceData.boweEnergiaEletricaValor = newPlanusInvoiceData.item1Valor;
-      newPlanusInvoiceData.boweRestituicaoPisCofinsValor = formatNumberToCurrencyString(parseLocaleNumberString(newPlanusInvoiceData.item1PisValor) + parseLocaleNumberString(newPlanusInvoiceData.item1CofinsValor));
+      newPlanusInvoiceData.boweRestituicaoPisCofinsValor = formatNumberToCurrencyString(0);
       newPlanusInvoiceData.boweCreditosValor = valorProdPropriaInput > 0 ? `-${formatNumberToCurrencyString(valorProdPropriaInput)}` : "R$ 0,00";
       newPlanusInvoiceData.boweCustosTotalValor = newPlanusInvoiceData.valorTotalFatura;
       newPlanusInvoiceData.boweObservacao = currentSavingsResult.discountDescription;
