@@ -21,19 +21,13 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { ReactNode } from 'react'; // Removed useState, useEffect from here
-import { signOut } from 'firebase/auth'; // User type from firebase/auth
+import React, { ReactNode } from 'react';
+import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'; // Import AuthProvider and useAuth
-
-// Metadata can still be defined but might not be used if the whole component is client-side
-// export const metadata: Metadata = {
-//   title: 'Energisa Invoice Editor',
-//   description: 'Editable Energisa Invoice',
-// };
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 interface AppContentProps {
   children: ReactNode;
@@ -43,18 +37,17 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
   const { toggleSidebar, state: sidebarState, isMobile } = useSidebar();
   const currentPathname = usePathname();
   const router = useRouter();
-  const { appUser, userAppRole, isLoadingAuth } = useAuth(); // Use context
+  const { appUser, userAppRole, isLoadingAuth } = useAuth();
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace('/login'); // Explicit redirect after signOut
+      router.replace('/login');
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
 
-  // This useEffect handles redirection based on auth state
   React.useEffect(() => {
     if (!isLoadingAuth) {
       if (!appUser && currentPathname !== '/login') {
@@ -65,7 +58,6 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     }
   }, [isLoadingAuth, appUser, currentPathname, router]);
 
-
   if (isLoadingAuth) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
@@ -74,10 +66,27 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
       </div>
     );
   }
-  
-  // If not authenticated and not on login page, redirect is handled by useEffect.
-  // If on login page and authenticated, redirect to home is handled.
-  // This component might still render briefly before redirect, or not at all if redirect happens fast.
+
+  // Component for the user display in the header when sidebar is collapsed (desktop)
+  const CollapsedHeaderUserDisplay = () => {
+    if (!appUser) return null;
+    return (
+      <div className="flex items-center gap-2">
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
+          <AvatarFallback className="text-sm">
+            {appUser.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser.email ? appUser.email.charAt(0).toUpperCase() : "U")}
+          </AvatarFallback>
+        </Avatar>
+        {/* Show name only on desktop when collapsed, as per original image */}
+        {!isMobile && sidebarState === 'collapsed' && (
+          <span className="text-sm font-medium text-foreground">
+            {appUser.displayName || appUser.email?.split('@')[0]}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -90,6 +99,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                     {appUser?.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser?.email ? appUser.email.charAt(0).toUpperCase() : "U")}
                 </AvatarFallback>
             </Avatar>
+            {/* Text (name, role) is hidden via CSS when sidebar is collapsed on desktop by group-data-[state=collapsed]:hidden */}
             <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
                <h2 className="text-base font-semibold text-sidebar-foreground truncate">{ appUser?.displayName || appUser?.email || "Usuário"}</h2>
                <p className="text-xs text-sidebar-foreground/70 truncate capitalize">{userAppRole || "Não logado"}</p>
@@ -210,25 +220,48 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         <Image
           src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
           alt="Blurred Background"
-          fill // Changed from layout="fill"
-          sizes="100vw" // Added for fill
-          style={{objectFit: "cover", objectPosition: "center"}} // Changed from objectFit, objectPosition
+          fill
+          sizes="100vw"
+          style={{objectFit: "cover", objectPosition: "center"}}
           className="z-[-1] filter blur-lg"
           data-ai-hint="abstract background"
-          priority // Consider adding priority if it's LCP
+          priority
         />
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground md:hidden" // Hide on md and up
-            aria-label="Toggle sidebar"
-          >
-             <Menu className="h-6 w-6" />
-          </Button>
-           <div className="flex-grow text-center md:text-left">
-             <h1 className="text-lg font-semibold text-primary truncate">BrasilVis Energia</h1>
+          {/* Toggle Button Area */}
+          {isMobile ? (
+            // On Mobile: Always show the Menu icon to toggle sidebar
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="rounded-full text-foreground hover:bg-accent hover:text-accent-foreground"
+              aria-label="Toggle sidebar"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          ) : sidebarState === 'collapsed' ? (
+            // On Desktop and Sidebar Collapsed: Show Avatar+Name to toggle sidebar
+            <Button
+              variant="ghost"
+              onClick={toggleSidebar}
+              className="p-1 h-auto rounded-md text-foreground hover:bg-accent hover:text-accent-foreground"
+              aria-label="Toggle sidebar"
+            >
+              <CollapsedHeaderUserDisplay />
+            </Button>
+          ) : (
+            // On Desktop and Sidebar Expanded: Provide a spacer to align title correctly, or adjust title's own padding/margin
+            <div className="w-[calc(var(--sidebar-icon-width,theme(spacing.12)))] sm:w-9 md:w-auto md:min-w-[50px]"></div> // Adjusted spacer, can be fine-tuned
+          )}
+
+           <div className="flex-grow">
+             <h1 className={cn(
+                "text-lg font-semibold text-primary truncate",
+                (!isMobile && sidebarState === 'expanded') ? "text-left" : "text-center"
+              )}>
+               BrasilVis Energia
+             </h1>
            </div>
         </header>
         <main className="flex-1 overflow-auto">
@@ -247,7 +280,6 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Render only children for login page, AuthProvider handles auth state
   if (pathname === '/login') {
     return (
       <html lang="pt-BR" className="dark">
