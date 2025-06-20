@@ -3,6 +3,7 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // Import getAuth
 import { getFirestore } from "firebase/firestore"; // Import getFirestore
+import { getStorage } from "firebase/storage"; // Import getStorage
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -13,7 +14,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyASyZjkbeiSqh9fEaYDwuS9diyIDUhEQeQ",
   authDomain: "energisa-invoice-editor.firebaseapp.com",
   projectId: "energisa-invoice-editor",
-  storageBucket: "energisa-invoice-editor.firebasestorage.app",
+  storageBucket: "energisa-invoice-editor.firebasestorage.app", // Corrected to .firebasestorage.app
   messagingSenderId: "435065861023",
   appId: "1:435065861023:web:da3a50114964b4747f83aa"
 };
@@ -42,6 +43,7 @@ if (!getApps().length) {
 
 const auth = getAuth(app); // Initialize Firebase Auth
 const db = getFirestore(app); // Initialize Firestore
+const storage = getStorage(app); // Initialize Firebase Storage
 
-export { app, auth, db }; // Export auth and db
+export { app, auth, db, storage }; // Export auth, db, and storage
 

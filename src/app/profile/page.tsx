@@ -5,10 +5,9 @@ import { Suspense, useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-// import Image from 'next/image'; // Not used for profile picture display yet
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation'; 
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { UserCircle, Edit3, Save, X, Mail, Shield, Calendar, KeyRound, Camera, Loader2 } from 'lucide-react';
 
 import type { AppUser } from '@/types/user'; 
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 const profileFormSchema = z.object({
   displayName: z.string().min(2, "O nome deve ter pelo menos 2 caracteres.").max(50, "O nome não pode exceder 50 caracteres."),
-  // photoFile: z.instanceof(FileList).optional(), // For file upload
 });
 
 const passwordFormSchema = z.object({
@@ -57,22 +55,20 @@ type PasswordFormData = z.infer<typeof passwordFormSchema>;
 
 function ProfilePageContent() {
   const { toast } = useToast();
-  const { appUser, isLoadingAuth: isLoadingAuthContext } = useAuth(); // Use context
-  const router = useRouter(); // For redirection
+  const { appUser, isLoadingAuth: isLoadingAuthContext, updateAppUserProfile, changeUserPassword } = useAuth(); 
+  const router = useRouter(); 
 
-  // Local state for UI interaction, userData will come from appUser context
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   
-  // Local state for storing form data based on appUser from context
-  const [userData, setUserData] = useState<AppUser | null>(null);
-
   useEffect(() => {
     if (!isLoadingAuthContext && !appUser) {
       router.replace('/login');
     } else if (appUser) {
-      setUserData(appUser); // Set local userData from context's appUser
       setPreviewImage(appUser.photoURL || null);
       profileForm.reset({ displayName: appUser.displayName || "" });
     }
@@ -83,7 +79,7 @@ function ProfilePageContent() {
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      displayName: "", // Will be set by useEffect
+      displayName: appUser?.displayName || "",
     },
   });
 
@@ -97,52 +93,65 @@ function ProfilePageContent() {
   });
 
 
-  const handleProfileSubmit = (values: ProfileFormData) => {
-    // In a real app, call an updateProfile function from your auth context
-    // This function would update Firebase Auth profile and Firestore document
-    console.log("Profile update data:", values);
-    // if (values.photoFile && values.photoFile.length > 0) {
-    //   console.log("New photo file:", values.photoFile[0]);
-    //   // Handle file upload here, then update photoURL in Firestore and Auth
-    // }
-    
-    // Simulate update locally and in context (actual update would be via context function)
-    if (userData) {
-        const updatedUser = { ...userData, displayName: values.displayName };
-        setUserData(updatedUser); 
-        // Ideally, context would have a function like: updateAppUserProfile({ displayName: values.displayName, photoFile: values.photoFile?.[0] })
+  const handleProfileSubmit = async (values: ProfileFormData) => {
+    setIsSubmittingProfile(true);
+    try {
+      await updateAppUserProfile({ displayName: values.displayName, photoFile: selectedPhotoFile || undefined });
+      toast({
+        title: "Perfil Atualizado",
+        description: "Suas informações foram salvas com sucesso.",
+      });
+      setIsEditingProfile(false);
+      setSelectedPhotoFile(null); // Clear selected file after successful upload
+    } catch (error: any) {
+      console.error("Erro ao atualizar perfil:", error);
+      toast({
+        title: "Erro ao Atualizar Perfil",
+        description: error.message || "Não foi possível salvar as alterações. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingProfile(false);
     }
-
-    toast({
-      title: "Perfil Atualizado (Simulado)",
-      description: "Suas informações foram salvas com sucesso.",
-    });
-    setIsEditingProfile(false);
   };
 
-  const handlePasswordChangeSubmit = (values: PasswordFormData) => {
-    console.log("Password change data:", values);
-    // In a real app, call a changePassword function from your auth context
-    // This function would handle re-authentication if needed and update Firebase Auth password
-    toast({
-        title: "Senha Atualizada (Simulado)",
-        description: "Sua senha foi alterada com sucesso.",
-    });
-    setIsChangingPassword(false);
-    passwordForm.reset();
+  const handlePasswordChangeSubmit = async (values: PasswordFormData) => {
+    setIsSubmittingPassword(true);
+    try {
+        await changeUserPassword(values.currentPassword, values.newPassword);
+        toast({
+            title: "Senha Atualizada",
+            description: "Sua senha foi alterada com sucesso.",
+        });
+        setIsChangingPassword(false);
+        passwordForm.reset();
+    } catch (error: any) {
+        console.error("Erro ao alterar senha:", error);
+        let errorMessage = "Falha ao alterar senha.";
+        if (error.code === 'auth/wrong-password') {
+            errorMessage = "Senha atual incorreta.";
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = "A nova senha é muito fraca.";
+        }
+        toast({
+            title: "Erro ao Alterar Senha",
+            description: errorMessage,
+            variant: "destructive",
+        });
+    } finally {
+        setIsSubmittingPassword(false);
+    }
   };
 
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
         const file = event.target.files[0];
-        // profileForm.setValue('photoFile', event.target.files); // Set for react-hook-form if using it for file
-        setPreviewImage(URL.createObjectURL(file)); // Set for immediate preview
-        // Note: Actual upload and URL update would happen in handleProfileSubmit or a context function
+        setSelectedPhotoFile(file);
+        setPreviewImage(URL.createObjectURL(file));
     }
   };
 
-
-  if (isLoadingAuthContext || !userData) { // Check both context loading and local userData
+  if (isLoadingAuthContext || !appUser) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
         <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
@@ -151,7 +160,7 @@ function ProfilePageContent() {
     );
   }
   
-  const createdAtString = userData.createdAt ? (typeof userData.createdAt === 'string' ? userData.createdAt : (userData.createdAt as any).toDate().toISOString()) : null;
+  const createdAtString = appUser.createdAt ? (typeof appUser.createdAt === 'string' ? appUser.createdAt : (appUser.createdAt as any).toDate().toISOString()) : new Date().toISOString();
 
 
   return (
@@ -171,8 +180,8 @@ function ProfilePageContent() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative">
                 <Avatar className="w-32 h-32 border-4 border-primary">
-                    <AvatarImage src={previewImage || userData.photoURL || undefined} alt={userData.displayName || "User"} data-ai-hint="user avatar large" />
-                    <AvatarFallback className="text-4xl">{userData.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarImage src={previewImage || appUser.photoURL || undefined} alt={appUser.displayName || "User"} data-ai-hint="user avatar large" />
+                    <AvatarFallback className="text-4xl">{appUser.displayName?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                 </Avatar>
                 {isEditingProfile && (
                     <Label htmlFor="photoInput" className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90">
@@ -182,16 +191,16 @@ function ProfilePageContent() {
                 )}
             </div>
             <div className="flex-1 text-center md:text-left">
-              <CardTitle className="text-2xl text-foreground">{isEditingProfile ? profileForm.watch("displayName") : userData.displayName}</CardTitle>
-              <CardDescription className="text-muted-foreground">{userData.email}</CardDescription>
+              <CardTitle className="text-2xl text-foreground">{isEditingProfile ? profileForm.watch("displayName") : appUser.displayName}</CardTitle>
+              <CardDescription className="text-muted-foreground">{appUser.email}</CardDescription>
               <div className="mt-3 space-y-1 text-sm">
                 <div className="flex items-center justify-center md:justify-start text-muted-foreground">
-                    <Shield size={16} className="mr-2 text-primary/80" /> Tipo: <span className="font-medium text-foreground ml-1 capitalize">{userData.type}</span>
+                    <Shield size={16} className="mr-2 text-primary/80" /> Tipo: <span className="font-medium text-foreground ml-1 capitalize">{appUser.type}</span>
                 </div>
-                {userData.cpf && (
+                {appUser.cpf && (
                     <div className="flex items-center justify-center md:justify-start text-muted-foreground">
                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-primary/80 lucide lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-                         CPF: <span className="font-medium text-foreground ml-1">{userData.cpf}</span>
+                         CPF: <span className="font-medium text-foreground ml-1">{appUser.cpf}</span>
                     </div>
                 )}
                 {createdAtString && (
@@ -232,16 +241,16 @@ function ProfilePageContent() {
                     </FormItem>
                   )}
                 />
-                {/* Photo upload input is handled by the Label around Camera icon */}
                 <FormDescription className="text-xs text-center">
                     Para alterar o email ou CPF, por favor, entre em contato com o suporte.
                 </FormDescription>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="ghost" onClick={() => { setIsEditingProfile(false); setPreviewImage(userData.photoURL || null); profileForm.reset({displayName: userData.displayName || ""}); }}>
+                  <Button type="button" variant="ghost" onClick={() => { setIsEditingProfile(false); setPreviewImage(appUser.photoURL || null); profileForm.reset({displayName: appUser.displayName || ""}); setSelectedPhotoFile(null); }} disabled={isSubmittingProfile}>
                     <X className="mr-2 h-4 w-4" /> Cancelar
                   </Button>
-                  <Button type="submit" disabled={profileForm.formState.isSubmitting}>
-                    <Save className="mr-2 h-4 w-4" /> Salvar Alterações
+                  <Button type="submit" disabled={isSubmittingProfile}>
+                    {isSubmittingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Salvar Alterações
                   </Button>
                 </div>
               </form>
@@ -286,11 +295,12 @@ function ProfilePageContent() {
                         )}
                     />
                     <div className="flex justify-end gap-2 pt-4">
-                        <Button type="button" variant="ghost" onClick={() => setIsChangingPassword(false)}>
+                        <Button type="button" variant="ghost" onClick={() => { setIsChangingPassword(false); passwordForm.reset(); }} disabled={isSubmittingPassword}>
                            <X className="mr-2 h-4 w-4" /> Cancelar
                         </Button>
-                        <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
-                            <Save className="mr-2 h-4 w-4" /> Salvar Nova Senha
+                        <Button type="submit" disabled={isSubmittingPassword}>
+                            {isSubmittingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Salvar Nova Senha
                         </Button>
                     </div>
                 </form>

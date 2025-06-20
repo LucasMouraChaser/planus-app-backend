@@ -4,18 +4,21 @@
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { AppUser, FirestoreUser } from '@/types/user';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs, Timestamp } from 'firebase/firestore'; // Added collection, getDocs, Timestamp
+import { onAuthStateChanged, updateProfile as updateFirebaseProfile, updatePassword as updateFirebasePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { doc, getDoc, setDoc, collection, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { uploadFile } from '@/lib/firebase/storage'; // Import uploadFile
 
 interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   appUser: AppUser | null;
   isLoadingAuth: boolean;
   userAppRole: 'admin' | 'vendedor' | 'user' | 'prospector' | 'pending_setup' | null;
-  allFirestoreUsers: FirestoreUser[]; // New: For admin to manage users
-  isLoadingAllUsers: boolean; // New: Loading state for allFirestoreUsers
-  fetchAllAppUsers: () => Promise<void>; // New: Function to refresh allFirestoreUsers
+  allFirestoreUsers: FirestoreUser[];
+  isLoadingAllUsers: boolean;
+  fetchAllAppUsers: () => Promise<void>;
+  updateAppUserProfile: (data: { displayName?: string; photoFile?: File }) => Promise<void>;
+  changeUserPassword: (currentPasswordProvided: string, newPasswordProvided: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,14 +32,119 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [allFirestoreUsers, setAllFirestoreUsers] = useState<FirestoreUser[]>([]);
   const [isLoadingAllUsers, setIsLoadingAllUsers] = useState<boolean>(true);
 
+  const fetchFirestoreUser = async (user: FirebaseUser | null): Promise<AppUser | null> => {
+    if (!user) return null;
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const firestoreUserData = userDocSnap.data() as FirestoreUser;
+        const createdAtTimestamp = firestoreUserData.createdAt as Timestamp;
+        return {
+          uid: user.uid,
+          email: user.email,
+          displayName: firestoreUserData.displayName || user.displayName,
+          photoURL: firestoreUserData.photoURL || user.photoURL,
+          type: firestoreUserData.type,
+          cpf: firestoreUserData.cpf,
+          personalBalance: firestoreUserData.personalBalance || 0,
+          mlmBalance: firestoreUserData.mlmBalance || 0,
+          createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
+        };
+      } else {
+        console.warn(`Firestore document for user ${user.uid} not found.`);
+        if (user.email === 'lucasmoura@sentenergia.com') {
+          return {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || "Admin Lucas",
+            type: 'admin',
+            personalBalance: 0,
+            mlmBalance: 0,
+            createdAt: new Date().toISOString(),
+          };
+        }
+        return { // Fallback for users without a Firestore doc (pending setup)
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            type: 'pending_setup',
+            personalBalance: 0,
+            mlmBalance: 0,
+            createdAt: new Date().toISOString(),
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching user data from Firestore:", error);
+      return null;
+    }
+  };
+  
+  const updateAppUserProfile = async (data: { displayName?: string; photoFile?: File }) => {
+    if (!firebaseUser) throw new Error("Usuário não autenticado.");
+
+    let newPhotoURL: string | undefined = undefined;
+    const updatesForFirestore: Partial<FirestoreUser> = {};
+    const updatesForFirebaseAuth: { displayName?: string; photoURL?: string } = {};
+
+    if (data.photoFile) {
+      try {
+        const filePath = `profile_photos/${firebaseUser.uid}/${data.photoFile.name}`;
+        newPhotoURL = await uploadFile(data.photoFile, filePath);
+        updatesForFirebaseAuth.photoURL = newPhotoURL;
+        updatesForFirestore.photoURL = newPhotoURL;
+      } catch (error) {
+        console.error("Erro ao fazer upload da foto:", error);
+        throw new Error("Falha ao fazer upload da nova foto.");
+      }
+    }
+
+    if (data.displayName && data.displayName !== appUser?.displayName) {
+      updatesForFirebaseAuth.displayName = data.displayName;
+      updatesForFirestore.displayName = data.displayName;
+    }
+
+    if (Object.keys(updatesForFirebaseAuth).length > 0) {
+      await updateFirebaseProfile(firebaseUser, updatesForFirebaseAuth);
+    }
+
+    if (Object.keys(updatesForFirestore).length > 0) {
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      await updateDoc(userDocRef, updatesForFirestore);
+    }
+    
+    // Refetch or update appUser state
+    const updatedAppUser = await fetchFirestoreUser(firebaseUser);
+    if (updatedAppUser) {
+        setAppUser(updatedAppUser);
+        setUserAppRole(updatedAppUser.type);
+    }
+  };
+
+  const changeUserPassword = async (currentPasswordProvided: string, newPasswordProvided: string) => {
+    if (!firebaseUser || !firebaseUser.email) throw new Error("Usuário não autenticado ou email não disponível.");
+    
+    const credential = EmailAuthProvider.credential(firebaseUser.email, currentPasswordProvided);
+    
+    try {
+        await reauthenticateWithCredential(firebaseUser, credential);
+        await updateFirebasePassword(firebaseUser, newPasswordProvided);
+    } catch (error) {
+        console.error("Erro ao alterar senha:", error);
+        throw error; // Re-throw para ser tratado na UI
+    }
+  };
+
+
   const fetchAllAppUsers = useCallback(async () => {
-    // This function will be gated by userAppRole check where it's called from AdminDashboardPage or similar
     setIsLoadingAllUsers(true);
     try {
         const usersCollectionRef = collection(db, "users");
         const usersSnapshot = await getDocs(usersCollectionRef);
         const usersList = usersSnapshot.docs.map(docSnap => {
-            const data = docSnap.data() as Omit<FirestoreUser, 'uid' | 'createdAt'>; // Data from Firestore
+            const data = docSnap.data() as Omit<FirestoreUser, 'uid' | 'createdAt'>;
             const createdAtTimestamp = docSnap.data().createdAt as Timestamp;
             return {
                 ...data,
@@ -51,7 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
         setIsLoadingAllUsers(false);
     }
-  }, []); // Removed userAppRole from dependencies, gating will be done by caller
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -59,49 +167,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setFirebaseUser(user);
 
       if (user) {
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-
-          if (userDocSnap.exists()) {
-            const firestoreUserData = userDocSnap.data() as FirestoreUser;
-            const createdAtTimestamp = firestoreUserData.createdAt as Timestamp;
-            const combinedUser: AppUser = {
-              uid: user.uid,
-              email: user.email,
-              displayName: firestoreUserData.displayName || user.displayName,
-              photoURL: firestoreUserData.photoURL || user.photoURL,
-              type: firestoreUserData.type,
-              cpf: firestoreUserData.cpf,
-              personalBalance: firestoreUserData.personalBalance || 0,
-              mlmBalance: firestoreUserData.mlmBalance || 0,
-              createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : undefined,
-            };
-            setAppUser(combinedUser);
-            setUserAppRole(firestoreUserData.type);
-          } else {
-            console.warn(`Firestore document for user ${user.uid} not found.`);
-            if (user.email === 'lucasmoura@sentenergia.com') {
-                const adminFallback: AppUser = {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName || "Admin Lucas",
-                    type: 'admin',
-                    personalBalance: 0,
-                    mlmBalance: 0,
-                };
-                setAppUser(adminFallback);
-                setUserAppRole('admin');
-            } else {
-                setAppUser(null);
-                setUserAppRole('pending_setup');
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching user data from Firestore:", error);
-          setAppUser(null);
-          setUserAppRole(null);
-        }
+        const fetchedAppUser = await fetchFirestoreUser(user);
+        setAppUser(fetchedAppUser);
+        setUserAppRole(fetchedAppUser?.type || 'pending_setup');
       } else {
         setAppUser(null);
         setUserAppRole(null);
@@ -113,19 +181,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => unsubscribe();
   }, []);
 
-  // Fetch all users when admin logs in or appUser role changes to admin
   useEffect(() => {
-    if (userAppRole === 'admin' && !isLoadingAuth) { // ensure auth is resolved before fetching
+    if (userAppRole === 'admin' && !isLoadingAuth) {
         fetchAllAppUsers();
     } else if (userAppRole !== 'admin') {
-        setAllFirestoreUsers([]); // Clear if not admin
-        setIsLoadingAllUsers(false); // Ensure loading is false if not admin
+        setAllFirestoreUsers([]);
+        setIsLoadingAllUsers(false);
     }
   }, [userAppRole, isLoadingAuth, fetchAllAppUsers]);
 
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers }}>
+    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers, updateAppUserProfile, changeUserPassword }}>
       {children}
     </AuthContext.Provider>
   );
