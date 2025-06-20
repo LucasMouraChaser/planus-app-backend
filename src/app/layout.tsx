@@ -24,7 +24,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, Menu, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -34,7 +34,7 @@ interface AppContentProps {
 }
 
 const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { toggleSidebar, state: sidebarState, isMobile } = useSidebar();
+  const { toggleSidebar, state: sidebarState, isMobile, openMobile, setOpenMobile } = useSidebar();
   const currentPathname = usePathname();
   const router = useRouter();
   const { appUser, userAppRole, isLoadingAuth } = useAuth();
@@ -53,7 +53,6 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
       if (!appUser && currentPathname !== '/login') {
         router.replace('/login');
       } else if (appUser && currentPathname === '/login') {
-        // If user is logged in and somehow lands on /login, redirect to home or appropriate dashboard
         if (userAppRole === 'admin') {
           router.replace('/admin/dashboard');
         } else if (userAppRole === 'vendedor') {
@@ -74,14 +73,13 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     );
   }
   
-  // Render login page without sidebar if on /login
   if (currentPathname === '/login') {
     return <>{children}</>;
   }
 
   return (
     <>
-      <Sidebar>
+      <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
              <Avatar className="h-10 w-10 bg-primary hover:bg-primary/90">
@@ -90,7 +88,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                     {appUser?.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser?.email ? appUser.email.charAt(0).toUpperCase() : "U")}
                 </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
+            <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
                <h2 className="text-base font-semibold text-sidebar-foreground truncate">{ appUser?.displayName || appUser?.email || "Usuário"}</h2>
                <p className="text-xs text-sidebar-foreground/70 truncate capitalize">{userAppRole || "Não logado"}</p>
             </div>
@@ -186,8 +184,8 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                           className={cn(
                               "w-full flex items-center gap-2 p-2 text-left text-sm",
                               "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                              sidebarState === 'expanded' ? "justify-start" : "justify-center",
-                              sidebarState === 'collapsed' && !isMobile && "size-8 p-0"
+                              (sidebarState === 'expanded' || openMobile) ? "justify-start" : "justify-center",
+                              (sidebarState === 'collapsed' && !isMobile) && "size-8 p-0"
                           )}
                           aria-label="Sair"
                       >
@@ -197,7 +195,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                           </span>
                       </Button>
                   </TooltipTrigger>
-                  {sidebarState === 'collapsed' && !isMobile && (
+                  {(sidebarState === 'collapsed' && !isMobile) && (
                       <TooltipContent side="right" align="center">
                           <p>Sair</p>
                       </TooltipContent>
@@ -220,40 +218,26 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
           />
         </div>
         
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          {/* Botão de Toggle: Ícone de Menu no Mobile OU Avatar no Desktop Recolhido */}
-          {(isMobile || (!isMobile && sidebarState === 'collapsed')) && appUser && (
-            <Button
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-x-3 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
+          {appUser && (
+             <Button
               variant="ghost"
-              size={isMobile ? "icon" : "default"} 
+              size="icon"
               onClick={toggleSidebar}
-              className={cn(
-                "text-foreground hover:bg-accent hover:text-accent-foreground",
-                isMobile ? "rounded-full" : "p-0 h-9 w-9 rounded-full -ml-1" 
-              )}
+              className="rounded-full h-9 w-9 p-0 text-foreground hover:bg-accent hover:text-accent-foreground -ml-1"
               aria-label="Toggle sidebar"
             >
-              {isMobile ? (
-                <Menu className="h-6 w-6" />
-              ) : (
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
-                  <AvatarFallback className="text-sm bg-muted text-muted-foreground">
-                    {appUser.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser.email ? appUser.email.charAt(0).toUpperCase() : "U")}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
+                <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+                  {appUser.displayName ? appUser.displayName.substring(0,2).toUpperCase() : (appUser.email ? appUser.email.substring(0,2).toUpperCase() : "U")}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           )}
-
-          {/* Título da Aplicação: Visível no Mobile ao lado do menu, ou no Desktop com sidebar expandida */}
-          {(isMobile || (!isMobile && sidebarState === 'expanded')) && (
-            <div className="flex-grow">
-              <h1 className="text-lg font-semibold text-primary truncate">
-                BrasilVis Energia
-              </h1>
-            </div>
-          )}
+          <h1 className="text-lg font-semibold text-primary truncate">
+            BrasilVis Energia
+          </h1>
         </header>
 
         <main className="flex-1 overflow-auto">
@@ -272,7 +256,6 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
 
-  // Always render the basic HTML structure, AuthProvider will handle content visibility
   return (
     <html lang="pt-BR" className="dark">
       <head>
@@ -285,9 +268,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
           {pathname === '/login' ? (
-            children // Render only children (login page) if on /login route
+            children 
           ) : (
-            <SidebarProvider defaultOpen>
+            <SidebarProvider defaultOpen={false}> 
               <AppContent>{children}</AppContent>
             </SidebarProvider>
           )}
