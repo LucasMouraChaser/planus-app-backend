@@ -27,6 +27,7 @@ import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, Log
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import type { UserType } from '@/types/user';
 
 interface AppContentProps {
   children: ReactNode;
@@ -57,7 +58,8 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         } else if (userAppRole === 'vendedor') {
           router.replace('/dashboard/seller');
         } else {
-          router.replace('/');
+          // Default redirect for other authenticated users if login page is accessed directly
+          router.replace('/'); 
         }
       }
     }
@@ -72,15 +74,41 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     );
   }
   
-  if (currentPathname === '/login') {
+  if (currentPathname === '/login' || !appUser) {
     return <>{children}</>;
   }
+
+  const formatUserRole = (role: UserType | null): string => {
+    if (!role) return "Usuário";
+    switch (role) {
+      case "admin": return "Administrador";
+      case "vendedor": return "Vendedor";
+      case "prospector": return "Prospector";
+      case "user": return "Cliente";
+      case "pending_setup": return "Pendente";
+      default:
+        const roleStr = String(role);
+        return roleStr.charAt(0).toUpperCase() + roleStr.slice(1);
+    }
+  };
 
   return (
     <>
       <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
-        {/* SidebarHeader REMOVIDO */}
-        <SidebarContent>
+        {(!isMobile || openMobile) && (
+          <div className={cn(
+            "p-3 border-b border-sidebar-border text-center",
+            (sidebarState === 'collapsed' && !isMobile) && "hidden"
+          )}>
+            <h2 className="text-lg font-semibold text-sidebar-foreground truncate">
+              {appUser.displayName || "Usuário"}
+            </h2>
+            <p className="text-xs text-sidebar-foreground/80">
+              {formatUserRole(userAppRole)}
+            </p>
+          </div>
+        )}
+        <SidebarContent className="pt-4">
           <SidebarMenu>
              <SidebarMenuItem>
               <Link href="/">
@@ -205,8 +233,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         </div>
         
         <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          {appUser && (
-            <Button
+          <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
@@ -224,16 +251,10 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                 </Avatar>
               )}
             </Button>
-          )}
-          {(!isMobile || (isMobile && !openMobile)) && (
-            <h1 className={cn(
-                "text-lg font-semibold text-primary truncate flex-grow",
-                (!isMobile && sidebarState === 'collapsed') ? "hidden" : "block" 
-              )}
-            >
-              BrasilVis Energia
-            </h1>
-          )}
+          
+          <h1 className="text-lg font-semibold text-primary truncate flex-grow">
+            BrasilVis Energia
+          </h1>
         </header>
 
         <main className="flex-1 overflow-auto">
@@ -266,7 +287,7 @@ export default function RootLayout({
           {pathname === '/login' ? (
             children 
           ) : (
-            <SidebarProvider defaultOpen={false}> 
+            <SidebarProvider defaultOpen={true}> 
               <AppContent>{children}</AppContent>
             </SidebarProvider>
           )}
