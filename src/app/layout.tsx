@@ -53,12 +53,12 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
       if (!appUser && currentPathname !== '/login') {
         router.replace('/login');
       } else if (appUser && currentPathname === '/login') {
-        router.replace('/');
+        router.replace('/'); // Redirect to a default authenticated page
       }
     }
   }, [isLoadingAuth, appUser, currentPathname, router]);
 
-  if (isLoadingAuth) {
+  if (isLoadingAuth && currentPathname !== '/login') { // Show loader only for protected pages
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-background text-primary">
         <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
@@ -67,23 +67,21 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
     );
   }
 
+
   // Component for the user display in the header when sidebar is collapsed (desktop)
   const CollapsedHeaderUserDisplay = () => {
     if (!appUser) return null;
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2"> {/* Container for Avatar and Name */}
         <Avatar className="h-9 w-9">
           <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
           <AvatarFallback className="text-sm">
             {appUser.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser.email ? appUser.email.charAt(0).toUpperCase() : "U")}
           </AvatarFallback>
         </Avatar>
-        {/* Show name only on desktop when collapsed, as per original image */}
-        {!isMobile && sidebarState === 'collapsed' && (
-          <span className="text-sm font-medium text-foreground">
-            {appUser.displayName || appUser.email?.split('@')[0]}
-          </span>
-        )}
+        <span className="text-sm font-medium text-foreground">
+          {appUser.displayName || appUser.email?.split('@')[0]}
+        </span>
       </div>
     );
   };
@@ -91,7 +89,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
   return (
     <>
       <Sidebar>
-        <SidebarHeader className="p-4">
+        <SidebarHeader className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
              <Avatar className="h-10 w-10 bg-primary hover:bg-primary/90">
                 <AvatarImage src={appUser?.photoURL || undefined} alt={appUser?.displayName || "Usuário"} data-ai-hint="user avatar small" />
@@ -99,7 +97,6 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                     {appUser?.displayName ? appUser.displayName.charAt(0).toUpperCase() : (appUser?.email ? appUser.email.charAt(0).toUpperCase() : "U")}
                 </AvatarFallback>
             </Avatar>
-            {/* Text (name, role) is hidden via CSS when sidebar is collapsed on desktop by group-data-[state=collapsed]:hidden */}
             <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden">
                <h2 className="text-base font-semibold text-sidebar-foreground truncate">{ appUser?.displayName || appUser?.email || "Usuário"}</h2>
                <p className="text-xs text-sidebar-foreground/70 truncate capitalize">{userAppRole || "Não logado"}</p>
@@ -217,20 +214,22 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <Image
-          src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
-          alt="Blurred Background"
-          fill
-          sizes="100vw"
-          style={{objectFit: "cover", objectPosition: "center"}}
-          className="z-[-1] filter blur-lg"
-          data-ai-hint="abstract background"
-          priority
-        />
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          {/* Toggle Button Area */}
-          {isMobile ? (
-            // On Mobile: Always show the Menu icon to toggle sidebar
+        <div className="absolute inset-0 z-[-1]">
+          <Image
+            src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
+            alt="Blurred Background"
+            fill
+            sizes="100vw"
+            style={{objectFit: "cover", objectPosition: "center"}}
+            className="filter blur-lg"
+            data-ai-hint="abstract background"
+            priority
+          />
+        </div>
+        
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
+          {/* Toggle Button Area - this is the item on the far left */}
+          {isMobile ? ( // Mobile: Menu icon
             <Button
               variant="ghost"
               size="icon"
@@ -240,30 +239,30 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </Button>
-          ) : sidebarState === 'collapsed' ? (
-            // On Desktop and Sidebar Collapsed: Show Avatar+Name to toggle sidebar
+          ) : sidebarState === 'collapsed' ? ( // Desktop + Collapsed: Avatar and Name button
             <Button
               variant="ghost"
               onClick={toggleSidebar}
-              className="p-1 h-auto rounded-md text-foreground hover:bg-accent hover:text-accent-foreground"
+              className="p-1 h-auto rounded-md text-foreground hover:bg-accent hover:text-accent-foreground -ml-1" // Adjust padding/margin as needed
               aria-label="Toggle sidebar"
             >
               <CollapsedHeaderUserDisplay />
             </Button>
-          ) : (
-            // On Desktop and Sidebar Expanded: Provide a spacer to align title correctly, or adjust title's own padding/margin
-            <div className="w-[calc(var(--sidebar-icon-width,theme(spacing.12)))] sm:w-9 md:w-auto md:min-w-[50px]"></div> // Adjusted spacer, can be fine-tuned
+          ) : ( 
+            // Desktop + Expanded: No toggle button here, or a minimal spacer if needed for title alignment.
+            // Based on the image, when sidebar is expanded, title is simply at the left.
+            null 
           )}
 
-           <div className="flex-grow">
-             <h1 className={cn(
-                "text-lg font-semibold text-primary truncate",
-                (!isMobile && sidebarState === 'expanded') ? "text-left" : "text-center"
-              )}>
+           {/* Title - This will take up the remaining space if the header is display: flex */}
+           {/* The gap-x-4 on the parent <header> will provide space if a toggle button is rendered before it. */}
+           <div className="flex-grow"> {/* Ensures title takes available space */}
+             <h1 className="text-lg font-semibold text-primary truncate">
                BrasilVis Energia
              </h1>
            </div>
         </header>
+
         <main className="flex-1 overflow-auto">
           {children}
         </main>
