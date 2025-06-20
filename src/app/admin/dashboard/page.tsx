@@ -1,20 +1,27 @@
 
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react'; // Added useEffect
 import AdminCommissionDashboard from '@/components/admin/AdminCommissionDashboard';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
-import { Loader2, ShieldCheck } from 'lucide-react'; // For admin icon and loader
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import type { AppUser } from '@/types/user';
 
 export default function AdminDashboardPage() {
-  const { appUser, isLoadingAuth, userAppRole } = useAuth(); // Use context
+  const { appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers } = useAuth();
 
-  if (isLoadingAuth) {
+  // Effect to fetch users if admin is already logged in but allFirestoreUsers might not be populated initially
+  useEffect(() => {
+    if (userAppRole === 'admin' && !isLoadingAllUsers && allFirestoreUsers.length === 0) {
+      fetchAllAppUsers();
+    }
+  }, [userAppRole, isLoadingAllUsers, allFirestoreUsers.length, fetchAllAppUsers]);
+
+  if (isLoadingAuth || (userAppRole === 'admin' && isLoadingAllUsers)) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-transparent text-primary">
         <Loader2 className="animate-spin rounded-full h-12 w-12 text-primary mb-4" />
-        <p className="text-lg font-medium">Verificando acesso...</p>
+        <p className="text-lg font-medium">Carregando dados do administrador...</p>
       </div>
     );
   }
@@ -36,8 +43,12 @@ export default function AdminDashboardPage() {
         <p className="text-lg font-medium">Carregando Painel do Administrador...</p>
       </div>
     }>
-      {/* Pass the real appUser from context to the dashboard component */}
-      <AdminCommissionDashboard loggedInUser={appUser as AppUser} />
+      <AdminCommissionDashboard
+        loggedInUser={appUser as AppUser}
+        initialUsers={allFirestoreUsers}
+        isLoadingUsersProp={isLoadingAllUsers}
+        refreshUsers={fetchAllAppUsers}
+      />
     </Suspense>
   );
 }

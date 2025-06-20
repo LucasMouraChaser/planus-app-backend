@@ -11,6 +11,7 @@ import { z } from "zod";
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, Timestamp, collection, getDocs, query, where } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { cn } from "@/lib/utils";
 
 import type { AppUser, FirestoreUser, UserType } from '@/types/user';
 import type { LeadWithId } from '@/types/crm';
@@ -35,15 +36,6 @@ import {
 } from 'lucide-react';
 import { ChartContainer } from "@/components/ui/chart";
 
-// Mock Data (Replace with actual data fetching)
-const MOCK_USERS_DATA: FirestoreUser[] = [
-  { uid: 'user1', email: 'vendedor1@example.com', displayName: 'Vendedor Um', cpf: '11111111111', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 10).toISOString(), personalBalance: 1200, mlmBalance: 300, photoURL: 'https://placehold.co/40x40.png?text=V1' },
-  { uid: 'user2', email: 'vendedor2@example.com', displayName: 'Vendedor Dois', cpf: '22222222222', type: 'vendedor', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), personalBalance: 850, mlmBalance: 150, photoURL: 'https://placehold.co/40x40.png?text=V2' },
-  { uid: 'admin1', email: 'admin@example.com', displayName: 'Admin Principal', type: 'admin', createdAt: new Date(Date.now() - 86400000 * 30).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=AP' },
-  { uid: 'user3', email: 'cliente1@example.com', displayName: 'Cliente Teste Um', cpf: '33333333333', type: 'user', createdAt: new Date(Date.now() - 86400000 * 20).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=C1' },
-  { uid: 'user4', email: 'prospector1@example.com', displayName: 'Prospector Alfa', cpf: '44444444444', type: 'prospector', createdAt: new Date(Date.now() - 86400000 * 15).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=PA' },
-  { uid: 'user5', email: 'novousuario@example.com', displayName: 'Pendente Config', cpf: '55555555555', type: 'pending_setup', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), photoURL: 'https://placehold.co/40x40.png?text=PC' },
-];
 
 const MOCK_LEADS: LeadWithId[] = [
   { id: 'lead1', name: 'Empresa Grande', value: 10000, kwh: 5000, stageId: 'assinado', sellerName: 'vendedor1@example.com', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), lastContact: new Date().toISOString(), leadSource: 'Tráfego Pago', userId: 'user1', needsAdminApproval: false },
@@ -71,17 +63,18 @@ type UpdateWithdrawalFormData = z.infer<typeof updateWithdrawalFormSchema>;
 
 interface AdminCommissionDashboardProps {
   loggedInUser: AppUser;
+  initialUsers: FirestoreUser[];
+  isLoadingUsersProp: boolean;
+  refreshUsers: () => Promise<void>;
 }
 
-export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissionDashboardProps) {
+export default function AdminCommissionDashboard({ loggedInUser, initialUsers, isLoadingUsersProp, refreshUsers }: AdminCommissionDashboardProps) {
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) });
   
-  const [allUsers, setAllUsers] = useState<FirestoreUser[]>([]);
   const [allLeads, setAllLeads] = useState<LeadWithId[]>(MOCK_LEADS);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequestWithId[]>(MOCK_WITHDRAWALS);
 
-  const [isUsersLoading, setIsUsersLoading] = useState(true);
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [userTypeFilter, setUserTypeFilter] = useState<UserType | 'all'>('all');
 
@@ -96,17 +89,8 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
   });
   const updateWithdrawalForm = useForm<UpdateWithdrawalFormData>({ resolver: zodResolver(updateWithdrawalFormSchema) });
 
-  useEffect(() => {
-    setIsUsersLoading(true);
-    // Simulate fetching users
-    setTimeout(() => {
-        setAllUsers(MOCK_USERS_DATA);
-        setIsUsersLoading(false);
-    }, 500);
-  }, []);
-
   const filteredUsers = useMemo(() => {
-    return allUsers.filter(user => {
+    return initialUsers.filter(user => {
       const searchTermLower = userSearchTerm.toLowerCase();
       const matchesSearch = 
         (user.displayName?.toLowerCase().includes(searchTermLower)) ||
@@ -115,40 +99,34 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
       const matchesType = userTypeFilter === 'all' || user.type === userTypeFilter;
       return matchesSearch && matchesType;
     });
-  }, [allUsers, userSearchTerm, userTypeFilter]);
+  }, [initialUsers, userSearchTerm, userTypeFilter]);
 
   const handleAddUser = async (data: AddUserFormData) => {
     setIsSubmittingUser(true);
-
     try {
-      // Check if email or CPF already exists in Firestore
-      const usersRef = collection(db, "users");
-      const emailQuery = query(usersRef, where("email", "==", data.email));
-      const cpfQuery = query(usersRef, where("cpf", "==", data.cpf.replace(/\D/g, '')));
-      
-      const [emailSnapshot, cpfSnapshot] = await Promise.all([getDocs(emailQuery), getDocs(cpfQuery)]);
+      // Check if email or CPF already exists using initialUsers (from context, which is from Firestore)
+      const emailExists = initialUsers.some(user => user.email === data.email);
+      const cpfExists = initialUsers.some(user => user.cpf === data.cpf.replace(/\D/g, ''));
 
-      if (!emailSnapshot.empty) {
+      if (emailExists) {
         toast({ title: "Erro ao Criar Usuário", description: "Este email já está cadastrado.", variant: "destructive" });
         setIsSubmittingUser(false);
         return;
       }
-      if (!cpfSnapshot.empty) {
+      if (cpfExists) {
         toast({ title: "Erro ao Criar Usuário", description: "Este CPF já está cadastrado.", variant: "destructive" });
         setIsSubmittingUser(false);
         return;
       }
 
-      // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const firebaseUser = userCredential.user;
+      const firebaseUserAuth = userCredential.user;
 
-      // Create user document in Firestore
-      const newUserForFirestore: FirestoreUser = {
-        uid: firebaseUser.uid,
+      const newUserForFirestore: Omit<FirestoreUser, 'createdAt'> & { createdAt: Timestamp } = {
+        uid: firebaseUserAuth.uid,
         email: data.email,
         displayName: data.displayName || data.email.split('@')[0],
-        cpf: data.cpf.replace(/\D/g, ''), // Store cleaned CPF
+        cpf: data.cpf.replace(/\D/g, ''),
         type: data.type as UserType,
         createdAt: Timestamp.now(),
         photoURL: `https://placehold.co/40x40.png?text=${(data.displayName || data.email).charAt(0).toUpperCase()}`,
@@ -156,10 +134,9 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
         mlmBalance: 0,
       };
 
-      await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
+      await setDoc(doc(db, "users", firebaseUserAuth.uid), newUserForFirestore);
       
-      // Update local state
-      setAllUsers(prev => [{...newUserForFirestore, createdAt: (newUserForFirestore.createdAt as Timestamp).toDate().toISOString()}, ...prev]);
+      await refreshUsers();
       
       toast({ title: "Usuário Criado", description: `${data.email} registrado com sucesso.` });
       setIsAddUserModalOpen(false);
@@ -169,7 +146,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
       console.error("Erro ao adicionar usuário:", error);
       let errorMessage = "Falha ao criar usuário. Tente novamente.";
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = "Este email já está em uso.";
+        errorMessage = "Este email já está em uso no Firebase Auth.";
       } else if (error.code === 'auth/weak-password') {
         errorMessage = "A senha é muito fraca. Use pelo menos 6 caracteres.";
       }
@@ -189,9 +166,13 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
     if (!selectedWithdrawal) return;
     const isSubmitting = updateWithdrawalForm.formState.isSubmitting;
     if (isSubmitting) return;
-
+    
+    // Simulate update - In a real app, this would call a Firebase function or update Firestore
     console.log("Admin updating withdrawal (simulated):", selectedWithdrawal.id, data);
-    setTimeout(() => {
+    // Start loading state for the form button if desired
+    // updateWithdrawalForm.formState.isSubmitting can be used for this
+    
+    setTimeout(() => { // Simulate async operation
         setWithdrawalRequests(prev => prev.map(w => 
             w.id === selectedWithdrawal.id 
             ? {...w, ...data, processedAt: (data.status === 'concluido' || data.status === 'falhou') ? new Date().toISOString() : w.processedAt} 
@@ -199,6 +180,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
         ));
         toast({ title: "Status de Saque Atualizado", description: "Solicitação atualizada (simulado)." });
         setIsUpdateWithdrawalModalOpen(false);
+        // Reset loading state for the form button
     }, 1000);
   };
   
@@ -259,7 +241,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
             </PopoverContent>
           </Popover>
           <Button variant="outline" size="icon"><Filter className="w-4 h-4" /></Button>
-          <Button variant="outline" size="icon"><RefreshCw className="w-4 h-4" /></Button>
+          <Button variant="outline" size="icon" onClick={refreshUsers} disabled={isLoadingUsersProp}><RefreshCw className={cn("w-4 h-4", isLoadingUsersProp && "animate-spin")} /></Button>
         </div>
       </header>
 
@@ -279,7 +261,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
         </Card>
         <Card className="bg-card/70 backdrop-blur-lg border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium text-primary">Total de Usuários</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{allUsers.length}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold">{initialUsers.length}</div></CardContent>
         </Card>
       </div>
 
@@ -321,7 +303,7 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
               </SelectContent>
             </Select>
           </div>
-          {isUsersLoading ? (
+          {isLoadingUsersProp ? (
              <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : filteredUsers.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">Nenhum usuário encontrado com os filtros atuais.</p>
@@ -444,3 +426,4 @@ export default function AdminCommissionDashboard({ loggedInUser }: AdminCommissi
   );
 }
 
+    

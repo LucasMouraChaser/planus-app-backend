@@ -3,16 +3,19 @@
 
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { AppUser, FirestoreUser } from '@/types/user';
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, Timestamp } from 'firebase/firestore'; // Added collection, getDocs, Timestamp
 import { auth, db } from '@/lib/firebase';
 
 interface AuthContextType {
   firebaseUser: FirebaseUser | null;
-  appUser: AppUser | null; // Nosso tipo combinado com dados do Firestore
+  appUser: AppUser | null;
   isLoadingAuth: boolean;
   userAppRole: 'admin' | 'vendedor' | 'user' | 'prospector' | 'pending_setup' | null;
+  allFirestoreUsers: FirestoreUser[]; // New: For admin to manage users
+  isLoadingAllUsers: boolean; // New: Loading state for allFirestoreUsers
+  fetchAllAppUsers: () => Promise<void>; // New: Function to refresh allFirestoreUsers
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +25,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [userAppRole, setUserAppRole] = useState<AuthContextType['userAppRole']>(null);
+
+  const [allFirestoreUsers, setAllFirestoreUsers] = useState<FirestoreUser[]>([]);
+  const [isLoadingAllUsers, setIsLoadingAllUsers] = useState<boolean>(true);
+
+  const fetchAllAppUsers = useCallback(async () => {
+    // This function will be gated by userAppRole check where it's called from AdminDashboardPage or similar
+    setIsLoadingAllUsers(true);
+    try {
+        const usersCollectionRef = collection(db, "users");
+        const usersSnapshot = await getDocs(usersCollectionRef);
+        const usersList = usersSnapshot.docs.map(docSnap => {
+            const data = docSnap.data() as Omit<FirestoreUser, 'uid' | 'createdAt'>; // Data from Firestore
+            const createdAtTimestamp = docSnap.data().createdAt as Timestamp;
+            return {
+                ...data,
+                uid: docSnap.id,
+                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
+            } as FirestoreUser;
+        });
+        setAllFirestoreUsers(usersList);
+    } catch (error) {
+        console.error("Erro ao buscar todos os usuários do Firestore:", error);
+        setAllFirestoreUsers([]);
+    } finally {
+        setIsLoadingAllUsers(false);
+    }
+  }, []); // Removed userAppRole from dependencies, gating will be done by caller
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -35,6 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           if (userDocSnap.exists()) {
             const firestoreUserData = userDocSnap.data() as FirestoreUser;
+            const createdAtTimestamp = firestoreUserData.createdAt as Timestamp;
             const combinedUser: AppUser = {
               uid: user.uid,
               email: user.email,
@@ -44,17 +75,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               cpf: firestoreUserData.cpf,
               personalBalance: firestoreUserData.personalBalance || 0,
               mlmBalance: firestoreUserData.mlmBalance || 0,
-              // Adicione outros campos conforme necessário
+              createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : undefined,
             };
             setAppUser(combinedUser);
             setUserAppRole(firestoreUserData.type);
           } else {
-            // Documento do usuário não encontrado no Firestore.
-            // Pode ser um novo usuário Auth que ainda não tem registro no Firestore,
-            // ou um usuário admin hardcoded por email.
             console.warn(`Firestore document for user ${user.uid} not found.`);
             if (user.email === 'lucasmoura@sentenergia.com') {
-                // Fallback para admin hardcoded se o doc não existir (idealmente deveria existir)
                 const adminFallback: AppUser = {
                     uid: user.uid,
                     email: user.email,
@@ -66,8 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setAppUser(adminFallback);
                 setUserAppRole('admin');
             } else {
-                 // Para outros usuários, se o doc não existir, tratar como 'pending_setup' ou erro
-                setAppUser(null); // Ou um AppUser básico com type 'pending_setup'
+                setAppUser(null);
                 setUserAppRole('pending_setup');
             }
           }
@@ -79,6 +105,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setAppUser(null);
         setUserAppRole(null);
+        setAllFirestoreUsers([]);
       }
       setIsLoadingAuth(false);
     });
@@ -86,8 +113,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => unsubscribe();
   }, []);
 
+  // Fetch all users when admin logs in or appUser role changes to admin
+  useEffect(() => {
+    if (userAppRole === 'admin' && !isLoadingAuth) { // ensure auth is resolved before fetching
+        fetchAllAppUsers();
+    } else if (userAppRole !== 'admin') {
+        setAllFirestoreUsers([]); // Clear if not admin
+        setIsLoadingAllUsers(false); // Ensure loading is false if not admin
+    }
+  }, [userAppRole, isLoadingAuth, fetchAllAppUsers]);
+
+
   return (
-    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole }}>
+    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers }}>
       {children}
     </AuthContext.Provider>
   );
