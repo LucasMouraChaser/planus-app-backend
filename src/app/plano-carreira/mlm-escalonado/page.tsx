@@ -40,7 +40,7 @@ const bonusTypes = [
     { name: "Bônus de Avanço de Título", description: "Pagamento único ao atingir um novo degrau (Bronze, Prata, etc.).", example: "Atingiu Prata? Ganhe R$500!" },
     { name: "Bônus de Volume de Equipe", description: "Percentual adicional sobre o volume total de vendas da sua equipe, conforme seu degrau.", example: "Equipe Ouro vendeu R$150k? Ganhe X% extra." },
     { name: "Bônus de Liderança", description: "Recompensa por desenvolver novos líderes (ex: formar um Consultor Prata ou Ouro) em sua downline.", example: "Seu indicado se tornou Ouro? Bônus de R$Y para você!" },
-    { name: "Pool de Participação (Níveis Altos)", description: "Uma pequena porcentagem do faturamento total da empresa é dividida entre os consultores de mais alto nível (ex: Platina e acima).", example: "Platinas dividem 1% do faturamento da SENT."}
+    { name: "Pool de Participação (Níveis Altos)", description: "Uma pequena porcentagem do faturamento total da empresa é dividida entre os consultores de mais alto nível (ex: Platina e acima).", example: "Platinas dividem 1% do faturamento da Planus."}
 ];
 
 export default function CareerPlanMlmEscalonadoPage() {
@@ -59,7 +59,7 @@ export default function CareerPlanMlmEscalonadoPage() {
       <section className="text-center py-16 md:py-20">
         <BarChartBig className="w-20 h-20 text-primary mx-auto mb-6" />
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-6">
-          MLM Escalonado SENT Energy: Potencialize Seus Ganhos!
+          MLM Escalonado Planus Energia: Potencialize Seus Ganhos!
         </h1>
         <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
           Nosso modelo Escalonado é projetado para quem busca crescimento acelerado e recompensas significativas.
@@ -152,7 +152,7 @@ export default function CareerPlanMlmEscalonadoPage() {
                 </div>
             </CardContent>
             <CardFooter className="mt-8 text-center">
-                <p className="text-gray-400 text-sm w-full">A SENT Energy oferece todo o suporte para você implementar estas estratégias e alcançar o topo!</p>
+                <p className="text-gray-400 text-sm w-full">A Planus Energia oferece todo o suporte para você implementar estas estratégias e alcançar o topo!</p>
             </CardFooter>
         </Card>
       </section>
@@ -184,7 +184,7 @@ export default function CareerPlanMlmEscalonadoPage() {
       <section className="py-16 md:py-20 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Pronto para Escalar Seus Ganhos?</h2>
         <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-          O modelo MLM Escalonado é a sua via rápida para um futuro financeiro extraordinário com a SENT Energy.
+          O modelo MLM Escalonado é a sua via rápida para um futuro financeiro extraordinário com a Planus Energia.
         </p>
          <Link href="/contato" passHref> {/* TODO: Link para página de cadastro ou contato específico */}
             <Button size="lg" className="bg-primary hover:bg-primary/80 text-primary-foreground px-8 py-3 text-lg">

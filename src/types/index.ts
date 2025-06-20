@@ -1,3 +1,4 @@
+
 import type { LucideProps } from 'lucide-react';
 import type React from 'react';
 
@@ -22,7 +23,7 @@ export interface SavingsResult {
   annualSaving: number;
   discountDescription: string;
   originalMonthlyBill: number;
-  newMonthlyBillWithSent: number;
+  newMonthlyBillWithPlanus: number;
 }
 
 // Manter tipos existentes

@@ -11,11 +11,11 @@ const careerLevels = [
   {
     name: "Consultor de Energia",
     icon: <Users className="w-8 h-8 text-primary mb-3" />,
-    description: "O ponto de partida na sua jornada com a SENT Energy. Aprenda o básico, comece a construir sua base de clientes e entenda nosso modelo de negócios.",
+    description: "O ponto de partida na sua jornada com a Planus Energia. Aprenda o básico, comece a construir sua base de clientes e entenda nosso modelo de negócios.",
     requirements: [
       "Completar o treinamento inicial.",
       "Realizar as primeiras vendas qualificadas.",
-      "Demonstrar compreensão dos produtos SENT."
+      "Demonstrar compreensão dos produtos Planus."
     ],
     benefits: [
       "Comissão padrão sobre vendas diretas.",
@@ -59,7 +59,7 @@ const careerLevels = [
     {
     name: "Consultor Diamante",
     icon: <DollarSign className="w-8 h-8 text-primary mb-3" />,
-    description: "O mais alto nível de reconhecimento e ganhos, um verdadeiro embaixador da SENT Energy.",
+    description: "O mais alto nível de reconhecimento e ganhos, um verdadeiro embaixador da Planus Energia.",
     requirements: [
       "Volume de vendas excepcional em toda a organização.",
       "Formar múltiplos líderes Master em sua downline.",
@@ -80,7 +80,7 @@ export default function CareerPlanPage() {
       <header className="text-center">
         <Rocket className="w-16 h-16 text-primary mx-auto mb-4" />
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary tracking-tight">
-          Sua Jornada de Crescimento na SENT Energy
+          Sua Jornada de Crescimento na Planus Energia
         </h1>
         <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
           Acreditamos no seu potencial. Nosso plano de carreira é desenhado para recompensar seu esforço,

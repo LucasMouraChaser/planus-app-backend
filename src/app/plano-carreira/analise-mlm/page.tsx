@@ -26,11 +26,11 @@ const faqItems = [
     answer: "Geralmente, para se qualificar para comissões de rede, é necessário manter um nível mínimo de vendas pessoais ou atividade, garantindo que você também esteja engajado no negócio."
   },
   {
-    question: "Qual o potencial de ganhos com MLM na SENT Energy?",
+    question: "Qual o potencial de ganhos com MLM na Planus Energia?",
     answer: "O potencial é ilimitado e depende do tamanho e produtividade da sua equipe. Quanto maior e mais bem treinada for sua rede, maiores serão seus ganhos residuais."
   },
   {
-    question: "A SENT Energy oferece suporte para construir minha equipe?",
+    question: "A Planus Energia oferece suporte para construir minha equipe?",
     answer: "Sim! Oferecemos treinamentos de liderança, materiais de recrutamento, e suporte contínuo para ajudá-lo a construir e gerenciar uma equipe de sucesso."
   }
 ];
@@ -51,7 +51,7 @@ export default function CareerPlanMlmAnalysisPage() {
       <section className="text-center py-16 md:py-20">
         <Network className="w-20 h-20 text-primary mx-auto mb-6" />
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-6">
-          Análise do Marketing Multinível SENT Energy
+          Análise do Marketing Multinível Planus Energia
         </h1>
         <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto">
           Descubra como nosso modelo de Marketing Multinível (MLM) pode multiplicar seus ganhos
@@ -199,7 +199,7 @@ export default function CareerPlanMlmAnalysisPage() {
       <section className="py-16 md:py-20 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-100 mb-4">Pronto para Multiplicar seus Ganhos?</h2>
         <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto">
-          Comece a construir sua rede de sucesso hoje mesmo com a SENT Energy!
+          Comece a construir sua rede de sucesso hoje mesmo com a Planus Energia!
         </p>
         <Link href="/contato" passHref> {/* TODO: Link para página de cadastro ou contato específico */}
             <Button size="lg" className="bg-primary hover:bg-primary/80 text-primary-foreground px-8 py-3 text-lg">

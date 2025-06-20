@@ -34,7 +34,7 @@ interface AppContentProps {
 }
 
 const AppContent: React.FC<AppContentProps> = ({ children }) => {
-  const { toggleSidebar, state: sidebarState, isMobile, openMobile } = useSidebar();
+  const { toggleSidebar, state: sidebarState, isMobile, openMobile, setOpenMobile } = useSidebar();
   const currentPathname = usePathname();
   const router = useRouter();
   const { appUser, userAppRole, isLoadingAuth } = useAuth();
@@ -58,7 +58,6 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         } else if (userAppRole === 'vendedor') {
           router.replace('/dashboard/seller');
         } else {
-          // Default redirect for other authenticated users if login page is accessed directly
           router.replace('/'); 
         }
       }
@@ -95,10 +94,10 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
   return (
     <>
       <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
-        {(!isMobile || openMobile) && (
+         {(!isMobile || openMobile) && (
           <div className={cn(
             "p-3 border-b border-sidebar-border text-center",
-            (sidebarState === 'collapsed' && !isMobile) && "hidden"
+             (sidebarState === 'collapsed' && !isMobile) && "hidden" // Esconde no desktop quando colapsado
           )}>
             <h2 className="text-lg font-semibold text-sidebar-foreground truncate">
               {appUser.displayName || "Usuário"}
@@ -108,7 +107,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
             </p>
           </div>
         )}
-        <SidebarContent className="pt-4">
+        <SidebarContent className={cn((!isMobile || openMobile) && "pt-4")}> {/* Adiciona padding-top apenas se o header da sidebar estiver visível */}
           <SidebarMenu>
              <SidebarMenuItem>
               <Link href="/">
@@ -218,7 +217,7 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
           </TooltipProvider>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset onClick={() => { if (isMobile && openMobile) setOpenMobile(false); }}>
         <div className="absolute inset-0 z-[-1]">
           <Image
             src="https://raw.githubusercontent.com/LucasMouraChaser/backgrounds-sent/refs/heads/main/Whisk_7171a56086%20(2).svg"
@@ -233,27 +232,23 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
         </div>
         
         <header className="sticky top-0 z-10 flex h-14 items-center gap-x-4 border-b bg-background/70 backdrop-blur-md px-4 sm:px-6 py-2">
-          <Button
+            <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
               className="rounded-full h-9 w-9 p-0 text-foreground hover:bg-accent hover:text-accent-foreground -ml-1"
               aria-label="Toggle sidebar"
             >
-              {isMobile ? (
-                <Menu className="h-5 w-5" />
-              ) : (
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
-                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                    {appUser.displayName ? appUser.displayName.substring(0,2).toUpperCase() : (appUser.email ? appUser.email.substring(0,2).toUpperCase() : "U")}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={appUser.photoURL || undefined} alt={appUser.displayName || "Usuário"} data-ai-hint="user avatar small" />
+                <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+                  {appUser.displayName ? appUser.displayName.substring(0,2).toUpperCase() : (appUser.email ? appUser.email.substring(0,2).toUpperCase() : "U")}
+                </AvatarFallback>
+              </Avatar>
             </Button>
           
           <h1 className="text-lg font-semibold text-primary truncate flex-grow">
-            BrasilVis Energia
+            Planus Energia
           </h1>
         </header>
 
@@ -280,7 +275,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-        <title>BrasilVis App</title>
+        <title>Planus Energia App</title>
       </head>
       <body className="font-body antialiased">
         <AuthProvider>

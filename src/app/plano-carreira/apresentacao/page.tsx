@@ -97,11 +97,11 @@ export default function CareerPlanPresentationPage() {
       <section className="text-center py-16 md:py-24">
         <Target className="w-20 h-20 text-primary mx-auto mb-6" />
         <h1 className="text-4xl md:text-6xl font-headline font-bold text-primary mb-4">
-          Sua Escalada para o Sucesso na SENT Energy
+          Sua Escalada para o Sucesso na Planus Energia
         </h1>
         <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto">
           Descubra um caminho claro para o crescimento profissional e financeiro.
-          Na SENT Energy, seu esforço e liderança são diretamente recompensados.
+          Na Planus Energia, seu esforço e liderança são diretamente recompensados.
         </p>
       </section>
 
@@ -208,7 +208,7 @@ export default function CareerPlanPresentationPage() {
       <section className="py-16 md:py-24 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-100 mb-4">Pronto para Começar Sua Jornada de Sucesso?</h2>
         <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto">
-          Junte-se à SENT Energy e transforme seu potencial em resultados extraordinários.
+          Junte-se à Planus Energia e transforme seu potencial em resultados extraordinários.
         </p>
         <div className="flex justify-center space-x-4">
             <Link href="/proposal-generator" passHref>
@@ -225,8 +225,8 @@ export default function CareerPlanPresentationPage() {
         </div>
          <div className="mt-12">
             <Image
-                src="https://placehold.co/800x400.png?text=Equipe+SENT+Sucesso"
-                alt="Equipe SENT Energy celebrando o sucesso"
+                src="https://placehold.co/800x400.png?text=Equipe+Planus+Sucesso"
+                alt="Equipe Planus Energia celebrando o sucesso"
                 width={800}
                 height={400}
                 className="rounded-lg mx-auto shadow-xl"

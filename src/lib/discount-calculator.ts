@@ -20,7 +20,7 @@ export function calculateSavings(billAmountInReais: number, isFidelityEnabled: b
       annualSaving: 0,
       discountDescription: "Valor da conta fora da faixa de cálculo para descontos.",
       originalMonthlyBill: billAmountInReais,
-      newMonthlyBillWithSent: billAmountInReais,
+      newMonthlyBillWithPlanus: billAmountInReais,
     };
   }
 
@@ -72,7 +72,7 @@ export function calculateSavings(billAmountInReais: number, isFidelityEnabled: b
     }
   }
   
-  const newMonthlyBillWithSent = billAmountInReais - averageMonthlySaving;
+  const newMonthlyBillWithPlanus = billAmountInReais - averageMonthlySaving;
 
   return {
     effectiveAnnualDiscountPercentage: parseFloat(effectiveAnnualDiscountPercentage.toFixed(2)),
@@ -80,6 +80,6 @@ export function calculateSavings(billAmountInReais: number, isFidelityEnabled: b
     annualSaving: parseFloat(totalSavingsYear.toFixed(2)),
     discountDescription,
     originalMonthlyBill: parseFloat(billAmountInReais.toFixed(2)),
-    newMonthlyBillWithSent: parseFloat(newMonthlyBillWithSent.toFixed(2)),
+    newMonthlyBillWithPlanus: parseFloat(newMonthlyBillWithPlanus.toFixed(2)),
   };
 }

@@ -92,7 +92,7 @@ export function SavingsDisplay({ savings, currentKwh, selectedStateCode }: Savin
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Nova Conta com Planus (Estimada)</p>
-              <p className="text-3xl font-bold text-primary">{formatCurrency(savings.newMonthlyBillWithSent)}</p>
+              <p className="text-3xl font-bold text-primary">{formatCurrency(savings.newMonthlyBillWithPlanus)}</p>
             </div>
           </div>
           <div className="flex justify-center items-center mt-4 md:mt-0 h-[120px] w-full max-w-[250px] mx-auto">
