@@ -1,9 +1,8 @@
-
 // src/app/api/whatsapp/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
 
-const VERIFY_TOKEN = "tokenparaapioficial";
+const VERIFY_TOKEN = "testeapi";
 
 /**
  * Handles the webhook verification GET request from Meta.
