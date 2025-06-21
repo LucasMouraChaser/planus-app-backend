@@ -23,7 +23,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2, Menu, Send } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2, Menu, Send, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -190,6 +190,14 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                 <SidebarMenuButton tooltip="Meu Perfil" isActive={currentPathname === '/profile'}>
                   <CircleUserRound />
                   Perfil
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link href="/sobre">
+                <SidebarMenuButton tooltip="Sobre o App" isActive={currentPathname.startsWith('/sobre')}>
+                  <Info />
+                  Sobre
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
