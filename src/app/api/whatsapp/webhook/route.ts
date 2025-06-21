@@ -1,6 +1,6 @@
 
 // src/app/api/whatsapp/webhook/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
 
 export async function POST(request: Request) {
@@ -53,11 +53,10 @@ export async function POST(request: Request) {
 }
 
 // GET endpoint for webhook verification (required by Meta)
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const mode = searchParams.get('hub.mode');
-    const token = searchParams.get('hub.verify_token');
-    const challenge = searchParams.get('hub.challenge');
+export async function GET(request: NextRequest) {
+    const mode = request.nextUrl.searchParams.get('hub.mode');
+    const token = request.nextUrl.searchParams.get('hub.verify_token');
+    const challenge = request.nextUrl.searchParams.get('hub.challenge');
 
     const verifyToken = "PLANUS_WHATSAPP_SECRET_TOKEN_12345";
 
@@ -66,6 +65,7 @@ export async function GET(request: Request) {
         return new Response(challenge, { status: 200 });
     } else {
         // Verification failed
+        console.error('Webhook verification failed. Token or mode mismatch.');
         return new Response('Forbidden', { status: 403 });
     }
 }
