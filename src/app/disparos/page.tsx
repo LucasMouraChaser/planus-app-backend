@@ -16,7 +16,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, MessageSquare, ListFilter, PlayCircle, BarChart2, CheckCircle, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FormDescription } from '@/components/ui/form';
 
 export default function DisparosPage() {
   const { fetchAllCrmLeadsGlobally } = useAuth();
@@ -221,7 +220,7 @@ export default function DisparosPage() {
                 onChange={e => setMessageTemplate(e.target.value)}
                 className="min-h-[120px]"
               />
-              <FormDescription>{'Use `{{nome_do_cliente}}` para personalizar a mensagem.'}</FormDescription>
+              <p className="text-sm text-muted-foreground">{'Use `{{nome_do_cliente}}` para personalizar a mensagem.'}</p>
               <Card className="p-4 bg-muted/50">
                 <Label className="text-xs font-semibold text-muted-foreground">Pré-visualização</Label>
                 <p className="text-sm mt-1">{previewMessage}</p>
