@@ -185,6 +185,8 @@ export async function findLeadByPhoneNumber(phoneNumber: string): Promise<LeadWi
 }
 
 export async function createLeadFromWhatsapp(contactName: string, phoneNumber: string, firstMessageText: string): Promise<string | null> {
+  // Simplified Lead creation for debugging. Does not save chat history.
+  // In a real app, you might assign to a default user or have a more complex logic.
   const DEFAULT_ADMIN_UID = "QV5ozufTPmOpWHFD2DYE6YRfuE43"; 
   const DEFAULT_ADMIN_EMAIL = "lucasmoura@sentenergia.com";
 
@@ -193,41 +195,26 @@ export async function createLeadFromWhatsapp(contactName: string, phoneNumber: s
   const leadData: Omit<LeadDocumentData, 'id'> = {
     name: contactName || phoneNumber,
     phone: phoneNumber,
+    email: '', // Add email field if available or needed
+    company: '', // Add company field if available or needed
     stageId: 'contato',
-    sellerName: DEFAULT_ADMIN_EMAIL,
+    sellerName: DEFAULT_ADMIN_EMAIL, // Assign to a default seller/admin
     userId: DEFAULT_ADMIN_UID,
     leadSource: 'WhatsApp',
-    value: 0,
-    kwh: 0,
+    value: 0, // Default value, can be updated later
+    kwh: 0, // Default kWh, can be updated later
     createdAt: now,
     lastContact: now,
+    needsAdminApproval: false,
+    correctionReason: ''
   };
 
   try {
-    const batch = writeBatch(db);
-
-    // 1. Create the new lead document
-    const newLeadRef = doc(collection(db, "crm_leads")); // Create a ref with a new ID
-    batch.set(newLeadRef, leadData);
-
-    // 2. Create the chat document with the first message
-    const chatDocRef = doc(db, "crm_lead_chats", newLeadRef.id);
-    const firstMessage: Omit<ChatMessageType, 'timestamp'> & { timestamp: Timestamp } = {
-      id: `msg-${Date.now()}`,
-      text: firstMessageText,
-      sender: 'lead',
-      timestamp: now,
-    };
-    batch.set(chatDocRef, { messages: [firstMessage] });
-
-    // 3. Commit the batch atomically
-    await batch.commit();
-    
-    console.log(`[Firestore] New lead and first message (if any) committed with ID: ${newLeadRef.id}`);
-    return newLeadRef.id;
-
+    const docRef = await addDoc(collection(db, "crm_leads"), leadData);
+    console.log(`[Firestore] Lead document created successfully with ID: ${docRef.id}`);
+    return docRef.id;
   } catch (error) {
-    console.error("[Firestore] Error creating lead from WhatsApp with batch write:", error);
+    console.error("[Firestore] Error creating lead from WhatsApp:", error);
     return null;
   }
 }
