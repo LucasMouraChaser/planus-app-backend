@@ -1,77 +1,81 @@
 
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import type { LeadWithId, LeadDocumentData } from '@/types/crm';
+import { useState, useEffect, Suspense, useRef } from 'react';
+import type { LeadWithId } from '@/types/crm';
 import { KanbanBoard } from '@/components/crm/KanbanBoard';
 import { LeadForm } from '@/components/crm/LeadForm';
 import { LeadDetailView } from '@/components/crm/LeadDetailView';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Users, Filter, Plus, X } from 'lucide-react';
+import { PlusCircle, Users, Filter, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Timestamp } from 'firebase/firestore'; // For mock data
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/hooks/use-toast";
+import { collection, query, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { createCrmLead, updateCrmLeadDetails, approveCrmLead, requestCrmLeadCorrection } from '@/lib/firebase/firestore';
+import { type LeadDocumentData } from '@/types/crm';
 
-
-// Mock Data - Replace with Firestore fetching
-const MOCK_LEADS: LeadWithId[] = [
-  {
-    id: '1', name: 'Empresa Alpha', company: 'Alpha Soluções LTDA', value: 50000, kwh: 2500, stageId: 'contato', sellerName: 'vendedor1@example.com', leadSource: 'Tráfego Pago', phone: '(11) 99999-0001', email: 'contato@alpha.com', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), userId: 'user1', needsAdminApproval: false
-  },
-  {
-    id: '2', name: 'Mercado Beta', value: 120000, kwh: 8000, stageId: 'proposta', sellerName: 'vendedor2@example.com', leadSource: 'Indicação', phone: '(21) 98888-0002', email: 'compras@beta.com.br', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(), userId: 'user2', needsAdminApproval: false
-  },
-  {
-    id: '3', name: 'Padaria Gama', value: 8000, kwh: 700, stageId: 'fatura', sellerName: 'vendedor1@example.com', leadSource: 'WhatsApp', phone: '(31) 97777-0003', email: 'padariagama@email.com', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 30).toISOString(), userId: 'user1', needsAdminApproval: false
-  },
-  {
-    id: '4', name: 'Indústria Delta', company: 'Delta Industrial S/A', value: 350000, kwh: 22000, stageId: 'contrato', sellerName: 'vendedor3@example.com', leadSource: 'Porta a Porta (PAP)', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), userId: 'user3', needsAdminApproval: true, correctionReason: 'Verificar CNPJ.'
-  },
-  {
-    id: '5', name: 'Restaurante Epsilon', value: 15000, kwh: 1200, stageId: 'assinado', sellerName: 'vendedor2@example.com', leadSource: 'Tráfego Pago', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(), userId: 'user2', needsAdminApproval: false
-  },
-   {
-    id: '6', name: 'Escola Zeta', value: 22000, kwh: 1800, stageId: 'conformidade', sellerName: 'vendedor1@example.com', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), userId: 'user1', needsAdminApproval: true
-  },
-  {
-    id: '7', name: 'Loja Kappa', value: 5000, kwh: 300, stageId: 'perdido', sellerName: 'vendedor3@example.com', leadSource: 'Disparo de E-mail', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(), lastContact: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(), userId: 'user3'
-  },
-];
-
-
-// Placeholder for actual Firebase interaction functions
-// async function createCrmLeadFirestore(data: Omit<LeadDocumentData, 'createdAt' | 'lastContact' | 'id'>): Promise<LeadWithId> { /* ... */ return MOCK_LEADS[0]; }
-// async function updateCrmLeadFirestore(leadId: string, data: Partial<LeadDocumentData>): Promise<LeadWithId> { /* ... */ return MOCK_LEADS[0]; }
-// async function fetchCrmLeadsFirestore(): Promise<LeadWithId[]> { /* ... */ return MOCK_LEADS; }
 
 function CrmPageContent() {
-  const [leads, setLeads] = useState<LeadWithId[]>(MOCK_LEADS);
+  const { appUser, userAppRole } = useAuth();
+  const { toast } = useToast();
+  const [leads, setLeads] = useState<LeadWithId[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<LeadWithId | null>(null);
   const [editingLead, setEditingLead] = useState<LeadWithId | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // For initial load
+  const [isLoading, setIsLoading] = useState(true);
+  const knownLeadIds = useRef<Set<string>>(new Set());
 
-  // useEffect(() => {
-  //   const loadLeads = async () => {
-  //     setIsLoading(true);
-  //     // const fetchedLeads = await fetchCrmLeadsFirestore(); // Replace with actual fetch
-  //     setLeads(MOCK_LEADS);
-  //     setIsLoading(false);
-  //   };
-  //   loadLeads();
-  // }, []);
-
-  // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLeads(MOCK_LEADS);
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!appUser) return;
+
+    const q = query(collection(db, "crm_leads"), orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const fetchedLeads: LeadWithId[] = [];
+        const currentLeadIds = new Set<string>();
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const lead: LeadWithId = {
+                id: doc.id,
+                ...data,
+                createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+                lastContact: (data.lastContact as Timestamp).toDate().toISOString(),
+            } as LeadWithId;
+            fetchedLeads.push(lead);
+            currentLeadIds.add(lead.id);
+        });
+
+        // Check for new leads only after the initial load
+        if (knownLeadIds.current.size > 0) {
+            fetchedLeads.forEach(lead => {
+                if (!knownLeadIds.current.has(lead.id)) {
+                    toast({
+                        title: "✨ Novo Lead Recebido!",
+                        description: `Lead "${lead.name}" foi adicionado ao seu CRM.`,
+                    });
+                }
+            });
+        }
+        
+        setLeads(fetchedLeads);
+        knownLeadIds.current = currentLeadIds;
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error fetching real-time leads: ", error);
+        toast({
+            title: "Erro ao Carregar Leads",
+            description: "Não foi possível buscar os leads em tempo real.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [appUser, toast]);
 
 
   const handleOpenForm = (leadToEdit?: LeadWithId) => {
@@ -84,31 +88,31 @@ function CrmPageContent() {
     setEditingLead(null);
   };
 
-  const handleFormSubmit = async (formData: any /* LeadFormData from LeadForm */) => {
+  const handleFormSubmit = async (formData: Omit<LeadDocumentData, 'id' | 'createdAt' | 'lastContact' | 'userId'>, photoFile?: File, billFile?: File) => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (editingLead) {
-      // Update existing lead (mock)
-      setLeads(leads.map(l => l.id === editingLead.id ? { ...l, ...formData, lastContact: new Date().toISOString() } : l));
-      // await updateCrmLeadFirestore(editingLead.id, { ...formData, lastContact: Timestamp.now() });
-    } else {
-      // Create new lead (mock)
-      const newLead: LeadWithId = {
-        id: String(Date.now()),
-        ...formData,
-        createdAt: new Date().toISOString(),
-        lastContact: new Date().toISOString(),
-        userId: 'currentUserMockId', // Replace with actual user ID
-      };
-      setLeads([newLead, ...leads]);
-      // await createCrmLeadFirestore({ ...formData, userId: 'currentUserMockId', createdAt: Timestamp.now(), lastContact: Timestamp.now() });
+    try {
+      if (editingLead) {
+        await updateCrmLeadDetails(editingLead.id, {
+          ...formData,
+          lastContactIso: new Date().toISOString(),
+        });
+        toast({ title: "Lead Atualizado", description: `Os dados de "${formData.name}" foram salvos.` });
+      } else {
+        if (!appUser) throw new Error("Usuário não autenticado.");
+        const leadDataForCreation = {
+          ...formData,
+          sellerName: formData.sellerName || appUser.displayName || appUser.email!,
+        };
+        await createCrmLead(leadDataForCreation, photoFile, billFile);
+        toast({ title: "Lead Criado", description: `"${formData.name}" foi adicionado ao CRM.` });
+      }
+      handleCloseForm();
+    } catch (error) {
+      console.error("Error submitting lead:", error);
+      toast({ title: "Erro ao Salvar", description: "Não foi possível salvar o lead.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-    // const fetchedLeads = await fetchCrmLeadsFirestore();
-    // setLeads(fetchedLeads);
-    setIsSubmitting(false);
-    handleCloseForm();
   };
   
   const handleViewLeadDetails = (lead: LeadWithId) => {
@@ -118,6 +122,29 @@ function CrmPageContent() {
   const handleCloseLeadDetails = () => {
     setSelectedLead(null);
   };
+
+  const handleApproveLead = async (leadId: string) => {
+    try {
+      await approveCrmLead(leadId);
+      toast({ title: "Lead Aprovado", description: "O lead foi movido para 'Assinado'." });
+      handleCloseLeadDetails();
+    } catch (error) {
+      console.error("Error approving lead:", error);
+      toast({ title: "Erro ao Aprovar", description: "Não foi possível aprovar o lead.", variant: "destructive" });
+    }
+  };
+
+  const handleRequestCorrectionLead = async (leadId: string, reason: string) => {
+    try {
+      await requestCrmLeadCorrection(leadId, reason);
+      toast({ title: "Correção Solicitada", description: "O vendedor foi notificado." });
+      handleCloseLeadDetails();
+    } catch (error) {
+      console.error("Error requesting correction:", error);
+      toast({ title: "Erro na Solicitação", description: "Não foi possível solicitar a correção.", variant: "destructive" });
+    }
+  };
+
 
   if (isLoading) {
      return (
@@ -191,7 +218,9 @@ function CrmPageContent() {
                     handleCloseLeadDetails(); // Close detail view first
                     handleOpenForm(selectedLead); // Then open edit form
                 }}
-                // isAdmin={true} // Example for admin view
+                isAdmin={userAppRole === 'admin'}
+                onApprove={handleApproveLead}
+                onRequestCorrection={handleRequestCorrectionLead}
               />
             )}
           </DialogContent>

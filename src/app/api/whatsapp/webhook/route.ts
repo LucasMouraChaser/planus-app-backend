@@ -77,13 +77,13 @@ export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get('hub.verify_token');
     const challenge = request.nextUrl.searchParams.get('hub.challenge');
 
-    const verifyToken = "PLANUS_WHATSAPP_SECRET_TOKEN_12345";
+    // Use o token fornecido por você
+    const verifyToken = "tokenparaapioficial";
 
     if (mode === 'subscribe' && token === verifyToken) {
-        // Verification successful
+        console.log('WEBHOOK_VERIFIED');
         return new Response(challenge, { status: 200 });
     } else {
-        // Verification failed
         console.error('Webhook verification failed. Token or mode mismatch.');
         return new Response('Forbidden', { status: 403 });
     }
