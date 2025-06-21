@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log("WhatsApp Webhook Received:", JSON.stringify(body, null, 2));
