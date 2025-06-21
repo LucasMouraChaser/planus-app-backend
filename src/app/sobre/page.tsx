@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -71,7 +70,7 @@ export default function AboutPage() {
             <p className="text-muted-foreground">
               Para saber mais sobre como coletamos, usamos e protegemos suas informações, por favor, leia nossa Política de Privacidade.
             </p>
-            <Link href="/sobre/politica-de-privacidade" passHref>
+            <Link href="/politica-de-privacidade.html" passHref>
               <Button variant="outline">
                 Ver Política de Privacidade
               </Button>

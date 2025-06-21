@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
       }
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/politica-de-privacidade.html',
+        destination: '/politica-de-privacidade',
+      },
+    ]
+  },
 };
 
 export default nextConfig;
