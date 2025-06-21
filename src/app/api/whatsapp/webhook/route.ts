@@ -51,16 +51,19 @@ export async function POST(request: NextRequest) {
               let lead = await findLeadByPhoneNumber(from);
 
               if (lead) {
-                console.log(`[WhatsApp Webhook] Found existing lead ID: ${lead.id}. Saving message.`);
-                await saveChatMessage(lead.id, { text: text, sender: 'lead' });
-                console.log(`[WhatsApp Webhook] Message saved for lead ${lead.id}.`);
+                console.log(`[WhatsApp Webhook] Found lead: ${JSON.stringify(lead)}`);
+                try {
+                  await saveChatMessage(lead.id, { text: text, sender: 'lead' });
+                } catch (e) {
+                  console.error(`[WhatsApp Webhook] Error saving chat message:`, e);
+                }
               } else {
-                console.log(`[WhatsApp Webhook] No existing lead for ${from}. Creating new lead.`);
-                const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
-                if (newLeadId) {
-                  console.log(`[WhatsApp Webhook] New lead created with ID: ${newLeadId}.`);
-                } else {
-                  console.error(`[WhatsApp Webhook] Failed to create new lead for ${from}.`);
+                console.log(`[WhatsApp Webhook] Creating new lead...`);
+                try {
+                  const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
+                  console.log(`[WhatsApp Webhook] Lead created: ${newLeadId}`);
+                } catch (e) {
+                  console.error(`[WhatsApp Webhook] Error creating lead:`, e);
                 }
               }
             } else {
