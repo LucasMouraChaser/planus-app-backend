@@ -1,57 +1,72 @@
 
 // src/app/api/whatsapp/webhook/route.ts
-// Placeholder for WhatsApp Webhook
-// This would typically handle incoming messages from a WhatsApp Business API provider
-
 import { NextResponse } from 'next/server';
-// import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
+import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log("WhatsApp Webhook Received:", body);
+    console.log("WhatsApp Webhook Received:", JSON.stringify(body, null, 2));
 
-    // --- Highly Simplified Placeholder Logic ---
-    // In a real scenario, you'd parse the specific webhook format from your provider (e.g., Twilio, Meta)
-    const senderPhoneNumber = body?.messages?.[0]?.from; // Example path, varies by provider
-    const messageText = body?.messages?.[0]?.text?.body; // Example path
-    const contactName = body?.contacts?.[0]?.profile?.name; // Example path
+    // Process the webhook payload from Meta
+    if (body.object === "whatsapp_business_account") {
+      for (const entry of body.entry) {
+        for (const change of entry.changes) {
+          if (change.field === "messages" && change.value.messages) {
+            const message = change.value.messages[0];
+            
+            // Handle only text messages for now
+            if (message.type === "text") {
+              const senderPhoneNumber = message.from;
+              const messageText = message.text.body;
+              const contactName = change.value.contacts?.[0]?.profile?.name || 'Novo Contato';
 
-    if (senderPhoneNumber && messageText) {
-      // let lead = await findLeadByPhoneNumber(senderPhoneNumber);
-      // if (!lead) {
-      //   const leadId = await createLeadFromWhatsapp(contactName || senderPhoneNumber, senderPhoneNumber, messageText);
-      //   if (leadId) {
-      //     console.log("New lead created from WhatsApp:", leadId);
-      //   }
-      // } else {
-      //   await saveChatMessage(lead.id, { text: messageText, sender: 'lead' });
-      //   console.log("Message added to existing lead:", lead.id);
-      // }
-      console.log(`Processing mock WhatsApp message from ${senderPhoneNumber} by ${contactName || 'Unknown'}: ${messageText}`);
+              if (senderPhoneNumber && messageText) {
+                console.log(`Processing message from ${contactName} (${senderPhoneNumber}): ${messageText}`);
+
+                let lead = await findLeadByPhoneNumber(senderPhoneNumber);
+                
+                if (!lead) {
+                  console.log(`No existing lead found for ${senderPhoneNumber}. Creating new lead.`);
+                  const leadId = await createLeadFromWhatsapp(contactName, senderPhoneNumber, messageText);
+                  if (leadId) {
+                    console.log(`New lead created from WhatsApp with ID: ${leadId}`);
+                  }
+                } else {
+                  console.log(`Found existing lead with ID: ${lead.id}. Saving message.`);
+                  await saveChatMessage(lead.id, { text: messageText, sender: 'lead' });
+                  console.log(`Message added to existing lead: ${lead.id}`);
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    // --- End Placeholder Logic ---
 
-    return NextResponse.json({ message: "Webhook received successfully" }, { status: 200 });
+    return NextResponse.json({ message: "Webhook processed successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error processing WhatsApp webhook:", error);
+    // Return a generic error message to avoid leaking implementation details
     return NextResponse.json({ error: "Failed to process webhook" }, { status: 500 });
   }
 }
 
-// You might also need a GET endpoint for webhook verification with some providers
+// GET endpoint for webhook verification (required by Meta)
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get('hub.mode');
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    // Verify token (replace 'YOUR_VERIFY_TOKEN' with your actual token)
-    if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
-        console.log("WhatsApp Webhook Verified");
+    // Your verify token must be set as an environment variable
+    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+
+    if (mode === 'subscribe' && token === verifyToken) {
+        console.log("WhatsApp Webhook Verified Successfully");
         return new Response(challenge, { status: 200 });
     } else {
-        console.error("Failed WhatsApp Webhook Verification");
+        console.error("Failed WhatsApp Webhook Verification: Mismatched tokens or incorrect mode.");
         return new Response('Forbidden', { status: 403 });
     }
 }
