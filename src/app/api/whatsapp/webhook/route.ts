@@ -51,14 +51,10 @@ export async function POST(request: NextRequest) {
 
                     console.log(`[WhatsApp Webhook] Processing text message from: ${profileName} (${from})`);
                     
-                    try {
-                      // Directly create a new lead for every incoming message to simplify debugging
-                      console.log(`[WhatsApp Webhook] Attempting to create new lead...`);
-                      const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
-                      console.log(`[WhatsApp Webhook] Lead creation process finished. Result ID: ${newLeadId}`);
-                    } catch (e) {
-                       console.error(`[WhatsApp Webhook] CRITICAL: Error during lead creation process:`, e);
-                    }
+                    // Directly create a new lead for every incoming message to simplify debugging
+                    console.log(`[WhatsApp Webhook] Attempting to create new lead...`);
+                    const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
+                    console.log(`[WhatsApp Webhook] Lead creation process finished. Result ID: ${newLeadId}`);
                   } else {
                     console.log(`[WhatsApp Webhook] Ignoring non-text message of type: ${message.type}`);
                   }
