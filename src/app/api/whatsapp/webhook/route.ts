@@ -5,70 +5,57 @@ import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => {
-    console.error("Failed to parse request body as JSON.");
+    console.error("[WhatsApp Webhook] Failed to parse request body as JSON.");
     return null;
   });
-  
-  if (!body) {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-  }
-  
-  console.log("WhatsApp Webhook Received:", JSON.stringify(body, null, 2));
-  
-  try {
-    if (body.object === "whatsapp_business_account") {
-      for (const entry of body.entry) {
-        if (entry.changes) {
-          for (const change of entry.changes) {
-            if (change.field === "messages" && change.value.messages) {
-              const message = change.value.messages[0];
-              
-              if (message && message.type === "text") {
-                try {
-                  const senderPhoneNumber = message.from;
-                  const messageText = message.text.body;
-                  const contactName = change.value.contacts?.[0]?.profile?.name || 'Novo Contato';
 
-                  if (senderPhoneNumber && messageText) {
-                    console.log(`Processing message from ${contactName} (${senderPhoneNumber}): ${messageText}`);
-                    
-                    let lead = await findLeadByPhoneNumber(senderPhoneNumber);
-                    
-                    if (!lead) {
-                      console.log(`No existing lead found for ${senderPhoneNumber}. Creating new lead.`);
-                      // Pass only the essential info to create the lead first.
-                      const leadId = await createLeadFromWhatsapp(contactName, senderPhoneNumber, messageText);
-                      if (leadId) {
-                        console.log(`New lead created with ID: ${leadId}`);
-                      } else {
-                        console.error(`Failed to create lead for ${senderPhoneNumber}.`);
-                      }
-                    } else {
-                      console.log(`Found existing lead with ID: ${lead.id}. Saving message.`);
-                      await saveChatMessage(lead.id, { text: messageText, sender: 'lead' });
-                      console.log(`Message added to existing lead: ${lead.id}`);
-                    }
-                  }
-                } catch (innerError) {
-                  console.error("Error processing a single message:", innerError);
-                  // Continue processing other messages in the payload
-                }
-              }
-            }
+  console.log("[WhatsApp Webhook] Received payload:", JSON.stringify(body, null, 2));
+
+  if (!body || body.object !== "whatsapp_business_account") {
+    console.error("[WhatsApp Webhook] Invalid or non-WhatsApp payload received.");
+    return NextResponse.json({ message: "Error: Not a WhatsApp payload" }, { status: 200 });
+  }
+
+  try {
+    const change = body.entry?.[0]?.changes?.[0];
+
+    if (change?.field === "messages" && change?.value?.messages?.[0]) {
+      const message = change.value.messages[0];
+      const contact = change.value.contacts?.[0];
+
+      if (message.type === "text") {
+        const from = message.from;
+        const text = message.text.body;
+        const contactName = contact?.profile?.name || 'Novo Contato WhatsApp';
+
+        console.log(`[WhatsApp Webhook] Processing text message from ${contactName} (${from}): "${text}"`);
+
+        let lead = await findLeadByPhoneNumber(from);
+
+        if (lead) {
+          console.log(`[WhatsApp Webhook] Found existing lead ID: ${lead.id}. Saving message.`);
+          await saveChatMessage(lead.id, { text: text, sender: 'lead' });
+          console.log(`[WhatsApp Webhook] Message saved for lead ${lead.id}.`);
+        } else {
+          console.log(`[WhatsApp Webhook] No existing lead for ${from}. Creating new lead.`);
+          const newLeadId = await createLeadFromWhatsapp(contactName, from, text); // Pass the text
+          if (newLeadId) {
+            console.log(`[WhatsApp Webhook] New lead created with ID: ${newLeadId}.`);
+          } else {
+            console.error(`[WhatsApp Webhook] Failed to create new lead for ${from}.`);
           }
         }
+      } else {
+        console.log(`[WhatsApp Webhook] Ignoring non-text message of type: ${message.type}`);
       }
+    } else {
+      console.log("[WhatsApp Webhook] Received a change, but it was not a message or was malformed. Ignoring.");
     }
-    // Always return 200 OK to Meta to keep the webhook active.
-    // Errors are logged on the server for debugging.
-    return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
-
   } catch (error) {
-    console.error("Outer error processing WhatsApp webhook:", error);
-    // Even in case of an outer error, it's often better to return 200 to Meta
-    // to avoid the webhook being disabled. The error is logged for us to fix.
-    return NextResponse.json({ message: "Webhook processed with errors" }, { status: 200 });
+    console.error("[WhatsApp Webhook] FATAL Error processing webhook payload:", error);
   }
+  
+  return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
 }
 
 
@@ -78,13 +65,13 @@ export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get('hub.verify_token');
     const challenge = request.nextUrl.searchParams.get('hub.challenge');
 
-    const verifyToken = "tokenparaapioficial";
+    const VERIFY_TOKEN = "tokenparaapioficial";
 
-    if (mode === 'subscribe' && token === verifyToken) {
-        console.log('WEBHOOK_VERIFIED');
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+        console.log('[WhatsApp Webhook] Verification successful!');
         return new Response(challenge, { status: 200 });
     } else {
-        console.error('Webhook verification failed. Token or mode mismatch.');
+        console.error('[WhatsApp Webhook] Verification failed. Mode or token mismatch.');
         return new Response('Forbidden', { status: 403 });
     }
 }

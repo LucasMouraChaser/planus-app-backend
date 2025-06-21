@@ -184,38 +184,55 @@ export async function findLeadByPhoneNumber(phoneNumber: string): Promise<LeadWi
   return null;
 }
 
-export async function createLeadFromWhatsapp(contactName: string, phoneNumber: string, firstMessage?: string): Promise<string | null> {
-  // For webhooks, auth.currentUser is null. We assign leads to a default admin/system user.
-  // Replace with your actual default admin UID and email.
+export async function createLeadFromWhatsapp(contactName: string, phoneNumber: string, firstMessageText?: string): Promise<string | null> {
   const DEFAULT_ADMIN_UID = "QV5ozufTPmOpWHFD2DYE6YRfuE43"; 
   const DEFAULT_ADMIN_EMAIL = "lucasmoura@sentenergia.com";
 
-  const leadData: Omit<LeadDocumentData, 'id'| 'createdAt' | 'lastContact'> = {
+  const leadData: Omit<LeadDocumentData, 'id' | 'createdAt' | 'lastContact'> = {
     name: contactName || phoneNumber,
     phone: phoneNumber,
     stageId: 'contato',
-    sellerName: DEFAULT_ADMIN_EMAIL, // Assign to a default admin or use rotation logic
+    sellerName: DEFAULT_ADMIN_EMAIL,
     userId: DEFAULT_ADMIN_UID,
     leadSource: 'WhatsApp',
-    value: 0, // Initial default value
-    kwh: 0,   // Initial default value
+    value: 0,
+    kwh: 0,
   };
 
-  const fullLeadData: LeadDocumentData = {
+  const now = Timestamp.now();
+  const fullLeadData: Omit<LeadDocumentData, 'id'> = {
     ...leadData,
-    createdAt: Timestamp.now(),
-    lastContact: Timestamp.now(),
+    createdAt: now,
+    lastContact: now,
   };
 
   try {
-    const docRef = await addDoc(collection(db, "crm_leads"), fullLeadData);
-    // After the lead is created successfully, save the first message.
-    if (docRef.id && firstMessage) {
-      await saveChatMessage(docRef.id, { text: firstMessage, sender: 'lead' });
+    const batch = writeBatch(db);
+
+    // 1. Create the new lead document
+    const newLeadRef = doc(collection(db, "crm_leads")); // Create a ref with a new ID
+    batch.set(newLeadRef, fullLeadData);
+
+    // 2. If there's a first message, create the chat document and add it
+    if (firstMessageText) {
+      const chatDocRef = doc(db, "crm_lead_chats", newLeadRef.id);
+      const firstMessage: Omit<ChatMessageType, 'timestamp'> & { timestamp: Timestamp } = {
+        id: `msg-${Date.now()}`,
+        text: firstMessageText,
+        sender: 'lead',
+        timestamp: now,
+      };
+      batch.set(chatDocRef, { messages: [firstMessage] });
     }
-    return docRef.id;
+
+    // 3. Commit the batch
+    await batch.commit();
+    
+    console.log(`[Firestore] New lead and first message (if any) committed with ID: ${newLeadRef.id}`);
+    return newLeadRef.id;
+
   } catch (error) {
-    console.error("Error creating lead from WhatsApp:", error);
+    console.error("[Firestore] Error creating lead from WhatsApp with batch write:", error);
     return null;
   }
 }
