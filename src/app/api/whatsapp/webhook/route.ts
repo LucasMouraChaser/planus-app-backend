@@ -59,8 +59,9 @@ export async function GET(request: Request) {
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    // Your verify token must be set as an environment variable
-    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+    // **FIX:** Directly use the Verify Token string here.
+    // process.env variables from .env.local are not available in production server environments by default.
+    const verifyToken = "PLANUS_WHATSAPP_SECRET_TOKEN_12345";
 
     if (mode === 'subscribe' && token === verifyToken) {
         console.log("WhatsApp Webhook Verified Successfully");
