@@ -59,15 +59,13 @@ export async function GET(request: Request) {
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    // **FIX:** Directly use the Verify Token string here.
-    // process.env variables from .env.local are not available in production server environments by default.
     const verifyToken = "PLANUS_WHATSAPP_SECRET_TOKEN_12345";
 
     if (mode === 'subscribe' && token === verifyToken) {
-        console.log("WhatsApp Webhook Verified Successfully");
+        // Verification successful
         return new Response(challenge, { status: 200 });
     } else {
-        console.error("Failed WhatsApp Webhook Verification: Mismatched tokens or incorrect mode.");
+        // Verification failed
         return new Response('Forbidden', { status: 403 });
     }
 }
