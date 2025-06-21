@@ -23,7 +23,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { ReactNode } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2, Menu } from 'lucide-react';
+import { BarChart3, Calculator, UsersRound, Wallet, Rocket, CircleUserRound, LogOut, FileText, LayoutDashboard, ShieldAlert, Loader2, Menu, Send } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -140,6 +140,14 @@ const AppContent: React.FC<AppContentProps> = ({ children }) => {
                 <SidebarMenuButton tooltip="Gestão de Clientes" isActive={currentPathname === '/crm'}>
                   <UsersRound />
                   CRM
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <Link href="/disparos">
+                <SidebarMenuButton tooltip="Disparos em Massa" isActive={currentPathname === '/disparos'}>
+                  <Send />
+                  Disparos
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -292,4 +300,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -3,6 +3,7 @@
 
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { AppUser, FirestoreUser } from '@/types/user';
+import type { LeadWithId } from '@/types/crm';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { onAuthStateChanged, updateProfile as updateFirebaseProfile, updatePassword as updateFirebasePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, Timestamp, updateDoc } from 'firebase/firestore';
@@ -17,6 +18,7 @@ interface AuthContextType {
   allFirestoreUsers: FirestoreUser[];
   isLoadingAllUsers: boolean;
   fetchAllAppUsers: () => Promise<void>;
+  fetchAllCrmLeadsGlobally: () => Promise<LeadWithId[]>;
   updateAppUserProfile: (data: { displayName?: string; photoFile?: File }) => Promise<void>;
   changeUserPassword: (currentPasswordProvided: string, newPasswordProvided: string) => Promise<void>;
 }
@@ -161,6 +163,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const fetchAllCrmLeadsGlobally = useCallback(async (): Promise<LeadWithId[]> => {
+    try {
+      const leadsCollectionRef = collection(db, "crm_leads");
+      const leadsSnapshot = await getDocs(leadsCollectionRef);
+      const leadsList = leadsSnapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          ...data,
+          createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+          lastContact: (data.lastContact as Timestamp).toDate().toISOString(),
+        } as LeadWithId;
+      });
+      return leadsList;
+    } catch (error) {
+      console.error("Erro ao buscar todos os leads do CRM:", error);
+      return [];
+    }
+  }, []);
+
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsLoadingAuth(true);
@@ -192,7 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers, updateAppUserProfile, changeUserPassword }}>
+    <AuthContext.Provider value={{ firebaseUser, appUser, isLoadingAuth, userAppRole, allFirestoreUsers, isLoadingAllUsers, fetchAllAppUsers, fetchAllCrmLeadsGlobally, updateAppUserProfile, changeUserPassword }}>
       {children}
     </AuthContext.Provider>
   );

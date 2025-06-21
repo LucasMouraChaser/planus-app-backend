@@ -68,6 +68,14 @@ export interface LeadWithId extends Omit<LeadDocumentData, 'createdAt' | 'lastCo
   lastContact: string; // Always string on client
 }
 
+export interface OutboundLead {
+  id: string;
+  name: string;
+  phone: string;
+  consumption: number;
+  company?: string;
+}
+
 export interface ChatMessage {
   id: string; // ID único para a mensagem
   text: string; // Conteúdo da mensagem
