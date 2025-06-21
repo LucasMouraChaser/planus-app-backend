@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
                     
                     if (!lead) {
                       console.log(`No existing lead found for ${senderPhoneNumber}. Creating new lead.`);
+                      // Pass only the essential info to create the lead first.
                       const leadId = await createLeadFromWhatsapp(contactName, senderPhoneNumber, messageText);
                       if (leadId) {
                         console.log(`New lead created with ID: ${leadId}`);
@@ -77,7 +78,6 @@ export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get('hub.verify_token');
     const challenge = request.nextUrl.searchParams.get('hub.challenge');
 
-    // Use o token fornecido por você
     const verifyToken = "tokenparaapioficial";
 
     if (mode === 'subscribe' && token === verifyToken) {

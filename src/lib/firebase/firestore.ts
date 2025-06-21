@@ -209,6 +209,7 @@ export async function createLeadFromWhatsapp(contactName: string, phoneNumber: s
 
   try {
     const docRef = await addDoc(collection(db, "crm_leads"), fullLeadData);
+    // After the lead is created successfully, save the first message.
     if (docRef.id && firstMessage) {
       await saveChatMessage(docRef.id, { text: firstMessage, sender: 'lead' });
     }
