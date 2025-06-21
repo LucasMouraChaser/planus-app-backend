@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, MessageSquare, ListFilter, PlayCircle, BarChart2, CheckCircle, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { FormDescription } from '@/components/ui/form';
 
 export default function DisparosPage() {
   const { fetchAllCrmLeadsGlobally } = useAuth();
