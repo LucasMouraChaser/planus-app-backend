@@ -1,3 +1,4 @@
+
 // src/app/api/whatsapp/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { findLeadByPhoneNumber, createLeadFromWhatsapp, saveChatMessage } from '@/lib/firebase/firestore';
@@ -21,65 +22,74 @@ export async function GET(request: NextRequest) {
   }
 }
 
-
 /**
  * Handles incoming message notifications POST requests from Meta.
  */
 export async function POST(request: NextRequest) {
+  console.log('[WhatsApp Webhook] POST request received.');
   try {
     const body = await request.json();
     console.log('[WhatsApp Webhook] Received POST payload:', JSON.stringify(body, null, 2));
 
-    if (body.object === 'whatsapp_business_account') {
-      for (const entry of body.entry) {
-        for (const change of entry.changes) {
-          const value = change.value;
+    // Check if the request is a valid WhatsApp message payload
+    if (
+      body.object &&
+      body.entry &&
+      body.entry[0].changes &&
+      body.entry[0].changes[0] &&
+      body.entry[0].changes[0].value.messages &&
+      body.entry[0].changes[0].value.messages[0]
+    ) {
+      const value = body.entry[0].changes[0].value;
+      const message = value.messages[0];
+      const contact = value.contacts?.[0];
 
-          if (value && value.messages && value.messages.length > 0) {
-            const message = value.messages[0];
-            const contact = value.contacts?.[0];
-            
-            // Only process text messages for now
-            if (message.type === 'text') {
-              const from = message.from; // Phone number
-              const text = message.text.body;
-              const profileName = contact?.profile?.name || 'Sem Nome';
+      if (message.type === 'text') {
+        const from = message.from; // Phone number
+        const text = message.text.body;
+        const profileName = contact?.profile?.name || 'Sem Nome';
 
-              console.log(`[WhatsApp Webhook] Processing message from: ${profileName} (${from}) | Text: "${text}"`);
+        console.log(`[WhatsApp Webhook] Processing text message from: ${profileName} (${from}) | Text: "${text}"`);
 
-              let lead = await findLeadByPhoneNumber(from);
+        // Find if lead exists
+        let lead = await findLeadByPhoneNumber(from);
 
-              if (lead) {
-                console.log(`[WhatsApp Webhook] Found lead: ${JSON.stringify(lead)}`);
-                try {
-                  await saveChatMessage(lead.id, { text: text, sender: 'lead' });
-                } catch (e) {
-                  console.error(`[WhatsApp Webhook] Error saving chat message:`, e);
-                }
-              } else {
-                console.log(`[WhatsApp Webhook] Creating new lead...`);
-                try {
-                  const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
-                  console.log(`[WhatsApp Webhook] Lead created: ${newLeadId}`);
-                } catch (e) {
-                  console.error(`[WhatsApp Webhook] Error creating lead:`, e);
-                }
-              }
+        if (lead) {
+          console.log(`[WhatsApp Webhook] Found existing lead: ${lead.id}`);
+          try {
+            await saveChatMessage(lead.id, { text: text, sender: 'lead' });
+            console.log(`[WhatsApp Webhook] Chat message saved for lead ID: ${lead.id}`);
+          } catch (e) {
+            console.error(`[WhatsApp Webhook] Error saving chat message for existing lead:`, e);
+          }
+        } else {
+          console.log(`[WhatsApp Webhook] Phone number not found. Creating new lead...`);
+          try {
+            const newLeadId = await createLeadFromWhatsapp(profileName, from, text);
+            if (newLeadId) {
+              console.log(`[WhatsApp Webhook] New lead and first message successfully created with ID: ${newLeadId}`);
             } else {
-               console.log(`[WhatsApp Webhook] Ignoring non-text message of type: ${message.type}`);
+              console.error(`[WhatsApp Webhook] createLeadFromWhatsapp returned null or undefined.`);
             }
+          } catch (e) {
+            console.error(`[WhatsApp Webhook] Error creating new lead:`, e);
           }
         }
+      } else {
+        console.log(`[WhatsApp Webhook] Ignoring non-text message of type: ${message.type}`);
       }
-      // Respond to Meta that the message was received
-      return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
+    } else if (body.entry && body.entry[0].changes && body.entry[0].changes[0].value.statuses) {
+      console.log('[WhatsApp Webhook] Received a delivery status update. Ignoring.');
     } else {
-      // Not a WhatsApp payload
-      return NextResponse.json({ message: "Not a WhatsApp payload" }, { status: 404 });
+      console.log('[WhatsApp Webhook] Received a valid but unhandled payload type.');
     }
+    
+    // Acknowledge receipt to Meta immediately
+    return NextResponse.json({ status: "success" }, { status: 200 });
+
   } catch (error) {
     console.error('[WhatsApp Webhook] FATAL Error processing webhook:', error);
-    // Return a 500 error but still respond to avoid Meta retries
-    return NextResponse.json({ message: "Error processing webhook" }, { status: 500 });
+    // Return 200 to prevent Meta from resending/disabling the webhook
+    return NextResponse.json({ message: "Error processing webhook, but acknowledged." }, { status: 200 });
   }
 }

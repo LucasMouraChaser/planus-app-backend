@@ -184,11 +184,13 @@ export async function findLeadByPhoneNumber(phoneNumber: string): Promise<LeadWi
   return null;
 }
 
-export async function createLeadFromWhatsapp(contactName: string, phoneNumber: string, firstMessageText?: string): Promise<string | null> {
+export async function createLeadFromWhatsapp(contactName: string, phoneNumber: string, firstMessageText: string): Promise<string | null> {
   const DEFAULT_ADMIN_UID = "QV5ozufTPmOpWHFD2DYE6YRfuE43"; 
   const DEFAULT_ADMIN_EMAIL = "lucasmoura@sentenergia.com";
 
-  const leadData: Omit<LeadDocumentData, 'id' | 'createdAt' | 'lastContact'> = {
+  const now = Timestamp.now();
+
+  const leadData: Omit<LeadDocumentData, 'id'> = {
     name: contactName || phoneNumber,
     phone: phoneNumber,
     stageId: 'contato',
@@ -197,11 +199,6 @@ export async function createLeadFromWhatsapp(contactName: string, phoneNumber: s
     leadSource: 'WhatsApp',
     value: 0,
     kwh: 0,
-  };
-
-  const now = Timestamp.now();
-  const fullLeadData: Omit<LeadDocumentData, 'id'> = {
-    ...leadData,
     createdAt: now,
     lastContact: now,
   };
@@ -211,21 +208,19 @@ export async function createLeadFromWhatsapp(contactName: string, phoneNumber: s
 
     // 1. Create the new lead document
     const newLeadRef = doc(collection(db, "crm_leads")); // Create a ref with a new ID
-    batch.set(newLeadRef, fullLeadData);
+    batch.set(newLeadRef, leadData);
 
-    // 2. If there's a first message, create the chat document and add it
-    if (firstMessageText) {
-      const chatDocRef = doc(db, "crm_lead_chats", newLeadRef.id);
-      const firstMessage: Omit<ChatMessageType, 'timestamp'> & { timestamp: Timestamp } = {
-        id: `msg-${Date.now()}`,
-        text: firstMessageText,
-        sender: 'lead',
-        timestamp: now,
-      };
-      batch.set(chatDocRef, { messages: [firstMessage] });
-    }
+    // 2. Create the chat document with the first message
+    const chatDocRef = doc(db, "crm_lead_chats", newLeadRef.id);
+    const firstMessage: Omit<ChatMessageType, 'timestamp'> & { timestamp: Timestamp } = {
+      id: `msg-${Date.now()}`,
+      text: firstMessageText,
+      sender: 'lead',
+      timestamp: now,
+    };
+    batch.set(chatDocRef, { messages: [firstMessage] });
 
-    // 3. Commit the batch
+    // 3. Commit the batch atomically
     await batch.commit();
     
     console.log(`[Firestore] New lead and first message (if any) committed with ID: ${newLeadRef.id}`);
